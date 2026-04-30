@@ -1,10 +1,10 @@
 name: PermissionsEx
 main: ru.tehkode.permissions.bukkit.PermissionsEx
-softdepend: ["NetEvents"]
 version: "${project.version}"
-author: [t3hk0d3, zml]
+author: [t3hk0d3, zml, Rono]
+api-version: 1.21
 website: http://dev.bukkit.org/server-mods/permissionsex
-description: PermissionsEx - New powerful users and groups permissions management plugin.
+description: PermissionsExPlus - A maintained fork of PermissionsEx.
 commands:
   pex:
     description: Provides access to Permissions commands and information.

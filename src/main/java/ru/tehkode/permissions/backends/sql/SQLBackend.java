@@ -19,7 +19,7 @@
 package ru.tehkode.permissions.backends.sql;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.bukkit.configuration.ConfigurationSection;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionsData;
@@ -39,6 +39,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,7 +57,7 @@ public class SQLBackend extends PermissionBackend {
 	protected Map<String, List<String>> worldInheritanceCache = new HashMap<>();
 	private final AtomicReference<ImmutableSet<String>> userNamesCache = new AtomicReference<>(), groupNamesCache = new AtomicReference<>();
 	private Map<String, Object> tableNames;
-	private SQLQueryCache queryCache;
+	private final SQLQueryCache queryCache;
 	private static final SQLQueryCache DEFAULT_QUERY_CACHE;
 
 	static {
@@ -67,7 +68,7 @@ public class SQLBackend extends PermissionBackend {
 		}
 	}
 
-	private BasicDataSource ds;
+	private final BasicDataSource ds;
 	protected final String dbDriver;
 
 	public SQLBackend(PermissionManager manager, final ConfigurationSection config) throws PermissionBackendException {
@@ -76,13 +77,14 @@ public class SQLBackend extends PermissionBackend {
 		final String dbUser = getConfig().getString("user", "");
 		final String dbPassword = getConfig().getString("password", "");
 
-		if (dbUri == null || dbUri.isEmpty()) {
+		if (dbUri.isEmpty()) {
 			getConfig().set("uri", "mysql://localhost/exampledb");
 			getConfig().set("user", "databaseuser");
 			getConfig().set("password", "databasepassword");
 			manager.getConfiguration().save();
 			throw new PermissionBackendException("SQL connection is not configured, see config.yml");
 		}
+
 		dbDriver = dbUri.split(":", 2)[0];
 
 		this.ds = new BasicDataSource();
@@ -94,8 +96,8 @@ public class SQLBackend extends PermissionBackend {
 		this.ds.setUsername(dbUser);
 		this.ds.setPassword(dbPassword);
 		// https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
-		this.ds.setMaxActive((Runtime.getRuntime().availableProcessors() * 2) + 1);
-		this.ds.setMaxWait(200); // 4 ticks
+		this.ds.setMaxTotal((Runtime.getRuntime().availableProcessors() * 2) + 1);
+		this.ds.setMaxWait(Duration.ofMillis(200)); // 4 ticks
 		this.ds.setValidationQuery("SELECT 1 AS dbcp_validate");
 		this.ds.setTestOnBorrow(true);
 
@@ -109,13 +111,18 @@ public class SQLBackend extends PermissionBackend {
 		} else {
 			this.queryCache = DEFAULT_QUERY_CACHE;
 		}
+
 		try (SQLConnection conn = getSQL()) {
 			conn.checkConnection();
+
 		} catch (Exception e) {
-			if (e.getCause() != null && e.getCause() instanceof Exception) {
-				e = (Exception) e.getCause();
+            Exception exception = e;
+
+            if (exception.getCause() != null && exception.getCause() instanceof Exception) {
+				exception = (Exception) exception.getCause();
 			}
-			throw new PermissionBackendException("Unable to connect to SQL database", e);
+
+			throw new PermissionBackendException("Unable to connect to SQL database", exception);
 		}
 
 		getManager().getLogger().info("Successfully connected to SQL database");

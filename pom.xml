@@ -1,30 +1,31 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>ru.tehkode</groupId>
     <artifactId>PermissionsEx</artifactId>
     <version>1.23.5-SNAPSHOT</version>
-    <name>PermissionsEx</name>
-    <url>https://github.com/PEXPlugins/PermissionsEx</url>
+
+    <name>PermissionsExPlus</name>
+    <url>https://github.com/rowan-smith/PermissionsExPlus</url>
+
     <properties>
-        <netbeans.hint.license>gpl2</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
+        <junit.version>5.11.4</junit.version>
+        <dbcp.version>2.13.0</dbcp.version>
+        <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
+        <maven.shade.plugin.version>3.6.2</maven.shade.plugin.version>
+        <maven.surefire.plugin.version>3.5.5</maven.surefire.plugin.version>
+        <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
+        <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
+        <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
     </properties>
+
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/PEXPlugins/PermissionsEx/issues</url>
+        <url>https://github.com/rowan-smith/PermissionsExPlus/issues</url>
     </issueManagement>
-    <distributionManagement>
-        <repository>
-            <id>pex-repo</id>
-            <name>PermissionsEx Repository</name>
-            <url>http://pex-repo.aoeu.xyz/</url>
-        </repository>
-    </distributionManagement>
-    <scm>
-        <connection>scm:git:git://github.com/PEXPlugins/PermissionsEx.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/PEXPlugins/PermissionsEx.git</developerConnection>
-        <url>https://github.com/PEXPlugins/PermissionsEx.git</url>
-    </scm>
 
     <build>
         <resources>
@@ -33,160 +34,181 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven.compiler.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven.shade.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven.surefire.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven.source.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven.javadoc.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>${maven.gpg.plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.0.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
-          <plugin>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>2.1</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>shade</goal>
-                </goals>
-                <phase>package</phase>
-                <configuration>
-                  <createDependencyReducedPom>false</createDependencyReducedPom>
-                  <relocations>
-                    <relocation>
-                      <pattern>net.gravitydevelopment.updater</pattern>
-                      <shadedPattern>ru.tehkode.libs.net.gravitydevelopment.updater</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.apache</pattern>
-                      <shadedPattern>ru.tehkode.libs.org.apache</shadedPattern>
-                      <excludes>
-                        <exclude>org.apache.commons.lang.*</exclude>
-                      </excludes>
-                    </relocation>
-                    <relocation>
-                      <pattern>com.mojang</pattern>
-                      <shadedPattern>ru.tehkode.libs.com.mojang</shadedPattern>
-                    </relocation>
-                    <relocation>
-                      <pattern>com.google.gson</pattern>
-                      <shadedPattern>ru.tehkode.libs.com.google.gson</shadedPattern>
-                    </relocation>
-                  </relocations>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.jboss.seven2six</groupId>
-            <artifactId>seven2six</artifactId>
-            <version>1.1.Final</version>
-            <executions>
-              <!-- run after "compile", lets your artifact work on 1.6 -->
-              <execution>
-                <id>weave</id>
-                <phase>process-classes</phase>
-                <goals>
-                  <goal>transform</goal>
-                </goals>
-              </execution>
-              <!-- run after "test-compile", lets you run your tests on 1.6 -->
-              <execution>
-                <id>weave-tests</id>
-                <phase>process-test-classes</phase>
-                <goals>
-                  <goal>transform</goal>
-                </goals>
-                <configuration>
-                  <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>animal-sniffer-maven-plugin</artifactId>
-            <version>1.11</version>
-            <configuration>
-              <ignores>
-                <ignore>java.lang.Throwable</ignore>
-              </ignores>
-              <signature>
-                <groupId>org.codehaus.mojo.signature</groupId>
-                <artifactId>java16</artifactId>
-                <version>1.0</version>
-              </signature>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>check</goal>
-                </goals>
-                <phase>test</phase>
-              </execution>
-            </executions>
-          </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.apache</pattern>
+                                    <shadedPattern>ru.tehkode.libs.org.apache</shadedPattern>
+                                    <excludes>
+                                        <exclude>org.apache.commons.lang.*</exclude>
+                                    </excludes>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.mojang</pattern>
+                                    <shadedPattern>ru.tehkode.libs.com.mojang</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern>ru.tehkode.libs.com.google.gson</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+        <repository>
+            <id>mojang</id>
+            <url>https://libraries.minecraft.net/</url>
+        </repository>
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.io/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
     <dependencies>
         <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>1.8.8-R0.1-SNAPSHOT</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.9</version>
+            <version>2.5</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.zachsthings</groupId>
-            <artifactId>netevents</artifactId>
-            <version>1.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit-dep</artifactId>
-            <version>4.10</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>commons-dbcp</groupId>
-            <artifactId>commons-dbcp</artifactId>
-            <version>1.4</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+            <version>${dbcp.version}</version>
         </dependency>
         <dependency>
-            <groupId>net.gravitydevelopment.updater</groupId>
-            <artifactId>updater</artifactId>
-            <version>LATEST</version>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>20030203.000129</version>
+            <scope>provided</scope>
         </dependency>
-      <dependency>
-        <groupId>com.mojang</groupId>
-        <artifactId>AccountsClient</artifactId>
-        <version>unspecified</version>
-      </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.Mojang</groupId>
+            <artifactId>AccountsClient</artifactId>
+            <version>859ba4ec0319366bfb228bbdecd56eebcd7a04bb</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.11.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
-    <repositories>
-        <repository>
-            <id>pex-repo</id>
-            <url>http://pex-repo.aoeu.xyz</url>
-        </repository>
-        <repository>
-            <id>gravity-repo</id>
-            <url>http://repo.gravitydevelopment.net</url>
-        </repository>
-      <repository>
-        <id>spigot-repo</id>
-        <url>https://hub.spigotmc.org/nexus/content/groups/public</url>
-      </repository>
-    </repositories>
+
     <profiles>
         <profile>
             <id>release</id>
@@ -195,7 +217,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -208,7 +229,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.9.1</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
@@ -221,7 +241,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.5</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>

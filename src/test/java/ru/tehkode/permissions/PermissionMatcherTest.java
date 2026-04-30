@@ -1,8 +1,8 @@
 package ru.tehkode.permissions;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class PermissionMatcherTest {
 
@@ -12,8 +12,8 @@ public abstract class PermissionMatcherTest {
     public void testCaseInsensitivity() {
         assertTrue(matcher.isMatches("PERMISSION.*", "permission.Case.Are.does.NOT.matter"));
     }
-    
-    //@Test
+
+    // @Test
     public void testRanges() {
         // low boundary
         assertTrue(matcher.isMatches("permission.range.(100-200)", "permission.range.100"));
@@ -25,7 +25,6 @@ public abstract class PermissionMatcherTest {
         // out range
         assertFalse(matcher.isMatches("permission.range.(100-200)", "permission.range.99"));
         assertFalse(matcher.isMatches("permission.range.(100-200)", "permission.range.201"));
-
     }
 
     @Test
