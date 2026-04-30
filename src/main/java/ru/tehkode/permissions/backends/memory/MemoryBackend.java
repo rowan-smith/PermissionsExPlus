@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.configuration.ConfigurationSection;
 import ru.tehkode.permissions.PermissionManager;
@@ -33,16 +33,19 @@ import ru.tehkode.permissions.PermissionsUserData;
 import ru.tehkode.permissions.backends.PermissionBackend;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
-/*
+/**
  * Memory Backend
  * Zero Persistence. Does not attempt to save any and all permissions.
  *
  */
 public class MemoryBackend extends PermissionBackend {
+	private final Map<String, MemoryData> users = new ConcurrentHashMap<>();
+	private final Map<String, MemoryData> groups = new ConcurrentHashMap<>();
+	private final Map<String, List<String>> worldInheritance = new ConcurrentHashMap<>();
 
-    public MemoryBackend(PermissionManager manager, ConfigurationSection config) throws PermissionBackendException {
-        super(manager, config);
-    }
+	public MemoryBackend(PermissionManager manager, ConfigurationSection config) throws PermissionBackendException {
+		super(manager, config);
+	}
 
 	@Override
 	public int getSchemaVersion() {
@@ -54,62 +57,75 @@ public class MemoryBackend extends PermissionBackend {
 		// no-op
 	}
 
-
 	@Override
 	public void reload() throws PermissionBackendException {
 	}
 
 	@Override
 	public PermissionsUserData getUserData(String userName) {
-		return new MemoryData(userName);
+		MemoryData data = users.get(userName.toLowerCase());
+		if (data == null) {
+			data = new MemoryData(userName);
+			users.put(userName.toLowerCase(), data);
+		}
+		return data;
 	}
 
 	@Override
 	public PermissionsGroupData getGroupData(String groupName) {
-		return new MemoryData(groupName);
+		MemoryData data = groups.get(groupName);
+		if (data == null) {
+			data = new MemoryData(groupName);
+			groups.put(groupName, data);
+		}
+		return data;
 	}
 
 	@Override
 	public boolean hasUser(String userName) {
-		return false;
+		return users.containsKey(userName.toLowerCase());
 	}
 
 	@Override
 	public boolean hasGroup(String group) {
-		return false;
+		return groups.containsKey(group);
 	}
 
 	@Override
 	public Collection<String> getUserIdentifiers() {
-		return Collections.emptySet();
+		return Collections.unmodifiableCollection(users.keySet());
 	}
 
 	@Override
 	public Collection<String> getUserNames() {
-		return Collections.emptySet();
+		return Collections.unmodifiableCollection(users.keySet());
 	}
 
 	@Override
 	public Collection<String> getGroupNames() {
-		return Collections.emptySet();
+		return Collections.unmodifiableCollection(groups.keySet());
 	}
 
 	@Override
 	public List<String> getWorldInheritance(String world) {
-		return Collections.emptyList();
+		return worldInheritance.getOrDefault(world, Collections.emptyList());
 	}
 
 	@Override
 	public Map<String, List<String>> getAllWorldInheritance() {
-		return Collections.emptyMap();
+		return Collections.unmodifiableMap(worldInheritance);
 	}
 
 	@Override
 	public void setWorldInheritance(String world, List<String> inheritance) {
+		if (inheritance == null || inheritance.isEmpty()) {
+			worldInheritance.remove(world);
+		} else {
+			worldInheritance.put(world, Collections.unmodifiableList(inheritance));
+		}
 	}
 
 	@Override
 	public void writeContents(Writer writer) throws IOException {
-
 	}
 }

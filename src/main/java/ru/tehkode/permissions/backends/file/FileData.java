@@ -138,7 +138,7 @@ public class FileData implements PermissionsUserData, PermissionsGroupData {
 		if (worldsSection != null) {
 			for (String world : worldsSection.getKeys(false)) {
 				List<String> worldPermissions = this.node.getStringList(FileBackend.buildPath("worlds", world, "permissions"));
-				if (commonPermissions != null) {
+				if (worldPermissions != null) {
 					allPermissions.put(world, Collections.unmodifiableList(worldPermissions));
 				}
 			}

@@ -181,15 +181,10 @@ public class FileBackend extends PermissionBackend {
 		final List<String> parentWorlds = new ArrayList<>(rawParentWorlds);
 		worldInheritanceCache.put(world, parentWorlds);
 
-		getExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				synchronized (lock) {
-					permissions.set(buildPath("worlds", world, "inheritance"), parentWorlds);
-					save();
-				}
-			}
-		});
+		synchronized (lock) {
+			permissions.set(buildPath("worlds", world, "inheritance"), parentWorlds);
+			save();
+		}
 	}
 
 	@Override
@@ -303,12 +298,18 @@ public class FileBackend extends PermissionBackend {
 
 	@Override
 	public void reload() throws PermissionBackendException {
-		FileConfig newPermissions = new FileConfig(permissionsFile, new Object(), "users");
+		FileConfig newPermissions = new FileConfig(permissionsFile, new Object(), "users", "groups");
 		newPermissions.options().pathSeparator(PATH_SEPARATOR);
 		try {
 			newPermissions.load();
 			getLogger().info("Permissions file successfully reloaded");
 			worldInheritanceCache.clear();
+			ConfigurationSection worldInheritance = newPermissions.getConfigurationSection("world-inheritance");
+			if (worldInheritance != null) {
+				for (String world : worldInheritance.getKeys(false)) {
+					worldInheritanceCache.put(world, worldInheritance.getStringList(world));
+				}
+			}
 			this.permissions = newPermissions;
 		} catch (FileNotFoundException e) {
 			if (this.permissions == null) {
@@ -376,6 +377,13 @@ public class FileBackend extends PermissionBackend {
 
 	public void save() {
 		try {
+			if (this.permissions == null) {
+				return;
+			}
+			ConfigurationSection worldInheritance = this.permissions.createSection("world-inheritance");
+			for (Map.Entry<String, List<String>> entry : worldInheritanceCache.entrySet()) {
+				worldInheritance.set(entry.getKey(), entry.getValue());
+			}
 			this.permissions.save();
 		} catch (IOException e) {
 			getManager().getLogger().severe("Error while saving permissions file: " + e.getMessage());

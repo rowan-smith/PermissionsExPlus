@@ -19,7 +19,7 @@
 package ru.tehkode.permissions;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import ru.tehkode.permissions.events.PermissionEntityEvent;

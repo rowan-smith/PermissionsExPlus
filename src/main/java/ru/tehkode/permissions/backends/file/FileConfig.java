@@ -42,15 +42,17 @@ public class FileConfig extends YamlConfiguration {
 		if (!saveSuppressed) {
 			this.save(tempFile);
 			oldFile.delete();
-			if (!file.exists() || file.renameTo(oldFile)) {
-				if (!tempFile.renameTo(file)) {
-					throw new IOException("Unable to overwrite config with temporary file! New config is at " + tempFile + ", old config at" + oldFile);
-				} else {
-					if (!oldFile.delete()) {
-						throw new IOException("Unable to delete old file " + oldFile);
-					}
+			if (file.exists()) {
+				if (!file.renameTo(oldFile)) {
+					throw new IOException("Unable to prepare replace of config file " + file);
 				}
 			}
+
+			if (!tempFile.renameTo(file)) {
+				throw new IOException("Unable to overwrite config with temporary file! New config is at " + tempFile + ", old config at" + oldFile);
+			}
+
+			oldFile.delete();
 		}
 	}
 

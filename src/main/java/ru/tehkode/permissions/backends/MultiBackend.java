@@ -160,7 +160,7 @@ public class MultiBackend extends PermissionBackend {
 	@Override
 	public Map<String, List<String>> getAllWorldInheritance() {
 		Map<String, List<String>> ret = new HashMap<>();
-		for (int i = backends.size(); i >= 0; --i) {
+		for (int i = backends.size() - 1; i >= 0; --i) {
 			ret.putAll(backends.get(i).getAllWorldInheritance());
 		}
 		return Collections.unmodifiableMap(ret);

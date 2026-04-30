@@ -78,7 +78,7 @@ public class MemoryData implements PermissionsGroupData, PermissionsUserData {
 	}
 
 	@Override
-	public void setOption(String option, String worldName, String value) {
+	public void setOption(String option, String value, String worldName) {
 		Map<String, String> worldOptions = worldsOptions.get(worldName);
 		if (worldOptions == null) {
 			worldOptions = new HashMap<>();
