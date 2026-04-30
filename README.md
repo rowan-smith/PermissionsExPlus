@@ -10,6 +10,28 @@ PermissionsExPlus provides a flexible permissions system with support for users,
 
 This fork is based on the original PermissionsEx project and keeps the same core plugin identity and command style where practical.
 
+**Maven:** parent **`dev.rono.permissions:PermissionsExPlus`**. Module stack: **`permissionsex-core-api`** (platform-neutral SPI) ← **`permissionsex-api`** (modern façade) + **`permissionsex-legacy-api`** (classic façade) → **`permissionsex-core`** (engine) ← **`permissionsex-spigot`** / **`permissionsex-bungee`**. Third-party compile surfaces use **`permissionsex-api`** and/or **`permissionsex-legacy-api`** as needed. **`permissionsex-bootstrap`** merges the platform jars.
+
+```mermaid
+flowchart BT
+  coreapi[permissionsex-core-api]
+  api[permissionsex-api]
+  legacy[permissionsex-legacy-api]
+  core[permissionsex-core]
+  spigot[permissionsex-spigot]
+  bungee[permissionsex-bungee]
+  boot[permissionsex-bootstrap]
+  api --> coreapi
+  legacy --> coreapi
+  core --> coreapi
+  core --> api
+  core --> legacy
+  spigot --> core
+  bungee --> core
+  boot --> spigot
+  boot --> bungee
+```
+
 ## Features
 
 - User and group permission management
@@ -50,14 +72,35 @@ If you are building from source with Maven:
 mvn clean package
 ```
 
-The compiled plugin jar will typically be generated in the `target/` directory.
+The compiled plugin jars are produced under each module’s `target/` directory (see **Universal merged jar** below).
+
+### Universal merged jar (Spigot/Paper **and** Bungee proxy)
+
+Use the **`bootstrap`** module when you want **one artifact** that works on backends and proxies:
+
+```bash
+mvn clean package -pl bootstrap -am
+```
+
+Outputs: **`bootstrap/target/PermissionsExPlus-{version}.jar`** (module: **`dev.rono.permissions:permissionsex-bootstrap`**)
+
+Install that jar on each server (`plugins/` on backends, same path on Bungee). See **`bootstrap/README.md`** for loader routing (`plugin.yml` vs **`bungee.yml`**).
+
+**Before swapping to the merged jar, remove older PEX jars** from **`plugins/`** so the server cannot load two copies. Delete any shaded platform-only jars, for example:
+
+- **`permissionsex-spigot-*.jar`** and **`permissionsex-bungee-*.jar`** (modular shaded builds under **`dev.rono.permissions`**)
+- Older coordinates: **`ru.tehkode:permissionsex-*`**
+- Legacy fork jar names if present: **`PermissionsExPlus-spigot-*.jar`**, **`PermissionsExPlus-bungee-*.jar`**, **`PermissionsExPlus-bootstrap-*-universal.jar`**
+
+Keep only **`PermissionsExPlus-{version}.jar`** on that installation when using the bootstrap merge path (plus unrelated plugins).
 
 ## Installation
 
-1. Build the project with Maven or download a compiled release.
-2. Place the jar file in your server's `plugins/` directory.
-3. Start or restart the server.
-4. Configure groups, users, and permissions using commands or configuration files.
+1. Build the project with Maven or download a compiled release (**universal jar** recommended if you run both backends and Bungee; see above).
+2. Remove conflicting older PermissionsEx jars from **`plugins/`** (standalone **`permissionsex-spigot`** / **`permissionsex-bungee`**, legacy **`PermissionsExPlus-*`** or **`ru.tehkode`** coordinates, etc.) if migrating to **`PermissionsExPlus-{version}.jar`**.
+3. Place the jar file (or jars, if using separate proxies/backends intentionally) in your server’s **`plugins/`** directory.
+4. Start or restart the server.
+5. Configure groups, users, and permissions using commands or configuration files.
 
 ## Commands
 
