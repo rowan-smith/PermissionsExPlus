@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.junit.jupiter.api.Test;
-import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.bukkit.PermissionsExConfig;
 import ru.tehkode.permissions.events.PermissionEntityEvent;
 import ru.tehkode.permissions.events.PermissionEvent;
@@ -126,19 +125,6 @@ public class LegacyApiContractTest {
                 "getExecutor()",
                 "shouldSaveDefaultGroup()");
         assertEquals(expected, declared);
-    }
-
-    @Test
-    public void permissionsExStaticEntryPointsMatchClassicSurface() throws NoSuchMethodException {
-        assertTrue(Modifier.isFinal(PermissionsEx.class.getModifiers()));
-        assertMethod(PermissionsEx.class, "getPlugin");
-        assertMethod(PermissionsEx.class, "isAvailable");
-        assertMethod(PermissionsEx.class, "getPermissionManager");
-        assertMethod(PermissionsEx.class, "getUser", Player.class);
-        assertMethod(PermissionsEx.class, "getUser", String.class);
-        assertFalse(hasMethod(PermissionsEx.class, "isEnabled"));
-        assertFalse(hasMethod(PermissionsEx.class, "getBackend"));
-        assertFalse(hasMethod(PermissionsEx.class, "getUser", java.util.UUID.class));
     }
 
     @Test

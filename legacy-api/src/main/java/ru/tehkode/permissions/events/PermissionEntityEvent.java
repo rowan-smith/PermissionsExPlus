@@ -1,9 +1,11 @@
 package ru.tehkode.permissions.events;
 
 import java.util.UUID;
+import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import ru.tehkode.permissions.PermissionEntity;
-import ru.tehkode.permissions.bukkit.PermissionsEx;
+import ru.tehkode.permissions.PermissionManager;
 
 public class PermissionEntityEvent extends PermissionEvent {
     private static final HandlerList handlers = new HandlerList();
@@ -26,18 +28,27 @@ public class PermissionEntityEvent extends PermissionEvent {
 
     public PermissionEntity getEntity() {
         if (entity == null) {
-            switch (type) {
-                case GROUP:
-                    entity = PermissionsEx.getPermissionManager().getGroup(entityIdentifier);
-                    break;
-                case USER:
-                    entity = PermissionsEx.getPermissionManager().getUser(entityIdentifier);
-                    break;
-                default:
-                    break;
+            PermissionManager manager = resolveManager();
+            if (manager != null) {
+                switch (type) {
+                    case GROUP:
+                        entity = manager.getGroup(entityIdentifier);
+                        break;
+                    case USER:
+                        entity = manager.getUser(entityIdentifier);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         return entity;
+    }
+
+    private static PermissionManager resolveManager() {
+        RegisteredServiceProvider<PermissionManager> reg =
+                Bukkit.getServer().getServicesManager().getRegistration(PermissionManager.class);
+        return reg == null ? null : reg.getProvider();
     }
 
     public String getEntityIdentifier() {

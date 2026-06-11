@@ -5,7 +5,9 @@
 ```
 permissionsex-core-api   Platform-neutral SPI (PlatformAdapter, bus dispatches)
 permissionsex-api        Thin PermissionService façade
-permissionsex-legacy-api Classic ru.tehkode.permissions compile surface + Bukkit events
+permissionsex-legacy-api Classic ru.tehkode.permissions types + utils + Bukkit events
+permissionsex-legacy-stub Compile-only PermissionsEx static entry points (hook plugins)
+permissionsex-legacy-compat Regression tests (MockBukkit + optional classic plugin JARs)
 permissionsex-core       Engine (manager, backends, commands, hierarchy)
 permissionsex-spigot   Bukkit/Paper bootstrap, superperms bridge, platform adapters
 permissionsex-bungee   Proxy bootstrap and permission bridge
@@ -83,7 +85,8 @@ Classic hook-plugin compatibility is confined to **`permissionsex-legacy-api`** 
 
 | Layer | Package / module | Role |
 |-------|------------------|------|
-| **Compile contract** | `permissionsex-legacy-api` → `ru.tehkode.permissions.*` | Frozen public types for third-party plugins (`PermissionManager`, events, `NativeInterface`, config interfaces). `PermissionsEx` here is a **compile-only static stub**; it is excluded from the shaded Spigot jar. |
+| **Compile contract** | `permissionsex-legacy-api` → `ru.tehkode.permissions.*` | Frozen public types for third-party plugins (`PermissionManager`, events, `NativeInterface`, config interfaces, `ru.tehkode.utils.*`). |
+| **Compile stub** | `permissionsex-legacy-stub` → `ru.tehkode.permissions.bukkit.PermissionsEx` | Static entry points for hook plugins only; **not** on the Spigot module compile classpath. |
 | **Runtime plugin entry** | `permissionsex-spigot` → `ru.tehkode.permissions.bukkit.PermissionsEx` | Live `JavaPlugin` subclass registered in `plugin.yml`. |
 | **Legacy bridges** | `dev.rono.permissions.core.legacy.*` | Adapters from modern config/runtime to classic types (e.g. `LegacyPermissionsExConfigAdapter`). Not part of the hook-plugin compile surface. |
 | **Modern internals** | `dev.rono.permissions.core.InternalPermissionManager` | Runtime hooks removed from the legacy `PermissionManager` interface (`PlatformAdapter`, bus publish, scheduling, `getBasedir`, …). |

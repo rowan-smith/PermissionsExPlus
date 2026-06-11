@@ -17,7 +17,7 @@ import ru.tehkode.permissions.bukkit.PermissionsEx;
  * Sample plugin compiling only against {@code permissionsex-legacy-api} (+ {@code spigot-api}): classic static
  * {@link PermissionsEx} entry points and {@link PermissionManager} operations.
  */
-public final class ExamplePlugin extends JavaPlugin implements Listener {
+public class ExamplePlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {

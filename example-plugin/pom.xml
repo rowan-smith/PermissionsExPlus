@@ -7,12 +7,12 @@
     <parent>
         <groupId>dev.rono.permissions</groupId>
         <artifactId>PermissionsExPlus</artifactId>
-        <version>1.23.5-SNAPSHOT</version>
+        <version>1.23.5</version>
     </parent>
 
     <artifactId>permissionsex-example-plugin</artifactId>
     <name>PermissionsEx Example Hook Plugin</name>
-    <description>Sample plugin that compiles only against {@code permissionsex-legacy-api} (+ {@code spigot-api}) to exercise classic {@code ru.tehkode.permissions.*} signatures. Runtime expects PEX deployed on the server.</description>
+    <description>Sample plugin that compiles against {@code permissionsex-legacy-api} + {@code permissionsex-legacy-stub} (+ {@code spigot-api}) to exercise classic {@code ru.tehkode.permissions.*} signatures. Runtime expects PEX deployed on the server.</description>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -27,6 +27,12 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>permissionsex-legacy-api</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>permissionsex-legacy-stub</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>

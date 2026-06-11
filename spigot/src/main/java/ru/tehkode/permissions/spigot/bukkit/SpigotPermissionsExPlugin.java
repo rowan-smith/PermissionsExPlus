@@ -199,6 +199,14 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 
 			platformBridge = new SpigotPlatformBridge(this);
 			eventPublisher = new SpigotEventPublisher(this);
+			if (!dev.rono.permissions.spigot.compat.ServerVersions.isWithinSupportedRange(getServer())) {
+				getLogger().warning("Minecraft version " + dev.rono.permissions.spigot.compat.ServerVersions.minecraftVersion(getServer())
+						+ " is outside the tested range "
+						+ dev.rono.permissions.spigot.compat.ServerVersions.MIN_MC
+						+ "–"
+						+ dev.rono.permissions.spigot.compat.ServerVersions.MAX_MC
+						+ "; continuing with compatibility shims enabled.");
+			}
 			if (this.permissionsManager == null) {
 				this.permissionsManager = new DefaultPermissionManager(config, getLogger(), this);
 			}

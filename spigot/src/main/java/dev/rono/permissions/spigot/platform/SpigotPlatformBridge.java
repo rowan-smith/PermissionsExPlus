@@ -41,7 +41,7 @@ public final class SpigotPlatformBridge {
 
     public UUID serverId() {
         List<World> worlds = plugin.getServer().getWorlds();
-        return worlds.isEmpty() ? null : worlds.getFirst().getUID();
+        return worlds.isEmpty() ? null : worlds.get(0).getUID();
     }
 
     public Collection<String> realmNames() {

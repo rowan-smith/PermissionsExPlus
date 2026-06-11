@@ -4,7 +4,7 @@
 
     <groupId>dev.rono.permissions</groupId>
     <artifactId>PermissionsExPlus</artifactId>
-    <version>1.23.5-SNAPSHOT</version>
+    <version>1.23.5</version>
     <packaging>pom</packaging>
 
     <name>PermissionsExPlus</name>
@@ -14,11 +14,13 @@
         <module>core-api</module>
         <module>api</module>
         <module>legacy-api</module>
+        <module>legacy-stub</module>
         <module>core</module>
         <module>spigot</module>
         <module>bungee</module>
         <module>bootstrap</module>
         <module>example-plugin</module>
+        <module>legacy-compat</module>
     </modules>
 
     <properties>
@@ -35,7 +37,9 @@
         <cloud.version>1.8.4</cloud.version>
         <mockito.version>5.18.0</mockito.version>
         <mockbukkit.version>4.108.0</mockbukkit.version>
-        <paper.test.version>1.21.1-R0.1-SNAPSHOT</paper.test.version>
+        <paper.test.version>1.21.11-R0.1-SNAPSHOT</paper.test.version>
+        <minecraft.compat.min>1.8.8</minecraft.compat.min>
+        <minecraft.compat.max>1.26.1</minecraft.compat.max>
     </properties>
 
     <issueManagement>

@@ -44,7 +44,7 @@ flowchart BT
 - UUID conversion support
 - Debug and reporting tools
 
-## Current status (`1.23.5-SNAPSHOT`)
+## Current status (`1.23.5`)
 
 | Area | State |
 |------|--------|
@@ -52,7 +52,8 @@ flowchart BT
 | **Spigot/Paper** | Compiles against **1.21.x** API; suitable for staging / dogfooding |
 | **Bungee** | Compiles and tests against BungeeCord API |
 | **Legacy hook plugins** | `ru.tehkode.*` contract restored to baseline **`628215f`**; see `ARCHITECTURE.md` |
-| **Release** | Not yet tagged — treat as pre-release until you cut `1.23.5` (or similar) |
+| **Release** | **`1.23.5`** — run the [real-server matrix](docs/testing/REAL_SERVER_MATRIX.md) before production |
+| **Minecraft** | Target range **1.8.8 – 1.26.1** ([compatibility notes](docs/COMPATIBILITY.md)) |
 
 MockBukkit full-server tests **skip automatically** when the test Paper API does not match the compile-time Spigot API. Unit and backend tests still run.
 
@@ -61,26 +62,28 @@ MockBukkit full-server tests **skip automatically** when the test Paper API does
 ### Done
 
 - [x] **Modern platform abstractions** — `dev.rono.permissions.api` (`PlatformAdapter`, bus dispatches, `PermissionService`)
-- [x] **Automated tests for core permission logic** — hierarchy, matcher, backends, commands, concurrency, legacy contract tests (~25 test classes)
-- [x] **Legacy API cleanup and isolation** — `InternalPermissionManager`, `legacy-api` contract tests, unified YAML backend, events confined to Spigot
-- [x] **Documentation** — `ARCHITECTURE.md`, `bootstrap/README.md`, module graph in this README, `example-plugin` hook sample
-- [x] **Partial: newer Spigot/Paper target** — 1.21.x compile target and bootstrap universal jar (MockBukkit alignment still open)
+- [x] **Automated tests for core permission logic** — hierarchy, matcher, backends, commands, concurrency, legacy contract tests (~30 test classes)
+- [x] **Legacy API cleanup and isolation** — `legacy-api` + `legacy-stub` split, `InternalPermissionManager`, `legacy-compat` module, utils in `legacy-api`
+- [x] **Documentation** — `ARCHITECTURE.md`, `docs/COMPATIBILITY.md`, `docs/testing/REAL_SERVER_MATRIX.md`, `docs/examples/`
+- [x] **MockBukkit / Paper 1.21.11 alignment** — Paper test API matches Spigot compile API; hook smoke test in `legacy-compat`
+- [x] **Config validation** — `PexYamlValidator` + `PexConfigValidator` with clear error messages
+- [x] **Example configurations** — `docs/examples/config.yml`, `docs/examples/permissions.yml`
+- [x] **Release `1.23.5`** — version bumped from SNAPSHOT
+- [x] **Minecraft 1.8.8–1.26.1 target** — `ServerVersions` range checks + compatibility doc (Java 21 runtime required)
 - [x] **Partial: reload / superperms refresh** — selective `PermissiblePEX` cache invalidation, `RELOADED` system dispatch (needs more real-server soak time)
+- [x] **Partial: legacy plugin JAR regression** — optional probe in `legacy-compat` (`plugin-jars/`)
 
 ### Still planned
 
-- [ ] Full MockBukkit / Paper API alignment for green integration tests on 1.21.11+
 - [ ] Improve reload stability and permission attachment refresh behavior (production soak)
-- [ ] Add better validation and error messages for invalid configuration files
 - [ ] Improve tab completion and command usability
 - [ ] Add migration helpers for older PermissionsEx data layouts
 - [ ] Expand UUID migration and offline player handling
 - [ ] Improve backend compatibility and database reliability
 - [ ] Add clearer logging and debug output for permission resolution issues
-- [ ] Add example configurations for common server setups
 - [ ] CI builds and automated release packaging *(optional — not enabled in this repo yet)*
 - [ ] Investigate a web editor or external management UI
-- [ ] Compatibility smoke tests against real legacy third-party plugin JARs
+- [ ] Java 8 bytecode profile for true 1.8.8 JVM hosts *(current build requires Java 21)*
 
 ## Maven
 

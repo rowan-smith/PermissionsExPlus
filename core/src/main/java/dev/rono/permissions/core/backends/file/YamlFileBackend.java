@@ -175,6 +175,7 @@ public class YamlFileBackend extends AbstractPermissionBackend {
                         Object loaded = yaml.load(reader);
                         if (loaded instanceof Map<?, ?> map) {
                             yamlRoot.putAll(castStringObjectMap(map));
+                            PexYamlValidator.validateRoot(yamlRoot);
                         } else {
                             mutated = true;
                         }

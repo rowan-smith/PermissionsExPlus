@@ -64,6 +64,11 @@ public final class PermissionsExConfig implements dev.rono.permissions.core.Perm
     private void rebuildFromDisk() {
         Map<String, Object> permissions = BukkitYamlMaps.permissionsSection(
                 plugin.getConfig().getConfigurationSection("permissions"));
+        try {
+            dev.rono.permissions.core.config.PexConfigValidator.validatePermissionsSection(permissions);
+        } catch (ru.tehkode.permissions.exceptions.PermissionBackendException ex) {
+            throw new IllegalStateException(ex.getMessage(), ex);
+        }
         PexConfigData snap =
                 PexYamlConfig.load(
                         permissions,

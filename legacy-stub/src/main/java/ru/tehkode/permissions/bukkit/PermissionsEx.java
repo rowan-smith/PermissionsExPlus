@@ -9,8 +9,8 @@ import ru.tehkode.permissions.PermissionUser;
 import ru.tehkode.permissions.exceptions.PermissionsNotAvailable;
 
 /**
- * Compile-time static entry points for hook plugins. The live {@code JavaPlugin} implementation is
- * {@code ru.tehkode.permissions.bukkit.PermissionsEx} in the Spigot module and replaces this stub at runtime.
+ * Compile-only static entry points for hook plugins. The live {@code JavaPlugin} implementation ships in
+ * {@code permissionsex-spigot} and is registered via {@code plugin.yml}.
  */
 public final class PermissionsEx {
     private PermissionsEx() {}
