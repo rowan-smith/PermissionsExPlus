@@ -8,15 +8,15 @@ Policy: **legacy `ru.tehkode.*` stays frozen**. New capabilities belong under `d
 
 | Feature | API |
 |---------|-----|
-| Modern event bus | `PermissionService.events()` → `PermissionEventBus` |
-| Player checks (Bukkit) | `permissionsex-api-bukkit` → `BukkitPermissions.has(...)` |
+| Modern event bus | `query().events()` → `PermissionEventBus` |
+| Player checks (Bukkit) | `BukkitPermissions.on(player).has(...)` |
 | Promote / demote | `User.promote` / `User.demote` (+ `RankingException`) |
-| Backend admin | `setActiveBackend`, `createBackendHandle`, `importFromBackend` |
-| Import / export | `exportData`, `importData(document, ImportMode)` |
+| Backend admin | `query().backend().activate`, `createHandle`, `importFrom` |
+| Import / export | `query().backend().exportData`, `importData(document, ImportMode)` |
 | Hierarchy helpers | `Group.children` / `Group.descendants`, `Group.members(world, inherit)` |
-| Fluent API | `user()` / `findUser()` / `group()` / `findGroup()` / `world()` / `findWorld()` |
-| Batch edits | `openEditSession()` → `PermissionEditSession` |
-| Async reload | `reloadAsync()` → `CompletableFuture<Void>` |
+| Query API | `query()` → `world()`, `users()`, `groups()`, `backend()` |
+| Batch edits | `query().editSession()` → `PermissionEditSession` |
+| Async reload | `query().reloadAsync()` → `CompletableFuture<Void>` |
 | Proxy `PermissionService` | `ProxyPermissionServices` on Bungee/Waterfall |
 
 ---

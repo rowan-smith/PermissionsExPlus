@@ -355,9 +355,10 @@ public void onEnable() {
 
 public void onJoin(PlayerJoinEvent event, PermissionService pex) {
     Player player = event.getPlayer();
-    String world = player.getWorld().getName();
-    if (pex.world(world).user(player.getUniqueId()).has("my.permission")) {
-        pex.user().by(player.getUniqueId()).inWorld(world).addPermission("joined.today");
+    if (BukkitPermissions.on(player).has("my.permission")) {
+        pex.query().world(player.getWorld().getName())
+                .user(player.getUniqueId())
+                .addPermission("joined.today");
         pex.user(player.getUniqueId()).save();
     }
 }
