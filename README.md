@@ -209,6 +209,11 @@ Primary entry point for modern hook plugins. Lookup: `ServicesManager.getRegistr
 | `registeredUserNameCount()` / `registeredGroupCount()` | Legacy aliases for the counts above |
 | `activeBackendSimpleName()` | Legacy alias for `backend().simpleName()` |
 | `worlds()` | Known realm/world names from the platform adapter |
+| `worldInheritance(world)` / `setWorldInheritance(world, parents)` | Configure which worlds inherit into another |
+| `worldInheritanceMap()` | All world-inheritance mappings |
+| `defaultGroups(world)` | Default groups for a world (includes global defaults) |
+| `rankLadder(ladderName)` | Rank-ordered groups on a promotion ladder |
+| `usersInGroup(group, world, inherit)` | Users in a group (optionally descendant groups) |
 | `isDebug()` | Whether PEX debug mode is enabled |
 | `has(UUID, permission)` / `has(UUID, permission, world)` / `has(name, permission, world)` | Effective permission checks |
 | `findUser(identifier)` / `findUser(uuid)` | Optional lookup without materializing virtual users |

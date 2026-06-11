@@ -2,14 +2,18 @@ package dev.rono.permissions.core.api;
 
 import dev.rono.permissions.api.subject.Group;
 import dev.rono.permissions.api.subject.SubjectType;
+import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.api.world.Worlds;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import ru.tehkode.permissions.PermissionGroup;
+import ru.tehkode.permissions.PermissionUser;
 
 public final class ModernGroupAdapter extends AbstractModernSubjectAdapter implements Group {
     private final PermissionGroup group;
@@ -100,6 +104,38 @@ public final class ModernGroupAdapter extends AbstractModernSubjectAdapter imple
     public void setRank(int rank, String ladder) {
         group.setRank(rank);
         group.setRankLadder(ladder);
+    }
+
+    @Override
+    public Set<String> memberIdentifiers(String world) {
+        LinkedHashSet<String> identifiers = new LinkedHashSet<>();
+        for (PermissionUser member : group.getUsers(ModernWorlds.toLegacy(world))) {
+            identifiers.add(member.getIdentifier());
+        }
+        return Set.copyOf(identifiers);
+    }
+
+    @Override
+    public List<User> members(String world) {
+        List<User> members = new ArrayList<>();
+        for (PermissionUser member : group.getUsers(ModernWorlds.toLegacy(world))) {
+            members.add(new ModernUserAdapter(member, manager));
+        }
+        return List.copyOf(members);
+    }
+
+    @Override
+    public List<User> activeMembers() {
+        return activeMembers(false);
+    }
+
+    @Override
+    public List<User> activeMembers(boolean inherit) {
+        List<User> members = new ArrayList<>();
+        for (PermissionUser member : group.getActiveUsers(inherit)) {
+            members.add(new ModernUserAdapter(member, manager));
+        }
+        return List.copyOf(members);
     }
 
     @Override

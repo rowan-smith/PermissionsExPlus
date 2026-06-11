@@ -4,7 +4,10 @@ import dev.rono.permissions.api.PermissionsExException;
 import dev.rono.permissions.api.backend.BackendInfo;
 import dev.rono.permissions.api.subject.Group;
 import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.api.world.Worlds;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -41,6 +44,25 @@ public interface PermissionService {
 
     boolean isDebug();
 
+    // --- World inheritance ---
+
+    /**
+     * Parent worlds whose permissions/options inherit into {@code world}.
+     * {@link Worlds#GLOBAL} returns inheritance for the global namespace when configured.
+     */
+    List<String> worldInheritance(String world);
+
+    void setWorldInheritance(String world, List<String> parentWorlds);
+
+    /** All configured world-inheritance mappings ({@link Worlds#GLOBAL} key = global). */
+    Map<String, List<String>> worldInheritanceMap();
+
+    /** Default groups for {@code world} (includes global defaults when applicable). */
+    List<Group> defaultGroups(String world);
+
+    /** Rank-ordered groups on a ladder (key = rank, value = group). */
+    Map<Integer, Group> rankLadder(String ladderName);
+
     // --- Permission checks ---
 
     boolean has(UUID playerId, String permission);
@@ -48,6 +70,10 @@ public interface PermissionService {
     boolean has(UUID playerId, String permission, String world);
 
     boolean has(String playerName, String permission, String world);
+
+    default boolean has(String playerName, String permission) {
+        return has(playerName, permission, Worlds.GLOBAL);
+    }
 
     // --- Users ---
 
@@ -74,6 +100,21 @@ public interface PermissionService {
     Set<String> groupNames();
 
     void deleteGroup(String name);
+
+    /**
+     * Users belonging to {@code groupName} in {@code world}.
+     *
+     * @param inherit when {@code true}, includes users in descendant groups
+     */
+    List<User> usersInGroup(String groupName, String world, boolean inherit);
+
+    default List<User> usersInGroup(String groupName, String world) {
+        return usersInGroup(groupName, world, false);
+    }
+
+    default List<User> usersInGroup(String groupName) {
+        return usersInGroup(groupName, Worlds.GLOBAL, false);
+    }
 
     // --- Maintenance ---
 

@@ -28,6 +28,7 @@ import dev.rono.permissions.api.runtime.PlatformAdapter;
 import dev.rono.permissions.api.service.PermissionService;
 import dev.rono.permissions.api.subject.Group;
 import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.api.world.Worlds;
 import dev.rono.permissions.core.api.ModernGroupAdapter;
 import dev.rono.permissions.core.api.ModernUserAdapter;
 import ru.tehkode.permissions.PEXBackendConfiguration;
@@ -732,6 +733,47 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 		String id = group.getIdentifier();
 		group.remove();
 		resetGroup(id);
+	}
+
+	@Override
+	public List<String> worldInheritance(String world) {
+		return List.copyOf(getWorldInheritance(Worlds.normalize(world)));
+	}
+
+	@Override
+	public Map<String, List<String>> worldInheritanceMap() {
+		LinkedHashMap<String, List<String>> mapped = new LinkedHashMap<>();
+		for (Map.Entry<String, List<String>> entry : backend.getAllWorldInheritance().entrySet()) {
+			mapped.put(Worlds.fromMapKey(entry.getKey()), List.copyOf(entry.getValue()));
+		}
+		return Map.copyOf(mapped);
+	}
+
+	@Override
+	public List<Group> defaultGroups(String world) {
+		List<Group> defaults = new ArrayList<>();
+		for (PermissionGroup group : getDefaultGroups(Worlds.normalize(world))) {
+			defaults.add(wrapGroup(group));
+		}
+		return List.copyOf(defaults);
+	}
+
+	@Override
+	public Map<Integer, Group> rankLadder(String ladderName) {
+		Map<Integer, Group> ladder = new LinkedHashMap<>();
+		for (Map.Entry<Integer, PermissionGroup> entry : getRankLadder(ladderName).entrySet()) {
+			ladder.put(entry.getKey(), wrapGroup(entry.getValue()));
+		}
+		return Map.copyOf(ladder);
+	}
+
+	@Override
+	public List<User> usersInGroup(String groupName, String world, boolean inherit) {
+		List<User> users = new ArrayList<>();
+		for (PermissionUser user : getUsers(groupName, Worlds.normalize(world), inherit)) {
+			users.add(wrapUser(user));
+		}
+		return List.copyOf(users);
 	}
 
 	@Override

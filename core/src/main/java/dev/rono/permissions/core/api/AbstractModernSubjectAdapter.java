@@ -2,9 +2,15 @@ package dev.rono.permissions.core.api;
 
 import dev.rono.permissions.api.subject.PermissionSubject;
 import dev.rono.permissions.api.subject.SubjectType;
+import dev.rono.permissions.api.subject.TimedPermissionEntry;
+import dev.rono.permissions.api.world.Worlds;
 import dev.rono.permissions.core.DefaultPermissionManager;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import ru.tehkode.permissions.PermissionEntity;
 
 abstract class AbstractModernSubjectAdapter implements PermissionSubject {
@@ -112,6 +118,53 @@ abstract class AbstractModernSubjectAdapter implements PermissionSubject {
     @Override
     public Map<String, String> options(String world) {
         return delegate.getOptions(ModernWorlds.toLegacy(world));
+    }
+
+    @Override
+    public Set<String> configuredWorlds() {
+        LinkedHashSet<String> worlds = new LinkedHashSet<>();
+        for (String world : delegate.getWorlds()) {
+            worlds.add(Worlds.fromMapKey(world));
+        }
+        return Set.copyOf(worlds);
+    }
+
+    @Override
+    public Map<String, List<String>> permissionsByWorld() {
+        LinkedHashMap<String, List<String>> mapped = new LinkedHashMap<>();
+        for (Map.Entry<String, List<String>> entry : delegate.getAllPermissions().entrySet()) {
+            mapped.put(Worlds.fromMapKey(entry.getKey()), List.copyOf(entry.getValue()));
+        }
+        return Map.copyOf(mapped);
+    }
+
+    @Override
+    public Map<String, List<String>> effectivePermissionsByWorld() {
+        LinkedHashSet<String> worlds = new LinkedHashSet<>();
+        worlds.add(Worlds.GLOBAL);
+        worlds.addAll(configuredWorlds());
+        LinkedHashMap<String, List<String>> mapped = new LinkedHashMap<>();
+        for (String world : worlds) {
+            mapped.put(world, effectivePermissions(world));
+        }
+        return Map.copyOf(mapped);
+    }
+
+    @Override
+    public List<TimedPermissionEntry> timedPermissionEntries(String world) {
+        String legacyWorld = ModernWorlds.toLegacy(world);
+        String apiWorld = Worlds.normalize(world);
+        List<TimedPermissionEntry> entries = new ArrayList<>();
+        for (String permission : delegate.getTimedPermissions(legacyWorld)) {
+            entries.add(new TimedPermissionEntry(
+                    permission, apiWorld, delegate.getTimedPermissionLifetime(permission, legacyWorld)));
+        }
+        return List.copyOf(entries);
+    }
+
+    @Override
+    public int timedPermissionRemainingSeconds(String permission, String world) {
+        return delegate.getTimedPermissionLifetime(permission, ModernWorlds.toLegacy(world));
     }
 
     @Override

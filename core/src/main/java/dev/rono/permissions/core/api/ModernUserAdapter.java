@@ -1,9 +1,13 @@
 package dev.rono.permissions.core.api;
 
 import dev.rono.permissions.api.subject.SubjectType;
+import dev.rono.permissions.api.subject.TimedGroupMembership;
 import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.api.world.Worlds;
 import dev.rono.permissions.core.DefaultPermissionManager;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import ru.tehkode.permissions.PermissionUser;
@@ -57,9 +61,46 @@ public final class ModernUserAdapter extends AbstractModernSubjectAdapter implem
     }
 
     @Override
+    public List<TimedGroupMembership> timedGroupMemberships(String world) {
+        String legacyWorld = ModernWorlds.toLegacy(world);
+        String apiWorld = Worlds.normalize(world);
+        List<TimedGroupMembership> memberships = new ArrayList<>();
+        for (Map.Entry<String, String> entry : user.getOptions(legacyWorld).entrySet()) {
+            String groupName = parseTimedGroupOption(entry.getKey());
+            if (groupName == null) {
+                continue;
+            }
+            memberships.add(new TimedGroupMembership(
+                    groupName, apiWorld, groupMembershipRemainingSeconds(groupName, world)));
+        }
+        return List.copyOf(memberships);
+    }
+
+    @Override
+    public int groupMembershipRemainingSeconds(String groupName, String world) {
+        String until = user.getOption("group-" + groupName + "-until", ModernWorlds.toLegacy(world), null);
+        if (until == null) {
+            return 0;
+        }
+        try {
+            long expiry = Long.parseLong(until);
+            return (int) Math.max(0, expiry - (System.currentTimeMillis() / 1000L));
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
+    }
+
+    @Override
     public void delete() {
         String id = user.getIdentifier();
         user.remove();
         manager.resetUser(id);
+    }
+
+    private static String parseTimedGroupOption(String option) {
+        if (!option.startsWith("group-") || !option.endsWith("-until")) {
+            return null;
+        }
+        return option.substring("group-".length(), option.length() - "-until".length());
     }
 }

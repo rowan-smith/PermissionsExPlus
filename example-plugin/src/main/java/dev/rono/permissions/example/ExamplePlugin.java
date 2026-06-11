@@ -50,18 +50,20 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
         boolean allowed = permissions.has(player.getUniqueId(), "my.node", world);
 
         User user = permissions.user(player.getUniqueId());
-        String resolvedName = user.option("name", world);
-        if (resolvedName == null) {
-            resolvedName = player.getName();
+        var worldContext = user.inWorld(world);
+        String displayName = worldContext.option("name");
+        if (displayName == null) {
+            displayName = player.getName();
         }
-        final String displayName = resolvedName;
+        final String resolvedName = displayName;
 
         getLogger().fine(() -> String.format(Locale.ROOT,
-                "pex uuid=%s user=%s allowed(my.node)=%s groups=%s directPerms=%s",
+                "pex uuid=%s user=%s allowed(my.node)=%s groups=%s directPerms=%s timed=%s",
                 player.getUniqueId(),
-                displayName,
+                resolvedName,
                 allowed,
-                user.groups(world),
-                user.permissions(world)));
+                worldContext.groups(),
+                worldContext.permissions(),
+                worldContext.timedPermissionEntries()));
     }
 }
