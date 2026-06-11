@@ -1,6 +1,7 @@
 package dev.rono.permissions.api.subject;
 
 import java.util.List;
+import java.util.Set;
 
 /** World-scoped view of a {@link Group}. */
 public interface GroupWorldContext extends SubjectWorldContext {
@@ -27,4 +28,20 @@ public interface GroupWorldContext extends SubjectWorldContext {
     default boolean isChildOf(String groupName) {
         return isChildOf(groupName, true);
     }
+
+    Set<String> memberIdentifiers();
+
+    List<User> members();
+
+    List<User> members(boolean inherit);
+
+    List<Group> children();
+
+    List<Group> children(boolean inherit);
+
+    List<Group> descendants();
+
+    List<User> activeMembers();
+
+    List<User> activeMembers(boolean inherit);
 }

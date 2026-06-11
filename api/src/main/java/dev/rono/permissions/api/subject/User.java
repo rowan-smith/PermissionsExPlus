@@ -40,11 +40,6 @@ public interface User extends PermissionSubject {
 
     boolean inGroup(String groupName, String world, boolean inherit);
 
-    /**
-     * Whether this user belongs to {@code groupName} (directly or via inheritance when {@code inherit} is true).
-     * Prefer {@code service.user(id).inGroup(...)} over service-level group queries.
-     */
-
     default boolean inGroup(String groupName, String world) {
         return inGroup(groupName, world, true);
     }

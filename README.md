@@ -224,6 +224,7 @@ Primary entry point for modern hook plugins. Lookup: `ServicesManager.getRegistr
 | `worldInheritanceMap()` | All world-inheritance mappings |
 | `defaultGroups(world)` | Default groups for a world (includes global defaults) |
 | `rankLadder(ladderName)` | Rank-ordered groups on a promotion ladder |
+| `user()` / `findUser()` / `group()` / `findGroup()` / `world(name)` / `findWorld(name)` | Fluent chainable lookups (see [MODERN_API.md](docs/api/MODERN_API.md#fluent-api)) |
 | `isDebug()` | Whether PEX debug mode is enabled |
 | `findUser(identifier)` / `findUser(uuid)` | Optional lookup without materializing virtual users |
 | `user(identifier)` / `user(uuid)` | Resolve or materialize a user (classic `getUser` semantics) |
@@ -366,10 +367,9 @@ public void onEnable() {
 public void onJoin(PlayerJoinEvent event, PermissionService pex) {
     Player player = event.getPlayer();
     String world = player.getWorld().getName();
-    User user = pex.user(player.getUniqueId());
-    if (user.has("my.permission", world)) {
-        user.addPermission("joined.today", world);
-        user.save();
+    if (pex.world(world).user(player.getUniqueId()).has("my.permission")) {
+        pex.user().by(player.getUniqueId()).inWorld(world).addPermission("joined.today");
+        pex.user(player.getUniqueId()).save();
     }
 }
 ```

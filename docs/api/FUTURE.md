@@ -14,6 +14,7 @@ Policy: **legacy `ru.tehkode.*` stays frozen**. New capabilities belong under `d
 | Backend admin | `setActiveBackend`, `createBackendHandle`, `importFromBackend` |
 | Import / export | `exportData`, `importData(document, ImportMode)` |
 | Hierarchy helpers | `Group.children` / `Group.descendants`, `Group.members(world, inherit)` |
+| Fluent API | `user()` / `findUser()` / `group()` / `findGroup()` / `world()` / `findWorld()` |
 | Batch edits | `openEditSession()` → `PermissionEditSession` |
 | Async reload | `reloadAsync()` → `CompletableFuture<Void>` |
 | Proxy `PermissionService` | `ProxyPermissionServices` on Bungee/Waterfall |

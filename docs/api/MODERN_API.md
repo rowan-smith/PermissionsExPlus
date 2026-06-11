@@ -35,17 +35,55 @@ if (reg == null) {
 }
 PermissionService pex = reg.getProvider();
 
-User user = pex.user(player.getUniqueId());
 String world = player.getWorld().getName();
-if (user.has("my.plugin.use", world)) {
-    user.inWorld(world).addTimedPermission("my.plugin.temp", 3600);
-    user.save();
+
+// Fluent (recommended)
+if (pex.world(world).user().byWorld(player.getUniqueId()).has("my.plugin.use")) {
+    pex.user().by(player.getUniqueId()).inWorld(world).addTimedPermission("my.plugin.temp", 3600);
+    pex.user(player.getUniqueId()).save();
 }
+
+// Direct shortcuts still work
+User user = pex.user(player.getUniqueId());
+if (user.inWorld(world).has("my.plugin.use")) { ... }
 ```
 
 ---
 
-## World model
+## Fluent API
+
+Zero-arg entry points return chainable lookups in `dev.rono.permissions.api.fluent`. World is set once; sub-commands do not repeat it.
+
+| Entry | Resolves | Example chain |
+|-------|----------|---------------|
+| `user()` | materialize | `pex.user().by(uuid).inWorld(world).inGroup("vip", true)` |
+| `findUser()` | optional | `pex.findUser().by(uuid).inWorld(world).map(u -> u.has("node")).orElse(false)` |
+| `group()` | materialize | `pex.group().named("vip").inWorld(world).members(true)` |
+| `findGroup()` | optional | `pex.findGroup().named("vip").inWorld(world).map(g -> g.members())` |
+| `world(name)` | world scope | `pex.world(world).user().byWorld(uuid).inGroup("vip")` |
+| `global()` | global scope | `pex.global().group().named("default").members()` |
+| `findWorld(name)` | optional scope | `pex.findWorld(name).orEmpty().map(w -> w.defaultGroups())` |
+
+**World-first** (world bound at entry — use `byWorld` / shorthand `user(uuid)`):
+
+```java
+pex.world(player.getWorld().getName())
+   .user(player.getUniqueId())
+   .inGroup("vip", true);
+
+pex.world("world_nether").group("moderators").members();
+```
+
+**User-first**:
+
+```java
+pex.user().uuid(player.getUniqueId()).inWorld(world).has("my.node");
+pex.findUser().named("Steve").inWorld(world).ifPresent(u -> u.addGroup("vip"));
+```
+
+Direct methods `user(uuid)`, `group(name)`, `user(id).inWorld(world)` remain for callers who prefer them.
+
+---
 
 Classic PEX uses `null` for the **global** namespace (permissions/options that apply everywhere unless overridden per world).
 
@@ -297,7 +335,7 @@ Ergonomic world-scoped views (same operations without repeating `world` paramete
 |------|---------|------------------|
 | `SubjectWorldContext` | — | Permissions, timed perms, prefix/suffix, options |
 | `UserWorldContext` | `SubjectWorldContext` | Groups, timed membership |
-| `GroupWorldContext` | `SubjectWorldContext` | Parents, default flag, `isChildOf` |
+| `GroupWorldContext` | `SubjectWorldContext` | Parents, default, hierarchy, members, children, descendants |
 
 Obtain via `subject.inWorld("world_nether")` or `user.global()`.
 

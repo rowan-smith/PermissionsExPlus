@@ -1,5 +1,11 @@
 package dev.rono.permissions.api.service;
 
+import dev.rono.permissions.api.fluent.GroupFinder;
+import dev.rono.permissions.api.fluent.GroupQuery;
+import dev.rono.permissions.api.fluent.UserFinder;
+import dev.rono.permissions.api.fluent.UserQuery;
+import dev.rono.permissions.api.fluent.WorldFinder;
+import dev.rono.permissions.api.fluent.WorldQuery;
 import dev.rono.permissions.api.PermissionsExException;
 import dev.rono.permissions.api.backend.BackendHandle;
 import dev.rono.permissions.api.backend.BackendInfo;
@@ -23,8 +29,10 @@ import java.util.concurrent.CompletableFuture;
  * <p>Registered on Spigot/Paper {@code ServicesManager} under this type. Implemented by the runtime
  * manager alongside legacy {@code ru.tehkode.permissions.PermissionManager}.</p>
  *
- * <p>Resolve a subject first, then query it — e.g. {@code service.user(uuid).inGroup("vip", world)},
- * {@code service.group("vip").members(world)}, {@code service.user(uuid).has(permission, world)}.</p>
+ * <p>Fluent entry points: {@code service.user().by(uuid).inWorld(world).inGroup("vip")},
+ * {@code service.world(world).user().byWorld(uuid).inGroup("vip")},
+ * {@code service.group().named("vip").inWorld(world).members()}.</p>
+ * <p>Direct shortcuts {@code user(uuid)}, {@code group(name)} remain available.</p>
  */
 public interface PermissionService {
 
@@ -74,7 +82,44 @@ public interface PermissionService {
     /** Rank-ordered groups on a ladder (key = rank, value = group). */
     Map<Integer, Group> rankLadder(String ladderName);
 
-    // --- Users ---
+    // --- Fluent entry points ---
+
+    /** {@code user().by(uuid).inWorld(world)} — resolve or materialize, then chain. */
+    default UserQuery user() {
+        return UserQuery.resolve(this);
+    }
+
+    /** {@code findUser().by(uuid).inWorld(world)} — persisted users only. */
+    default UserFinder findUser() {
+        return UserFinder.of(this);
+    }
+
+    /** {@code group().named(name).inWorld(world)} — resolve or materialize, then chain. */
+    default GroupQuery group() {
+        return GroupQuery.resolve(this);
+    }
+
+    /** {@code findGroup().named(name).inWorld(world)} — persisted groups only. */
+    default GroupFinder findGroup() {
+        return GroupFinder.of(this);
+    }
+
+    /** World-scoped fluent entry — {@code world(w).user().byWorld(uuid).inGroup("vip")}. */
+    default WorldQuery world(String world) {
+        return WorldQuery.of(this, world);
+    }
+
+    /** Global namespace fluent entry (same as {@code world(Worlds.GLOBAL)}). */
+    default WorldQuery global() {
+        return world(Worlds.GLOBAL);
+    }
+
+    /** Optional world scope when the realm is registered on the platform. */
+    default WorldFinder findWorld(String world) {
+        return WorldFinder.of(this, world);
+    }
+
+    // --- Users (direct) ---
 
     Optional<User> findUser(String identifier);
 
@@ -89,7 +134,7 @@ public interface PermissionService {
 
     void deleteUser(String identifier);
 
-    // --- Groups ---
+    // --- Groups (direct) ---
 
     Optional<Group> findGroup(String name);
 

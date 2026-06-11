@@ -182,6 +182,31 @@ class ModernPermissionServiceTest extends PEXTestBase {
     }
 
     @Test
+    void fluentApiEntryPoints() {
+        PermissionService service = (PermissionService) manager;
+        service.group("member-group");
+        User user = service.user("fluent-user");
+        user.addPermission("fluent.test", null);
+        user.addGroup("member-group", Worlds.GLOBAL);
+        user.save();
+
+        assertTrue(service.user().named("fluent-user").inWorld(null).has("fluent.test"));
+        assertTrue(service.world(null).user().byWorld("fluent-user").inGroup("member-group"));
+        assertFalse(service.group().named("member-group").inWorld(null).members().isEmpty());
+        assertTrue(service.findUser().named("fluent-user").inWorld(null).map(u -> u.inGroup("member-group")).orElse(false));
+        assertTrue(service.findGroup().named("member-group").inWorld(null).map(g -> !g.members().isEmpty()).orElse(false));
+
+        Group parent = service.group("fluent-parent");
+        Group child = service.group("fluent-child");
+        child.addParent("fluent-parent", null);
+        child.save();
+        assertFalse(service.world(null).group().byWorld("fluent-parent").children().isEmpty());
+        assertFalse(service.world(null).group("fluent-parent").descendants().isEmpty());
+
+        user.delete();
+    }
+
+    @Test
     void exportDataAndBackendHandle() throws dev.rono.permissions.api.PermissionsExException {
         PermissionService service = (PermissionService) manager;
         assertNotNull(service.exportData());

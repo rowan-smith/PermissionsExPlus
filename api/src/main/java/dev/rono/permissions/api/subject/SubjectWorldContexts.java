@@ -3,6 +3,7 @@ package dev.rono.permissions.api.subject;
 import dev.rono.permissions.api.world.Worlds;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 final class SubjectWorldContexts {
     private SubjectWorldContexts() {}
@@ -410,6 +411,46 @@ final class SubjectWorldContexts {
             @Override
             public boolean isChildOf(String groupName, boolean inherit) {
                 return group.isChildOf(groupName, normalized, inherit);
+            }
+
+            @Override
+            public Set<String> memberIdentifiers() {
+                return group.memberIdentifiers(normalized);
+            }
+
+            @Override
+            public List<User> members() {
+                return group.members(normalized);
+            }
+
+            @Override
+            public List<User> members(boolean inherit) {
+                return group.members(normalized, inherit);
+            }
+
+            @Override
+            public List<Group> children() {
+                return group.children(normalized);
+            }
+
+            @Override
+            public List<Group> children(boolean inherit) {
+                return group.children(normalized, inherit);
+            }
+
+            @Override
+            public List<Group> descendants() {
+                return group.descendants(normalized);
+            }
+
+            @Override
+            public List<User> activeMembers() {
+                return group.activeMembers(false);
+            }
+
+            @Override
+            public List<User> activeMembers(boolean inherit) {
+                return group.activeMembers(inherit);
             }
         };
     }
