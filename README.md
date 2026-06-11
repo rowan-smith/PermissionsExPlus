@@ -211,29 +211,18 @@ Summary below; see the linked docs for complete method lists and examples.
 
 #### `PermissionService` (`permissionsex-api`)
 
-Primary entry point for modern hook plugins. Lookup: `ServicesManager.getRegistration(PermissionService.class)`.
+Primary entry: **`query()`**. Lookup: `ServicesManager.getRegistration(PermissionService.class)`.
 
 | Method | Description |
 |--------|-------------|
-| `backend()` | Active backend snapshot (`type`, `simpleName`, `diagnosticLabel`) |
-| `userCount()` / `groupCount()` | Registered subject counts in the active backend |
-| `registeredUserNameCount()` / `registeredGroupCount()` | Legacy aliases for the counts above |
-| `activeBackendSimpleName()` | Legacy alias for `backend().simpleName()` |
-| `worlds()` | Known realm/world names from the platform adapter |
-| `worldInheritance(world)` / `setWorldInheritance(world, parents)` | Configure which worlds inherit into another |
-| `worldInheritanceMap()` | All world-inheritance mappings |
-| `defaultGroups(world)` | Default groups for a world (includes global defaults) |
-| `rankLadder(ladderName)` | Rank-ordered groups on a promotion ladder |
-| `user()` / `findUser()` / `group()` / `findGroup()` / `world(name)` / `findWorld(name)` | Fluent chainable lookups (see [MODERN_API.md](docs/api/MODERN_API.md#fluent-api)) |
-| `isDebug()` | Whether PEX debug mode is enabled |
-| `findUser(identifier)` / `findUser(uuid)` | Optional lookup without materializing virtual users |
-| `user(identifier)` / `user(uuid)` | Resolve or materialize a user (classic `getUser` semantics) |
-| `userIdentifiers()` | All user identifiers in the backend |
-| `deleteUser(identifier)` | Remove a user from the backend and cache |
-| `findGroup(name)` / `group(name)` | Optional or required group lookup |
-| `groupNames()` | All group names in the backend |
-| `deleteGroup(name)` | Remove a group from the backend and cache |
-| `reload()` | Reload backend data (`PermissionsExException` on failure) |
+| **`query()`** | Single fluent entry — see [Query API](docs/api/MODERN_API.md#query-api-canonical-entry) |
+| `query().users().count()` / `query().groups().count()` | Registered subject counts |
+| `query().backend().info()` / `activate(alias)` | Backend snapshot and administration |
+| `query().world(w).user(uuid).inGroup("vip")` | World-bound permission checks |
+| `query().events()` / `reload()` / `editSession()` | Events, reload, batch edits |
+| `user(uuid)` / `group(name)` | Direct subject access (escape hatch) |
+
+Legacy top-level `userCount()`, `groupCount()`, `backend()`, etc. are deprecated.
 
 Source: `api/src/main/java/dev/rono/permissions/api/service/PermissionService.java`
 

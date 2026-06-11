@@ -23,9 +23,9 @@ class ModernPermissionServiceTest extends PEXTestBase {
     @Test
     void permissionServiceExposesBackendAndCounts() {
         PermissionService service = (PermissionService) manager;
-        assertNotNull(service.backend());
-        assertEquals(service.groupCount(), service.registeredGroupCount());
-        assertEquals(service.userCount(), service.registeredUserNameCount());
+        assertNotNull(service.query().backend().info());
+        assertEquals(service.query().groups().count(), service.registeredGroupCount());
+        assertEquals(service.query().users().count(), service.registeredUserNameCount());
     }
 
     @Test
@@ -182,7 +182,7 @@ class ModernPermissionServiceTest extends PEXTestBase {
     }
 
     @Test
-    void fluentApiEntryPoints() {
+    void queryApiEntryPoints() {
         PermissionService service = (PermissionService) manager;
         service.group("member-group");
         User user = service.user("fluent-user");
@@ -190,18 +190,20 @@ class ModernPermissionServiceTest extends PEXTestBase {
         user.addGroup("member-group", Worlds.GLOBAL);
         user.save();
 
-        assertTrue(service.user().named("fluent-user").inWorld(null).has("fluent.test"));
-        assertTrue(service.world(null).user().byWorld("fluent-user").inGroup("member-group"));
-        assertFalse(service.group().named("member-group").inWorld(null).members().isEmpty());
-        assertTrue(service.findUser().named("fluent-user").inWorld(null).map(u -> u.inGroup("member-group")).orElse(false));
-        assertTrue(service.findGroup().named("member-group").inWorld(null).map(g -> !g.members().isEmpty()).orElse(false));
+        assertTrue(service.query().users().resolve("fluent-user").inWorld(null).has("fluent.test"));
+        assertTrue(service.query().world(null).user("fluent-user").inGroup("member-group"));
+        assertFalse(service.query().groups().resolve("member-group").inWorld(null).members().isEmpty());
+        assertTrue(service.query().world(null).findUser("fluent-user").map(u -> u.inGroup("member-group")).orElse(false));
+        assertTrue(service.query().world(null).findGroup("member-group").map(g -> !g.members().isEmpty()).orElse(false));
+        assertTrue(service.query().users().count() > 0);
+        assertTrue(service.query().groups().count() > 0);
 
-        Group parent = service.group("fluent-parent");
+        service.group("fluent-parent");
         Group child = service.group("fluent-child");
         child.addParent("fluent-parent", null);
         child.save();
-        assertFalse(service.world(null).group().byWorld("fluent-parent").children().isEmpty());
-        assertFalse(service.world(null).group("fluent-parent").descendants().isEmpty());
+        assertFalse(service.query().world(null).group("fluent-parent").children().isEmpty());
+        assertFalse(service.query().world(null).group("fluent-parent").descendants().isEmpty());
 
         user.delete();
     }
@@ -209,8 +211,8 @@ class ModernPermissionServiceTest extends PEXTestBase {
     @Test
     void exportDataAndBackendHandle() throws dev.rono.permissions.api.PermissionsExException {
         PermissionService service = (PermissionService) manager;
-        assertNotNull(service.exportData());
-        var handle = service.createBackendHandle("mock");
+        assertNotNull(service.query().backend().exportData());
+        var handle = service.query().backend().createHandle("mock");
         assertNotNull(handle.info());
     }
 }

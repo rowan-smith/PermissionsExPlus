@@ -33,10 +33,10 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
         permissions = registration.getProvider();
         getLogger().info(String.format(Locale.ROOT,
                 "PEX backend: %s (%s), users=%d groups=%d",
-                permissions.backend().type(),
-                permissions.backend().simpleName(),
-                permissions.userCount(),
-                permissions.groupCount()));
+                permissions.query().backend().type(),
+                permissions.query().backend().simpleName(),
+                permissions.query().users().count(),
+                permissions.query().groups().count()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -46,10 +46,8 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
         }
 
         Player player = event.getPlayer();
-        String world = player.getWorld().getName();
-        boolean allowed = BukkitPermissions.has(permissions, player, "my.node");
-
-        var worldContext = permissions.world(world).user().byWorld(player.getUniqueId());
+        boolean allowed = BukkitPermissions.on(player).has("my.node");
+        var worldContext = BukkitPermissions.on(player).context();
         String displayName = worldContext.option("name");
         if (displayName == null) {
             displayName = player.getName();

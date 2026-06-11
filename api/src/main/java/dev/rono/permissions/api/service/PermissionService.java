@@ -1,20 +1,14 @@
 package dev.rono.permissions.api.service;
 
-import dev.rono.permissions.api.fluent.GroupFinder;
-import dev.rono.permissions.api.fluent.GroupQuery;
-import dev.rono.permissions.api.fluent.UserFinder;
-import dev.rono.permissions.api.fluent.UserQuery;
-import dev.rono.permissions.api.fluent.WorldFinder;
-import dev.rono.permissions.api.fluent.WorldQuery;
 import dev.rono.permissions.api.PermissionsExException;
 import dev.rono.permissions.api.backend.BackendHandle;
 import dev.rono.permissions.api.backend.BackendInfo;
 import dev.rono.permissions.api.data.ImportMode;
 import dev.rono.permissions.api.event.PermissionEventBus;
+import dev.rono.permissions.api.query.PermissionQuery;
 import dev.rono.permissions.api.session.PermissionEditSession;
 import dev.rono.permissions.api.subject.Group;
 import dev.rono.permissions.api.subject.User;
-import dev.rono.permissions.api.world.Worlds;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -26,106 +20,96 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Modern PermissionsEx integration API ({@code dev.rono.permissions.api}).
  *
- * <p>Registered on Spigot/Paper {@code ServicesManager} under this type. Implemented by the runtime
- * manager alongside legacy {@code ru.tehkode.permissions.PermissionManager}.</p>
- *
- * <p>Fluent entry points: {@code service.user().by(uuid).inWorld(world).inGroup("vip")},
- * {@code service.world(world).user().byWorld(uuid).inGroup("vip")},
- * {@code service.group().named("vip").inWorld(world).members()}.</p>
- * <p>Direct shortcuts {@code user(uuid)}, {@code group(name)} remain available.</p>
+ * <p>Primary entry: {@link #query()} — e.g. {@code service.query().world(w).user(uuid).inGroup("vip")},
+ * {@code service.query().groups().count()}, {@code service.query().backend().activate("file")}.</p>
  */
 public interface PermissionService {
 
-    // --- Introspection (legacy aliases retained) ---
+    /** Single fluent entry for checks, edits, registry, and backend operations. */
+    default PermissionQuery query() {
+        return PermissionQuery.of(this);
+    }
 
+    // --- Registry counts (deprecated — use query().users().count() / query().groups().count()) ---
+
+    /** @deprecated use {@link PermissionQuery#users()} {@code .count()} */
+    @Deprecated
     default int registeredUserNameCount() {
         return userCount();
     }
 
+    /** @deprecated use {@link PermissionQuery#groups()} {@code .count()} */
+    @Deprecated
     default int registeredGroupCount() {
         return groupCount();
     }
 
+    /** @deprecated use {@link PermissionQuery#backend()} {@code .simpleName()} */
+    @Deprecated
     default String activeBackendSimpleName() {
         return backend().simpleName();
     }
 
-    BackendInfo backend();
-
-    /** Subscribe to entity/system permission notifications. */
-    PermissionEventBus events();
-
+    /** @deprecated use {@link PermissionQuery#users()} {@code .count()} */
+    @Deprecated
     int userCount();
 
+    /** @deprecated use {@link PermissionQuery#groups()} {@code .count()} */
+    @Deprecated
     int groupCount();
+
+    // --- Backend (deprecated — use query().backend()) ---
+
+    /** @deprecated use {@link PermissionQuery#backend()} {@code .info()} */
+    @Deprecated
+    BackendInfo backend();
+
+    /** @deprecated use {@link PermissionQuery#backend()} {@code .activate(alias)} */
+    @Deprecated
+    void setActiveBackend(String alias) throws PermissionsExException;
+
+    /** @deprecated use {@link PermissionQuery#backend()} {@code .createHandle(alias)} */
+    @Deprecated
+    BackendHandle createBackendHandle(String alias) throws PermissionsExException;
+
+    /** @deprecated use {@link PermissionQuery#backend()} {@code .importFrom(alias)} */
+    @Deprecated
+    void importFromBackend(String backendAlias) throws PermissionsExException;
+
+    /** @deprecated use {@link PermissionQuery#backend()} {@code .exportData()} */
+    @Deprecated
+    String exportData() throws PermissionsExException;
+
+    /** @deprecated use {@link PermissionQuery#backend()} {@code .importData(document, mode)} */
+    @Deprecated
+    void importData(String document, ImportMode mode) throws PermissionsExException;
+
+    // --- Server state (also available on {@link PermissionQuery}) ---
+
+    PermissionEventBus events();
 
     Collection<String> worlds();
 
     boolean isDebug();
 
-    // --- World inheritance ---
+    // --- World inheritance (used by {@link dev.rono.permissions.api.query.WorldScope}) ---
 
-    /**
-     * Parent worlds whose permissions/options inherit into {@code world}.
-     * {@link Worlds#GLOBAL} returns inheritance for the global namespace when configured.
-     */
     List<String> worldInheritance(String world);
 
     void setWorldInheritance(String world, List<String> parentWorlds);
 
-    /** All configured world-inheritance mappings ({@link Worlds#GLOBAL} key = global). */
     Map<String, List<String>> worldInheritanceMap();
 
-    /** Default groups for {@code world} (includes global defaults when applicable). */
     List<Group> defaultGroups(String world);
 
-    /** Rank-ordered groups on a ladder (key = rank, value = group). */
     Map<Integer, Group> rankLadder(String ladderName);
 
-    // --- Fluent entry points ---
-
-    /** {@code user().by(uuid).inWorld(world)} — resolve or materialize, then chain. */
-    default UserQuery user() {
-        return UserQuery.resolve(this);
-    }
-
-    /** {@code findUser().by(uuid).inWorld(world)} — persisted users only. */
-    default UserFinder findUser() {
-        return UserFinder.of(this);
-    }
-
-    /** {@code group().named(name).inWorld(world)} — resolve or materialize, then chain. */
-    default GroupQuery group() {
-        return GroupQuery.resolve(this);
-    }
-
-    /** {@code findGroup().named(name).inWorld(world)} — persisted groups only. */
-    default GroupFinder findGroup() {
-        return GroupFinder.of(this);
-    }
-
-    /** World-scoped fluent entry — {@code world(w).user().byWorld(uuid).inGroup("vip")}. */
-    default WorldQuery world(String world) {
-        return WorldQuery.of(this, world);
-    }
-
-    /** Global namespace fluent entry (same as {@code world(Worlds.GLOBAL)}). */
-    default WorldQuery global() {
-        return world(Worlds.GLOBAL);
-    }
-
-    /** Optional world scope when the realm is registered on the platform. */
-    default WorldFinder findWorld(String world) {
-        return WorldFinder.of(this, world);
-    }
-
-    // --- Users (direct) ---
+    // --- Subjects (direct access; prefer query().world(w).user(...) in plugins) ---
 
     Optional<User> findUser(String identifier);
 
     Optional<User> findUser(UUID uuid);
 
-    /** Resolves or materializes a user (classic {@code getUser} semantics). */
     User user(String identifier);
 
     User user(UUID uuid);
@@ -134,40 +118,19 @@ public interface PermissionService {
 
     void deleteUser(String identifier);
 
-    // --- Groups (direct) ---
-
     Optional<Group> findGroup(String name);
 
-    /** Resolves a persisted group; throws if the group does not exist in the backend. */
     Group group(String name);
 
     Set<String> groupNames();
 
     void deleteGroup(String name);
 
-    // --- Backend administration ---
-
-    void setActiveBackend(String alias) throws PermissionsExException;
-
-    /** Create a backend from configuration without activating it. */
-    BackendHandle createBackendHandle(String alias) throws PermissionsExException;
-
-    /** Copy data from another configured backend alias into the active backend. */
-    void importFromBackend(String backendAlias) throws PermissionsExException;
-
-    /** Export active backend document (YAML for file backends). */
-    String exportData() throws PermissionsExException;
-
-    /** Import a backend document into the active backend. */
-    void importData(String document, ImportMode mode) throws PermissionsExException;
-
-    // --- Maintenance ---
+    // --- Maintenance (also on {@link PermissionQuery}) ---
 
     void reload() throws PermissionsExException;
 
-    /** Reload backend data asynchronously on the PEX executor. */
     CompletableFuture<Void> reloadAsync();
 
-    /** Open a batch edit session (call {@link PermissionEditSession#save()} when done). */
     PermissionEditSession openEditSession();
 }
