@@ -29,6 +29,8 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import dev.rono.permissions.api.bus.EntityMutation;
+import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.core.InternalPermissionManager;
 
 import ru.tehkode.permissions.PermissionEntity;
 import ru.tehkode.permissions.PermissionGroup;
@@ -192,7 +194,7 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 	 * @return true if entity has this permission otherwise false
 	 */
 	public boolean has(String permission) {
-		java.util.Collection<String> worlds = manager.getWorldNames();
+		java.util.Collection<String> worlds = InternalPermissionManager.require(manager).getWorldNames();
 		return this.has(permission, worlds.isEmpty() ? null : worlds.iterator().next());
 	}
 
@@ -701,7 +703,7 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 				}
 			};
 
-			this.manager.registerTask(task, lifeTime);
+			InternalPermissionManager.require(this.manager).registerTask(task, lifeTime);
 
 			this.timedPermissionsTime.put(world + ":" + permission, (System.currentTimeMillis() / 1000L) + lifeTime);
 		}
@@ -733,7 +735,15 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 	}
 
 	protected void callEvent(EntityMutation action) {
-		manager.publishEntity(this.getIdentifier(), this.getType().toString(), action);
+		if (manager instanceof InternalPermissionManager internal) {
+			internal.publishEntity(this.getIdentifier(), this.getType().toString(), action);
+		}
+	}
+
+	protected PlatformAdapter platformAdapter() {
+		return manager instanceof InternalPermissionManager internal
+				? internal.getPlatform()
+				: null;
 	}
 
 	@Override

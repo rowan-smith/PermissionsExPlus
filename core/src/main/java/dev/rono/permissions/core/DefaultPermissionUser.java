@@ -21,6 +21,8 @@ package dev.rono.permissions.core;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.Validate;
 import dev.rono.permissions.api.bus.EntityMutation;
+import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.core.InternalPermissionManager;
 import ru.tehkode.permissions.exceptions.RankingException;
 
 import java.util.*;
@@ -78,7 +80,8 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 		if (name == null) {
 			try {
 				UUID uid = UUID.fromString(getIdentifier());
-				String onlineName = manager.getPlatform().onlineDisplayName(uid);
+				PlatformAdapter adapter = platformAdapter();
+				String onlineName = adapter != null ? adapter.onlineDisplayName(uid) : null;
 				if (onlineName != null) {
 					setOption("name", onlineName);
 					return onlineName;
@@ -148,7 +151,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 			return;
 		}
 
-		if (this.manager.userAddGroupsLast()) {
+		if (InternalPermissionManager.require(this.manager).userAddGroupsLast()) {
 			groups.add(groupName);
 		} else {
 			groups.add(0, groupName); //add group to start of list
@@ -523,7 +526,8 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	public boolean has(String permission) {
 		try {
 			UUID uid = UUID.fromString(getIdentifier());
-			String onlineWorld = manager.getPlatform().onlineRealm(uid);
+			PlatformAdapter adapter = platformAdapter();
+			String onlineWorld = adapter != null ? adapter.onlineRealm(uid) : null;
 			if (onlineWorld != null) {
 				return this.has(permission, onlineWorld);
 			}
@@ -576,10 +580,11 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 
 	@Override
 	public boolean explainExpression(String expression) {
-		if (expression == null && this.manager.allowOps()) {
+		if (expression == null && InternalPermissionManager.require(this.manager).allowOps()) {
 			try {
 				UUID uid = UUID.fromString(getIdentifier());
-				if (manager.getPlatform().isOperator(uid)) {
+				PlatformAdapter adapter = platformAdapter();
+				if (adapter != null && adapter.isOperator(uid)) {
 					return true;
 				}
 			} catch (IllegalArgumentException ignored) {
@@ -619,7 +624,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 
 		if (nextExpiration < Long.MAX_VALUE) {
 			// Schedule the next timed groups check with the permissions manager
-			manager.scheduleTimedGroupsCheck(nextExpiration, getIdentifier());
+			InternalPermissionManager.require(manager).scheduleTimedGroupsCheck(nextExpiration, getIdentifier());
 		}
 	}
 

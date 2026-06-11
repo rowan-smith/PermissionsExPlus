@@ -25,6 +25,7 @@ import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionsData;
 import ru.tehkode.permissions.PermissionsGroupData;
 import ru.tehkode.permissions.PermissionsUserData;
+import dev.rono.permissions.core.InternalPermissionManager;
 import dev.rono.permissions.core.backends.AbstractPermissionBackend;
 import ru.tehkode.permissions.backends.PermissionBackend;
 import dev.rono.permissions.core.backends.SchemaUpdate;
@@ -84,7 +85,7 @@ public class SQLBackend extends AbstractPermissionBackend {
 			getConfig().set("uri", "mysql://localhost/exampledb");
 			getConfig().set("user", "databaseuser");
 			getConfig().set("password", "databasepassword");
-			manager.saveMainConfiguration();
+			InternalPermissionManager.require(manager).saveMainConfiguration();
 			throw new PermissionBackendException("SQL connection is not configured, see config.yml");
 		}
 

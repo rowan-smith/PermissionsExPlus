@@ -23,7 +23,7 @@ public final class ExamplePlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
 
-        if (!PermissionsEx.isEnabled()) {
+        if (!PermissionsEx.isAvailable()) {
             getLogger().warning("PermissionsEx is not loaded or not enabled.");
             return;
         }
@@ -39,7 +39,7 @@ public final class ExamplePlugin extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!PermissionsEx.isEnabled() || !PermissionsEx.isAvailable()) {
+        if (!PermissionsEx.isAvailable()) {
             return;
         }
         try {

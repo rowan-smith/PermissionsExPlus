@@ -19,6 +19,7 @@
 package dev.rono.permissions.core;
 
 import dev.rono.permissions.api.bus.EntityMutation;
+import dev.rono.permissions.core.InternalPermissionManager;
 
 import ru.tehkode.permissions.PermissionEntity;
 import ru.tehkode.permissions.PermissionGroup;
@@ -256,11 +257,11 @@ public class DefaultPermissionGroup extends AbstractPermissionEntity implements 
 	}
 
 	public Set<PermissionUser> getActiveUsers() {
-		return this.manager.getActiveUsers(this.getIdentifier());
+		return InternalPermissionManager.require(this.manager).getActiveUsers(this.getIdentifier());
 	}
 
 	public Set<PermissionUser> getActiveUsers(boolean inheritance) {
-		return this.manager.getActiveUsers(this.getIdentifier(), inheritance);
+		return InternalPermissionManager.require(this.manager).getActiveUsers(this.getIdentifier(), inheritance);
 	}
 
 	public boolean isDefault(String worldName) {

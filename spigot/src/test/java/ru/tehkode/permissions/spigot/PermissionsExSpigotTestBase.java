@@ -117,7 +117,7 @@ public abstract class PermissionsExSpigotTestBase {
             }
 
             @Override
-            public PEXBackendConfiguration getBackendConfig(String backend) {
+            public PEXBackendConfiguration pexBackendConfiguration(String backend) {
                 ConfigurationSection section =
                         yamlConfig.getConfigurationSection("permissions.backends." + backend);
                 if (section == null) {

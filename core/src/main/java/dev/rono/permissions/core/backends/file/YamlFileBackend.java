@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+import dev.rono.permissions.core.InternalPermissionManager;
 import dev.rono.permissions.core.backends.AbstractPermissionBackend;
 import dev.rono.permissions.core.backends.SchemaUpdate;
 import ru.tehkode.permissions.PEXBackendConfiguration;
@@ -110,7 +111,7 @@ public class YamlFileBackend extends AbstractPermissionBackend {
     private File sanitizeBaseDirectory() throws PermissionBackendException {
         try {
             String baseDir =
-                    Objects.requireNonNull(getManager().getBasedir(), "basedir");
+                    Objects.requireNonNull(InternalPermissionManager.require(getManager()).getBasedir(), "basedir");
             if (baseDir.contains("\\") && !File.separator.equals("\\")) {
                 baseDir = baseDir.replace("\\", File.separator);
             }

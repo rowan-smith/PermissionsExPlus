@@ -114,7 +114,7 @@ class BungeeFileBackendTest {
         }
 
         @Override
-        public ru.tehkode.permissions.PEXBackendConfiguration getBackendConfig(String backend) {
+        public ru.tehkode.permissions.PEXBackendConfiguration pexBackendConfiguration(String backend) {
             return new ru.tehkode.permissions.PEXBackendConfiguration() {
                 @Override
                 public String getName() {

@@ -14,7 +14,8 @@ import dev.rono.permissions.core.runtime.PexVolatileRef;
 /**
  * @author zml2008
  */
-public final class PermissionsExConfig implements dev.rono.permissions.core.PermissionsExConfig {
+public final class PermissionsExConfig implements dev.rono.permissions.core.PermissionsExConfig,
+        ru.tehkode.permissions.bukkit.PermissionsExConfig {
 
     private final SpigotPermissionsExPlugin plugin;
     private PexVolatileRef<PexConfigData> loaded;
@@ -133,13 +134,38 @@ public final class PermissionsExConfig implements dev.rono.permissions.core.Perm
     }
 
     @Override
-    public PEXBackendConfiguration getBackendConfig(String backend) {
+    public boolean useNetEvents() {
+        return false;
+    }
+
+    @Override
+    public boolean updaterEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean alwaysUpdate() {
+        return false;
+    }
+
+    @Override
+    public java.util.List<String> getServerTags() {
+        return java.util.Collections.emptyList();
+    }
+
+    @Override
+    public ConfigurationSection getBackendConfig(String backend) {
         ConfigurationSection section =
                 plugin.getConfig().getConfigurationSection("permissions.backends." + backend);
         if (section == null) {
             section = plugin.getConfig().createSection("permissions.backends." + backend);
         }
-        return new BukkitPEXBackendConfiguration(section);
+        return section;
+    }
+
+    @Override
+    public PEXBackendConfiguration pexBackendConfiguration(String backend) {
+        return new BukkitPEXBackendConfiguration(getBackendConfig(backend));
     }
 
     @Override

@@ -258,12 +258,12 @@ public class SuperpermsListener implements Listener {
 
 	private void handleEntityEvent(PermissionEntityEvent event) {
 		try {
-			if ("USER".equalsIgnoreCase(event.getEntityType())) {
+			if (event.getType() == ru.tehkode.permissions.PermissionEntity.Type.USER) {
 				PermissionUser user = plugin.getPermissionsManager().getUser(event.getEntityIdentifier());
 				if (user != null) {
 					updateSelective(event, user);
 				}
-			} else if ("GROUP".equalsIgnoreCase(event.getEntityType())) { // update all members of group, might be resource hog
+			} else if (event.getType() == ru.tehkode.permissions.PermissionEntity.Type.GROUP) {
 				PermissionGroup group = plugin.getPermissionsManager().getGroup(event.getEntityIdentifier());
 				if (group != null) {
 					for (PermissionUser user : group.getActiveUsers(true)) {

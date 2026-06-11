@@ -384,7 +384,7 @@ public abstract class PEXTestBase {
                     }
 
                     @Override
-                    public PEXBackendConfiguration getBackendConfig(String backend) {
+                    public PEXBackendConfiguration pexBackendConfiguration(String backend) {
                         return backendConfigs.computeIfAbsent(
                                 backend, b -> new MapPEXBackendConfiguration(b, new LinkedHashMap<>()));
                     }

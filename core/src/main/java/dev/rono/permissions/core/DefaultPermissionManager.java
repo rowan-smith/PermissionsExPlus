@@ -39,6 +39,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import org.bukkit.entity.Player;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionMatcher;
@@ -48,7 +49,7 @@ import ru.tehkode.permissions.PermissionsUserData;
 /**
  * @author t3hk0d3
  */
-public class DefaultPermissionManager implements PermissionManager, PermissionService {
+public class DefaultPermissionManager implements PermissionManager, PermissionService, InternalPermissionManager {
 	protected ConcurrentMap<String, PermissionUser> users = new ConcurrentHashMap<>();
 	protected ConcurrentMap<String, PermissionGroup> groups = new ConcurrentHashMap<>();
 	protected PermissionBackend backend = null;
@@ -83,20 +84,23 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 		return config.createUserRecords();
 	}
 
-	@Override
 	public String getBasedir() {
 		return config.getBasedir();
 	}
 
-	@Override
 	public void saveMainConfiguration() {
 		config.save();
 	}
 
-	public PermissionsExConfig getConfiguration() {
-		return config;
+	@Override
+	public ru.tehkode.permissions.bukkit.PermissionsExConfig getConfiguration() {
+		if (config instanceof ru.tehkode.permissions.bukkit.PermissionsExConfig legacy) {
+			return legacy;
+		}
+		return new LegacyPermissionsExConfigAdapter(config);
 	}
 
+	@Override
 	public PlatformAdapter getPlatform() {
 		return platform;
 	}
@@ -127,6 +131,16 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 		}
 	}
 
+	@Override
+	public boolean has(Player player, String permission) {
+		return has(player.getUniqueId(), permission, player.getWorld().getName());
+	}
+
+	@Override
+	public boolean has(Player player, String permission, String world) {
+		return has(player.getUniqueId(), permission, world);
+	}
+
 	/**
 	 * Check if player with name has permission in world
 	 *
@@ -135,6 +149,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	 * @param world      world's name as string
 	 * @return true on success false otherwise
 	 */
+	@Override
 	public boolean has(String playerName, String permission, String world) {
 		PermissionUser user = this.getUser(playerName);
 
@@ -153,6 +168,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	 * @param world      world's name as string
 	 * @return true on success false otherwise
 	 */
+	@Override
 	public boolean has(UUID playerId, String permission, String world) {
 		PermissionUser user = this.getUser(playerId);
 
@@ -200,6 +216,12 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 		getUser(ident, fallbackName, true);
 	}
 
+	@Override
+	public PermissionUser getUser(Player player) {
+		return getUser(player.getUniqueId());
+	}
+
+	@Override
 	public PermissionUser getUser(UUID uid) {
 		final String identifier = uid.toString();
 		if (users.containsKey(identifier)) {
@@ -338,6 +360,12 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	 *
 	 * @param userName user's name
 	 */
+	@Override
+	public void resetUser(Player player) {
+		resetUser(player.getUniqueId().toString());
+	}
+
+	@Override
 	public void resetUser(String userName) {
 		this.users.remove(userName.toLowerCase());
 	}
@@ -355,6 +383,12 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 		}
 	}
 
+	@Override
+	public void clearUserCache(Player player) {
+		clearUserCache(player.getUniqueId());
+	}
+
+	@Override
 	public void clearUserCache(UUID uid) {
 		PermissionUser user = this.getUser(uid);
 
@@ -429,14 +463,10 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 		return getGroupList().toArray(new PermissionGroup[0]);
 	}
 
+	@Override
 	@Deprecated
-	public String[] getGroupNames() {
-		List<PermissionGroup> groups = getGroupList();
-		String[] names = new String[groups.size()];
-		for (int i = 0; i < groups.size(); i++) {
-			names[i] = groups.get(i).getIdentifier();
-		}
-		return names;
+	public Collection<String> getGroupNames() {
+		return backend.getGroupNames();
 	}
 
 	/**
@@ -600,7 +630,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 
 	@Override
 	public int registeredGroupCount() {
-		return getGroupNames().length;
+		return getGroupNames().size();
 	}
 
 	@Override
@@ -634,7 +664,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	 * @param backendName Name of the configuration section which describes this backend
 	 */
 	public PermissionBackend createBackend(String backendName) throws PermissionBackendException {
-		PEXBackendConfiguration backendSection = this.config.getBackendConfig(backendName);
+		PEXBackendConfiguration backendSection = this.config.pexBackendConfiguration(backendName);
 		String backendType = backendSection.getString("type");
 		if (backendType == null) {
 			backendSection.set("type", backendType = backendName);

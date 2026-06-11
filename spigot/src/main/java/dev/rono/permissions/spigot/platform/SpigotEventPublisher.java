@@ -4,6 +4,8 @@ import dev.rono.permissions.api.bus.EntityDispatch;
 import dev.rono.permissions.api.bus.PermissionDispatch;
 import dev.rono.permissions.api.bus.SystemDispatch;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.tehkode.permissions.PermissionEntity;
+import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.events.PermissionEntityEvent;
 import ru.tehkode.permissions.events.PermissionEvent;
 import ru.tehkode.permissions.events.PermissionSystemEvent;
@@ -24,10 +26,13 @@ public final class SpigotEventPublisher {
 
     public void publish(PermissionDispatch dispatch) {
         if (dispatch instanceof EntityDispatch ed) {
+            PermissionManager manager = plugin.getServer().getServicesManager()
+                    .getRegistration(PermissionManager.class)
+                    .getProvider();
+            PermissionEntity entity = resolveEntity(manager, ed.entityIdentifier(), ed.entityType());
             callEvent(new PermissionEntityEvent(
                     ed.sourceId(),
-                    ed.entityIdentifier(),
-                    ed.entityType(),
+                    entity,
                     PermissionEntityEvent.Action.valueOf(ed.mutation().name())));
             return;
         }
@@ -38,5 +43,12 @@ public final class SpigotEventPublisher {
             return;
         }
         throw new IllegalArgumentException("Unknown dispatch: " + dispatch.getClass().getName());
+    }
+
+    private static PermissionEntity resolveEntity(PermissionManager manager, String identifier, String entityType) {
+        if ("GROUP".equalsIgnoreCase(entityType)) {
+            return manager.getGroup(identifier);
+        }
+        return manager.getUser(identifier);
     }
 }

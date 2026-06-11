@@ -1,5 +1,6 @@
 package dev.rono.permissions.core.backends;
 
+import dev.rono.permissions.core.InternalPermissionManager;
 import ru.tehkode.permissions.PEXBackendConfiguration;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionsGroupData;
@@ -97,7 +98,7 @@ public abstract class AbstractPermissionBackend implements PermissionBackend {
 	}
 
 	protected void backupDatabase() throws IOException {
-		try (Writer w = new FileWriter(new File(manager.getBasedir(), getConfig().getName() + "-backup." + getSchemaVersion() + ".bak"))) {
+		try (Writer w = new FileWriter(new File(InternalPermissionManager.require(manager).getBasedir(), getConfig().getName() + "-backup." + getSchemaVersion() + ".bak"))) {
 			writeContents(w);
 		}
 	}

@@ -1,16 +1,22 @@
 package ru.tehkode.permissions.events;
 
 import java.util.UUID;
+import org.bukkit.event.HandlerList;
+import ru.tehkode.permissions.PermissionEntity;
+import ru.tehkode.permissions.bukkit.PermissionsEx;
 
 public class PermissionEntityEvent extends PermissionEvent {
+    private static final HandlerList handlers = new HandlerList();
+    protected transient PermissionEntity entity;
     protected Action action;
-    protected String type;
+    protected PermissionEntity.Type type;
     protected String entityIdentifier;
 
-    public PermissionEntityEvent(UUID sourceUUID, String entityIdentifier, String type, Action action) {
+    public PermissionEntityEvent(UUID sourceUUID, PermissionEntity entity, Action action) {
         super(sourceUUID);
-        this.entityIdentifier = entityIdentifier;
-        this.type = type;
+        this.entity = entity;
+        this.entityIdentifier = entity.getIdentifier();
+        this.type = entity.getType();
         this.action = action;
     }
 
@@ -18,16 +24,28 @@ public class PermissionEntityEvent extends PermissionEvent {
         return this.action;
     }
 
+    public PermissionEntity getEntity() {
+        if (entity == null) {
+            switch (type) {
+                case GROUP:
+                    entity = PermissionsEx.getPermissionManager().getGroup(entityIdentifier);
+                    break;
+                case USER:
+                    entity = PermissionsEx.getPermissionManager().getUser(entityIdentifier);
+                    break;
+                default:
+                    break;
+            }
+        }
+        return entity;
+    }
+
     public String getEntityIdentifier() {
         return entityIdentifier;
     }
 
-    public String getEntityType() {
+    public PermissionEntity.Type getType() {
         return type;
-    }
-
-    public Object getEntity() {
-        return null;
     }
 
     public enum Action {
@@ -41,5 +59,14 @@ public class PermissionEntityEvent extends PermissionEvent {
         WEIGHT_CHANGED,
         SAVED,
         REMOVED,
+    }
+
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
+    }
+
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
 }

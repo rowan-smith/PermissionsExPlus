@@ -439,23 +439,8 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 	}
 
 	@Override
-	public String getOnlineWorldName(UUID uuid) {
-		return platformBridge.onlineRealm(uuid);
-	}
-
-	@Override
-	public String getOnlinePlayerName(UUID uuid) {
-		return platformBridge.onlineDisplayName(uuid);
-	}
-
-	@Override
 	public boolean isOperator(UUID uuid) {
 		return platformBridge.isOperator(uuid);
-	}
-
-	@Override
-	public Collection<String> getWorldNames() {
-		return platformBridge.realmNames();
 	}
 
 	public PermissionManager getPermissionsManager() {
@@ -463,23 +448,19 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 	}
 
 	public boolean has(Player player, String permission) {
-		return this.permissionsManager.has(player.getUniqueId(), permission, player.getWorld().getName());
+		return this.permissionsManager.has(player, permission);
 	}
 
 	public boolean has(Player player, String permission, String world) {
-		return this.permissionsManager.has(player.getUniqueId(), permission, world);
-	}
-
-	public PermissionUser getUser(Player player) {
-		return this.permissionsManager.getUser(player.getUniqueId());
+		return this.permissionsManager.has(player, permission, world);
 	}
 
 	public void resetUser(Player player) {
-		this.permissionsManager.resetUser(player.getUniqueId().toString());
+		this.permissionsManager.resetUser(player);
 	}
 
 	public void clearUserCache(Player player) {
-		this.permissionsManager.clearUserCache(player.getUniqueId());
+		this.permissionsManager.clearUserCache(player);
 	}
 
     private final class SpigotSenderAdapter implements CoreCloudCommandRegistrar.SenderAdapter<CommandSender> {

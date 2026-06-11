@@ -34,7 +34,7 @@ public interface PermissionsExConfig {
 
     String getBasedir();
 
-    PEXBackendConfiguration getBackendConfig(String backend);
+    PEXBackendConfiguration pexBackendConfiguration(String backend);
 
     void save();
 }

@@ -1,7 +1,6 @@
 package ru.tehkode.permissions.spigot.bukkit;
 
 import java.lang.reflect.Modifier;
-import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
@@ -9,6 +8,7 @@ import ru.tehkode.permissions.spigot.backends.FileBackend;
 import ru.tehkode.permissions.spigot.backends.MemoryBackend;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -25,15 +25,16 @@ public final class BukkitFacadeTypesTest {
     }
 
     @Test
-    public void pluginEntrypointsMatchOneTwentyThreeContracts() throws NoSuchMethodException {
+    public void pluginEntrypointsMatchBaselineContracts() throws NoSuchMethodException {
         PermissionsEx.class.getMethod("getPlugin");
-        PermissionsEx.class.getMethod("isEnabled");
         PermissionsEx.class.getMethod("isAvailable");
         PermissionsEx.class.getMethod("getPermissionManager");
-        PermissionsEx.class.getMethod("getBackend");
         PermissionsEx.class.getMethod("getUser", Player.class);
         PermissionsEx.class.getMethod("getUser", String.class);
-        PermissionsEx.class.getMethod("getUser", UUID.class);
+        assertThrows(NoSuchMethodException.class, () -> PermissionsEx.class.getDeclaredMethod("isEnabled"));
+        assertThrows(NoSuchMethodException.class, () -> PermissionsEx.class.getDeclaredMethod("getBackend"));
+        assertThrows(NoSuchMethodException.class, () ->
+                PermissionsEx.class.getDeclaredMethod("getUser", java.util.UUID.class));
 
         SpigotPermissionsExPlugin.class.getDeclaredMethod("getPermissionsManager");
         SpigotPermissionsExPlugin.class.getDeclaredMethod("has", Player.class, String.class);
