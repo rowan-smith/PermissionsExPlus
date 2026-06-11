@@ -14,8 +14,8 @@ PermissionsExPlus exposes **two compile surfaces** for companion plugins. Both t
 | New plugin | [Modern API](MODERN_API.md) (`PermissionService`) |
 | Existing PEX 1.23.x hook plugin | [Legacy API](LEGACY_API.md) — no recompile required for typical hooks |
 | Static `PermissionsEx.getUser(...)` calls | Legacy API + `permissionsex-legacy-stub` |
-| Permission change events on Spigot/Paper | Legacy Bukkit events (see [Legacy API — Events](LEGACY_API.md#events)) |
-| Proxy (Bungee/Waterfall) | Legacy `PermissionManager` where registered; modern `PermissionService` is **not** on `ServicesManager` on proxies |
+| Permission change events (modern) | `PermissionService.events()` or legacy Bukkit events on Spigot |
+| Proxy (Bungee/Waterfall) | `ProxyPermissionServices.permissionService()` (+ legacy `PermissionManager`) |
 
 ## Documentation
 

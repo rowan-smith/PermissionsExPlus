@@ -1,7 +1,11 @@
 package dev.rono.permissions.api.service;
 
 import dev.rono.permissions.api.PermissionsExException;
+import dev.rono.permissions.api.backend.BackendHandle;
 import dev.rono.permissions.api.backend.BackendInfo;
+import dev.rono.permissions.api.data.ImportMode;
+import dev.rono.permissions.api.event.PermissionEventBus;
+import dev.rono.permissions.api.session.PermissionEditSession;
 import dev.rono.permissions.api.subject.Group;
 import dev.rono.permissions.api.subject.User;
 import dev.rono.permissions.api.world.Worlds;
@@ -11,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Modern PermissionsEx integration API ({@code dev.rono.permissions.api}).
@@ -35,6 +40,9 @@ public interface PermissionService {
     }
 
     BackendInfo backend();
+
+    /** Subscribe to entity/system permission notifications. */
+    PermissionEventBus events();
 
     int userCount();
 
@@ -62,6 +70,26 @@ public interface PermissionService {
 
     /** Rank-ordered groups on a ladder (key = rank, value = group). */
     Map<Integer, Group> rankLadder(String ladderName);
+
+    /** Direct child groups of {@code groupName} in {@code world}. */
+    List<Group> childGroups(String groupName, String world, boolean inherit);
+
+    default List<Group> childGroups(String groupName, String world) {
+        return childGroups(groupName, world, false);
+    }
+
+    default List<Group> childGroups(String groupName) {
+        return childGroups(groupName, Worlds.GLOBAL, false);
+    }
+
+    /** All descendant groups of {@code groupName} in {@code world}. */
+    default List<Group> descendantGroups(String groupName, String world) {
+        return childGroups(groupName, world, true);
+    }
+
+    default List<Group> descendantGroups(String groupName) {
+        return descendantGroups(groupName, Worlds.GLOBAL);
+    }
 
     // --- Permission checks ---
 
@@ -116,7 +144,29 @@ public interface PermissionService {
         return usersInGroup(groupName, Worlds.GLOBAL, false);
     }
 
+    // --- Backend administration ---
+
+    void setActiveBackend(String alias) throws PermissionsExException;
+
+    /** Create a backend from configuration without activating it. */
+    BackendHandle createBackendHandle(String alias) throws PermissionsExException;
+
+    /** Copy data from another configured backend alias into the active backend. */
+    void importFromBackend(String backendAlias) throws PermissionsExException;
+
+    /** Export active backend document (YAML for file backends). */
+    String exportData() throws PermissionsExException;
+
+    /** Import a backend document into the active backend. */
+    void importData(String document, ImportMode mode) throws PermissionsExException;
+
     // --- Maintenance ---
 
     void reload() throws PermissionsExException;
+
+    /** Reload backend data asynchronously on the PEX executor. */
+    CompletableFuture<Void> reloadAsync();
+
+    /** Open a batch edit session (call {@link PermissionEditSession#save()} when done). */
+    PermissionEditSession openEditSession();
 }

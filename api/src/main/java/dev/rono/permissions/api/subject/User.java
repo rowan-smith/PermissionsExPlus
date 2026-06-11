@@ -1,5 +1,6 @@
 package dev.rono.permissions.api.subject;
 
+import dev.rono.permissions.api.RankingException;
 import dev.rono.permissions.api.world.Worlds;
 import java.util.List;
 import java.util.Optional;
@@ -82,4 +83,18 @@ public interface User extends PermissionSubject {
     default int groupMembershipRemainingSeconds(String groupName) {
         return groupMembershipRemainingSeconds(groupName, Worlds.GLOBAL);
     }
+
+    /** Promote one step on {@code ladderName}; {@code promoter} may be {@code null} (console/plugin). */
+    Group promote(String ladderName) throws RankingException;
+
+    Group promote(User promoter, String ladderName) throws RankingException;
+
+    /** Demote one step on {@code ladderName}; {@code demoter} may be {@code null} (console/plugin). */
+    Group demote(String ladderName) throws RankingException;
+
+    Group demote(User demoter, String ladderName) throws RankingException;
+
+    boolean isRanked(String ladderName);
+
+    int rank(String ladderName);
 }

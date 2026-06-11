@@ -12,7 +12,9 @@ Maven artifact: `permissionsex-api`
 </dependency>
 ```
 
-Runtime: on **Spigot/Paper**, `PermissionService` is registered on Bukkit `ServicesManager`. On **Bungee/Waterfall**, it is not registered — use legacy `PermissionManager` or proxy integration.
+Runtime: on **Spigot/Paper**, `PermissionService` is registered on Bukkit `ServicesManager`. On **Bungee/Waterfall**, use `dev.rono.permissions.bungee.ProxyPermissionServices.permissionService()`.
+
+Optional Bukkit helpers: artifact `permissionsex-api-bukkit` (`BukkitPermissions.has(service, player, node)`).
 
 Sample plugin: [`example-plugin/`](../../example-plugin/)
 
@@ -79,6 +81,19 @@ Entry point for server-wide operations.
 | `worldInheritanceMap()` | All mappings (`Worlds.GLOBAL` key = global) |
 | `defaultGroups(world)` | Default groups for a world |
 | `rankLadder(ladderName)` | `Map<rank, Group>` on a promotion ladder |
+| `childGroups(name, world, inherit)` | Child groups of a parent |
+| `descendantGroups(name, world)` | All descendant groups (inherit=true) |
+| `events()` | Modern `PermissionEventBus` for entity/system notifications |
+
+### Backend administration
+
+| Method | Description |
+|--------|-------------|
+| `setActiveBackend(alias)` | Switch active backend (same as legacy `setBackend`) |
+| `createBackendHandle(alias)` | Non-active `BackendHandle` for inspection/transfer |
+| `importFromBackend(alias)` | Copy configured backend into active store |
+| `exportData()` | Export active backend as YAML document |
+| `importData(document, ImportMode)` | Import YAML (`MERGE` or `REPLACE`) |
 
 ### Permission checks
 
@@ -112,8 +127,70 @@ Entry point for server-wide operations.
 | Method | Description |
 |--------|-------------|
 | `reload()` | Reload backend; throws `PermissionsExException` on failure |
+| `reloadAsync()` | Reload on PEX executor; returns `CompletableFuture<Void>` |
+| `openEditSession()` | Batch edit session — track subjects, call `save()` once |
 
 Source: `api/src/main/java/dev/rono/permissions/api/service/PermissionService.java`
+
+---
+
+## Events (`PermissionEventBus`)
+
+Subscribe via `PermissionService.events()`:
+
+```java
+var sub = pex.events().subscribe(new PermissionEventListener() {
+    @Override
+    public void onEntity(EntityDispatch dispatch) {
+        // entityIdentifier, entityType, mutation
+    }
+});
+pex.events().unsubscribe(sub);
+```
+
+Uses types from `permissionsex-core-api`: `EntityDispatch`, `SystemDispatch`, `EntityMutation`, `SystemMutation`. On Spigot, the platform still publishes legacy Bukkit events in parallel.
+
+---
+
+## Batch edits (`PermissionEditSession`)
+
+```java
+try (var session = pex.openEditSession()) {
+    session.editUser("Steve", user -> user.addPermission("foo.bar", null));
+    session.editGroup("vip", group -> group.setPrefix("&6", null));
+    session.save();
+}
+```
+
+---
+
+## Bukkit helpers (`permissionsex-api-bukkit`)
+
+```xml
+<dependency>
+  <groupId>dev.rono.permissions</groupId>
+  <artifactId>permissionsex-api-bukkit</artifactId>
+  <version>1.23.5</version>
+  <scope>provided</scope>
+</dependency>
+```
+
+```java
+import dev.rono.permissions.bukkit.BukkitPermissions;
+
+if (BukkitPermissions.has(pex, player, "my.node")) { ... }
+```
+
+---
+
+## Proxy registration (Bungee/Waterfall)
+
+```java
+import dev.rono.permissions.bungee.ProxyPermissionServices;
+
+PermissionService pex = ProxyPermissionServices.permissionService();
+// or ProxyPermissionServices.get(PermissionService.class);
+```
 
 ---
 
@@ -191,6 +268,9 @@ Extends `PermissionSubject`.
 | `timedGroupMemberships([world])` | `TimedGroupMembership(group, world, remainingSeconds)` |
 | `allTimedGroupMemberships()` | Across all worlds |
 | `groupMembershipRemainingSeconds(group[, world])` | Seconds until timed membership expires |
+| `promote(ladder)` / `promote(promoter, ladder)` | Rank ladder promotion; throws `RankingException` |
+| `demote(ladder)` / `demote(demoter, ladder)` | Rank ladder demotion |
+| `isRanked(ladder)` / `rank(ladder)` | Rank metadata |
 | `inWorld(world)` / `global()` | Returns `UserWorldContext` |
 
 ---
@@ -237,6 +317,11 @@ Obtain via `subject.inWorld("world_nether")` or `user.global()`.
 | `TimedPermissionEntry` | Record: permission, world, remainingSeconds |
 | `TimedGroupMembership` | Record: groupName, world, remainingSeconds |
 | `PermissionsExException` | Checked exception for reload/backend failures |
+| `RankingException` | Promotion/demotion failures |
+| `BackendHandle` | Non-active backend for copy/apply |
+| `ImportMode` | `MERGE` / `REPLACE` for `importData` |
+| `PermissionEventBus` / `PermissionEventListener` | Modern event subscription |
+| `PermissionEditSession` | Batch edit helper |
 | `SubjectType` | `USER`, `GROUP` |
 
 ---
@@ -259,4 +344,4 @@ On Spigot, internal dispatches are translated to legacy Bukkit events. See [LEGA
 
 ## Planned additions
 
-See [FUTURE.md](FUTURE.md) for event bus, promote/demote, diagnostics, backend switching, and other gaps.
+See [FUTURE.md](FUTURE.md) for remaining gaps (diagnostics, config snapshot, matcher access, cache control).

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.api;
 
+import dev.rono.permissions.api.RankingException;
+import dev.rono.permissions.api.subject.Group;
 import dev.rono.permissions.api.subject.SubjectType;
 import dev.rono.permissions.api.subject.TimedGroupMembership;
 import dev.rono.permissions.api.subject.User;
@@ -18,6 +20,10 @@ public final class ModernUserAdapter extends AbstractModernSubjectAdapter implem
     public ModernUserAdapter(PermissionUser user, DefaultPermissionManager manager) {
         super(user, manager);
         this.user = user;
+    }
+
+    PermissionUser delegate() {
+        return user;
     }
 
     @Override
@@ -95,6 +101,44 @@ public final class ModernUserAdapter extends AbstractModernSubjectAdapter implem
         String id = user.getIdentifier();
         user.remove();
         manager.resetUser(id);
+    }
+
+    @Override
+    public Group promote(String ladderName) throws RankingException {
+        return promote(null, ladderName);
+    }
+
+    @Override
+    public Group promote(User promoter, String ladderName) throws RankingException {
+        try {
+            return ModernSubjects.wrapGroup(user.promote(ModernSubjects.optionalUser(promoter), ladderName), manager);
+        } catch (ru.tehkode.permissions.exceptions.RankingException ex) {
+            throw ModernSubjects.toRankingException(ex);
+        }
+    }
+
+    @Override
+    public Group demote(String ladderName) throws RankingException {
+        return demote(null, ladderName);
+    }
+
+    @Override
+    public Group demote(User demoter, String ladderName) throws RankingException {
+        try {
+            return ModernSubjects.wrapGroup(user.demote(ModernSubjects.optionalUser(demoter), ladderName), manager);
+        } catch (ru.tehkode.permissions.exceptions.RankingException ex) {
+            throw ModernSubjects.toRankingException(ex);
+        }
+    }
+
+    @Override
+    public boolean isRanked(String ladderName) {
+        return user.isRanked(ladderName);
+    }
+
+    @Override
+    public int rank(String ladderName) {
+        return user.getRank(ladderName);
     }
 
     private static String parseTimedGroupOption(String option) {

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -9,15 +9,20 @@
         <version>1.23.5</version>
     </parent>
 
-    <artifactId>permissionsex-api</artifactId>
-    <name>PermissionsExPlus Public API</name>
-    <description>Modern hook integration surface: PermissionService, User, Group, and PermissionSubject on Bukkit ServicesManager.</description>
+    <artifactId>permissionsex-api-bukkit</artifactId>
+    <name>PermissionsExPlus Bukkit API Helpers</name>
+    <description>Optional Bukkit helpers for {@code permissionsex-api} ({@code Player} convenience checks).</description>
 
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-core-api</artifactId>
+            <artifactId>permissionsex-api</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

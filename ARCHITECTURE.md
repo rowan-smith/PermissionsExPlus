@@ -13,6 +13,7 @@ legacy-api/
 api/
   permissionsex-core-api      Platform-neutral SPI (PlatformAdapter, bus dispatches)
   permissionsex-api           PermissionService façade for modern hook plugins
+  permissionsex-api-bukkit    Optional Bukkit Player helpers
 
 platform/
   permissionsex-core          Engine (manager, backends, commands, hierarchy)

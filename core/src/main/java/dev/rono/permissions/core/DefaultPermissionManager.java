@@ -19,6 +19,10 @@
 package dev.rono.permissions.core;
 
 import dev.rono.permissions.api.PermissionsExException;
+import dev.rono.permissions.api.data.ImportMode;
+import dev.rono.permissions.api.event.PermissionEventBus;
+import dev.rono.permissions.api.session.PermissionEditSession;
+import dev.rono.permissions.api.backend.BackendHandle;
 import dev.rono.permissions.api.backend.BackendInfo;
 import dev.rono.permissions.api.bus.EntityDispatch;
 import dev.rono.permissions.api.bus.EntityMutation;
@@ -29,14 +33,19 @@ import dev.rono.permissions.api.service.PermissionService;
 import dev.rono.permissions.api.subject.Group;
 import dev.rono.permissions.api.subject.User;
 import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.core.api.BackendSnapshotSupport;
+import dev.rono.permissions.core.api.DefaultPermissionEventBus;
+import dev.rono.permissions.core.api.ModernBackendHandle;
 import dev.rono.permissions.core.api.ModernGroupAdapter;
 import dev.rono.permissions.core.api.ModernUserAdapter;
+import dev.rono.permissions.core.api.PermissionEditSessionImpl;
 import ru.tehkode.permissions.PEXBackendConfiguration;
 import dev.rono.permissions.core.backends.CorePermissionBackendRegistrar;
 import ru.tehkode.permissions.backends.PermissionBackend;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.concurrent.ConcurrentMap;
@@ -71,6 +80,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 
 	protected PermissionMatcher matcher = new RegExpMatcher();
 	private final GroupMembershipIndex groupMembershipIndex = new GroupMembershipIndex();
+	private final DefaultPermissionEventBus eventBus = new DefaultPermissionEventBus();
 
 	public DefaultPermissionManager(PermissionsExConfig config, Logger logger, PlatformAdapter platform) throws PermissionBackendException {
 		CorePermissionBackendRegistrar.ensureRegistered();
@@ -639,6 +649,11 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
+	public PermissionEventBus events() {
+		return eventBus;
+	}
+
+	@Override
 	public int userCount() {
 		return getUserIdentifiers().size();
 	}
@@ -777,12 +792,97 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
+	public List<Group> childGroups(String groupName, String world, boolean inherit) {
+		List<Group> groups = new ArrayList<>();
+		for (PermissionGroup group : getGroups(groupName, Worlds.normalize(world), inherit)) {
+			groups.add(wrapGroup(group));
+		}
+		return List.copyOf(groups);
+	}
+
+	@Override
+	public void setActiveBackend(String alias) throws PermissionsExException {
+		try {
+			setBackend(alias);
+		} catch (PermissionBackendException e) {
+			throw new PermissionsExException("Failed to activate backend " + alias, e);
+		}
+	}
+
+	@Override
+	public BackendHandle createBackendHandle(String alias) throws PermissionsExException {
+		try {
+			PermissionBackend created = createBackend(alias);
+			return new ModernBackendHandle(created, alias, this);
+		} catch (PermissionBackendException e) {
+			throw new PermissionsExException("Failed to create backend " + alias, e);
+		}
+	}
+
+	@Override
+	public void importFromBackend(String backendAlias) throws PermissionsExException {
+		try {
+			PermissionBackend source = createBackend(backendAlias);
+			backend.loadFrom(source);
+			clearCache();
+			publishSystem(SystemMutation.RELOADED);
+		} catch (PermissionBackendException e) {
+			throw new PermissionsExException("Failed to import from backend " + backendAlias, e);
+		}
+	}
+
+	@Override
+	public String exportData() throws PermissionsExException {
+		return BackendSnapshotSupport.export(backend);
+	}
+
+	@Override
+	public void importData(String document, ImportMode mode) throws PermissionsExException {
+		PermissionBackend snapshot = BackendSnapshotSupport.snapshotFromYaml(this, document);
+        if (mode == ImportMode.REPLACE) {
+            clearCache();
+        }
+        backend.loadFrom(snapshot);
+        publishSystem(SystemMutation.RELOADED);
+    }
+
+	@Override
 	public void reload() throws PermissionsExException {
 		try {
 			reset();
 		} catch (PermissionBackendException e) {
 			throw new PermissionsExException("Failed to reload PermissionsEx backend", e);
 		}
+	}
+
+	@Override
+	public CompletableFuture<Void> reloadAsync() {
+		CompletableFuture<Void> future = new CompletableFuture<>();
+		Runnable task = () -> {
+			try {
+				reload();
+				future.complete(null);
+			} catch (Exception ex) {
+				future.completeExceptionally(ex);
+			}
+		};
+		if (executor != null) {
+			executor.execute(task);
+		} else {
+			task.run();
+		}
+		return future;
+	}
+
+	@Override
+	public PermissionEditSession openEditSession() {
+		return new PermissionEditSessionImpl(this);
+	}
+
+	public void applyBackendData(PermissionBackend source) {
+		backend.loadFrom(source);
+		clearCache();
+		publishSystem(SystemMutation.RELOADED);
 	}
 
 	private User wrapUser(PermissionUser user) {
@@ -899,12 +999,16 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	protected void publishSystem(SystemMutation mutation) {
-		platform.publish(new SystemDispatch(getServerUUID(), mutation));
+		SystemDispatch dispatch = new SystemDispatch(getServerUUID(), mutation);
+		eventBus.dispatch(dispatch);
+		platform.publish(dispatch);
 	}
 
 	@Override
 	public void publishEntity(String entityIdentifier, String entityType, EntityMutation mutation) {
-		platform.publish(new EntityDispatch(getServerUUID(), entityIdentifier, entityType, mutation));
+		EntityDispatch dispatch = new EntityDispatch(getServerUUID(), entityIdentifier, entityType, mutation);
+		eventBus.dispatch(dispatch);
+		platform.publish(dispatch);
 	}
 
 	public PermissionMatcher getPermissionMatcher() {

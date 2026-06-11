@@ -2,6 +2,7 @@ package dev.rono.permissions.example;
 
 import dev.rono.permissions.api.service.PermissionService;
 import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.bukkit.BukkitPermissions;
 import java.util.Locale;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -47,7 +48,7 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
 
         Player player = event.getPlayer();
         String world = player.getWorld().getName();
-        boolean allowed = permissions.has(player.getUniqueId(), "my.node", world);
+        boolean allowed = BukkitPermissions.has(permissions, player, "my.node");
 
         User user = permissions.user(player.getUniqueId());
         var worldContext = user.inWorld(world);

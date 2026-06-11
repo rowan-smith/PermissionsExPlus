@@ -121,4 +121,71 @@ class ModernPermissionServiceTest extends PEXTestBase {
         assertFalse(service.usersInGroup("member-group").isEmpty());
         assertNotNull(service.defaultGroups(null));
     }
+
+    @Test
+    void eventBusNotifiesListeners() {
+        PermissionService service = (PermissionService) manager;
+        var received = new java.util.concurrent.atomic.AtomicInteger(0);
+        var subscription = service.events().subscribe(new dev.rono.permissions.api.event.PermissionEventListener() {
+            @Override
+            public void onEntity(dev.rono.permissions.api.bus.EntityDispatch dispatch) {
+                received.incrementAndGet();
+            }
+        });
+        service.user("event-bus-user").addPermission("event.test", null);
+        service.user("event-bus-user").save();
+        assertTrue(received.get() > 0);
+        service.events().unsubscribe(subscription);
+    }
+
+    @Test
+    void editSessionBatchSave() {
+        PermissionService service = (PermissionService) manager;
+        try (var session = service.openEditSession()) {
+            session.editUser("batch-user", user -> user.addPermission("batch.node", null));
+            session.editGroup("batch-group", group -> group.addPermission("batch.group", null));
+            session.save();
+        }
+        assertTrue(service.findUser("batch-user").isPresent());
+        assertTrue(service.group("batch-group").permissions(null).contains("batch.group"));
+    }
+
+    @Test
+    void childGroupsAndAsyncReload() throws Exception {
+        PermissionService service = (PermissionService) manager;
+        service.group("parent-group");
+        Group child = service.group("child-group");
+        child.addParent("parent-group", null);
+        child.save();
+        assertFalse(service.childGroups("parent-group").isEmpty());
+        assertFalse(service.descendantGroups("parent-group").isEmpty());
+        service.reloadAsync().get();
+    }
+
+    @Test
+    void promoteDemoteViaModernUser() throws dev.rono.permissions.api.RankingException {
+        PermissionService service = (PermissionService) manager;
+        Group mod = service.group("mod");
+        mod.setRank(2, "default");
+        mod.save();
+        Group admin = service.group("admin");
+        admin.setRank(1, "default");
+        admin.save();
+        User user = service.user("rank-user");
+        user.addGroup("mod", null);
+        user.save();
+
+        Group promoted = user.promote("default");
+        assertEquals("admin", promoted.identifier());
+        Group demoted = user.demote("default");
+        assertEquals("mod", demoted.identifier());
+    }
+
+    @Test
+    void exportDataAndBackendHandle() throws dev.rono.permissions.api.PermissionsExException {
+        PermissionService service = (PermissionService) manager;
+        assertNotNull(service.exportData());
+        var handle = service.createBackendHandle("mock");
+        assertNotNull(handle.info());
+    }
 }

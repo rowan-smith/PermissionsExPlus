@@ -19,6 +19,7 @@
         <!-- api: modern dev.rono.permissions.api.* integration SPI -->
         <module>core-api</module>
         <module>api</module>
+        <module>api-bukkit</module>
 
         <!-- platform: engine, runtimes, and installable bootstrap jar -->
         <module>core</module>

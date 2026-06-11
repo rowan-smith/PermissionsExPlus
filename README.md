@@ -67,6 +67,7 @@ Maven reactor order matches four groups (see root `pom.xml`). Maven still resolv
 |-----------|-------------|----------------------|---------|
 | `core-api/` | `permissionsex-core-api` | Yes (shaded) | Platform-neutral SPI: `PlatformAdapter`, bus dispatches, `SchedulerBridge`, `ContextResolver`. For platform hosts and deep integration. |
 | `api/` | `permissionsex-api` | Yes (shaded) | **Modern hook surface:** `PermissionService` on Bukkit `ServicesManager`. Preferred entry for new companion plugins. |
+| `api-bukkit/` | `permissionsex-api-bukkit` | No (optional compile) | Bukkit `Player` helpers for `PermissionService`. |
 
 ### `platform` — engine, runtimes, bootstrap
 

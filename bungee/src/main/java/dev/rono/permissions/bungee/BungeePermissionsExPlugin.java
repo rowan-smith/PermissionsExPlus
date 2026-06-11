@@ -3,6 +3,7 @@ package dev.rono.permissions.bungee;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
 import dev.rono.permissions.api.bus.PermissionDispatch;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.api.service.PermissionService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -68,6 +69,7 @@ public class BungeePermissionsExPlugin extends Plugin implements PlatformAdapter
                             CoreCloudPlatform.PROXY)
                     .register();
             this.manager.initTimer();
+            ProxyPermissionServices.register((PermissionService) this.manager, this.manager);
             BungeePermissionBootstrapReporter.log(this, this.manager);
         } catch (PermissionBackendException ex) {
             getLogger().severe("Failed to initialize PermissionsExPlus Bungee adapter: " + ex.getMessage());
@@ -77,6 +79,7 @@ public class BungeePermissionsExPlugin extends Plugin implements PlatformAdapter
 
     @Override
     public void onDisable() {
+        ProxyPermissionServices.unregister();
         if (manager != null) {
             manager.end();
             manager = null;
