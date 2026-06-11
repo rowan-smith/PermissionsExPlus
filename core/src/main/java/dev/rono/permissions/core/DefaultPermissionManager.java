@@ -97,7 +97,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 		if (config instanceof ru.tehkode.permissions.bukkit.PermissionsExConfig legacy) {
 			return legacy;
 		}
-		return new LegacyPermissionsExConfigAdapter(config);
+		return new dev.rono.permissions.core.legacy.LegacyPermissionsExConfigAdapter(config);
 	}
 
 	@Override

@@ -92,6 +92,15 @@
                         <phase>package</phase>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>${project.groupId}:permissionsex-legacy-api</artifact>
+                                    <excludes>
+                                        <!-- Runtime jar uses ru.tehkode.permissions.bukkit.PermissionsEx JavaPlugin -->
+                                        <exclude>ru/tehkode/permissions/bukkit/PermissionsEx.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>org.apache</pattern>
