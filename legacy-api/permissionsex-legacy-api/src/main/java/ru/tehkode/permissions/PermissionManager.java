@@ -49,6 +49,14 @@ import java.util.logging.Logger;
  * <p>{@link #initTimer()} starts the scheduler used to expire timed grants. {@link #TRANSIENT_PERMISSION}
  * ({@code 0}) marks a timed grant as non-persisted (in-memory only until reload).</p>
  *
+ * <h2>Holder-based permissions</h2>
+ * <p>The {@link #addPermission(PermissionHolder, String)}, {@link #removePermission(PermissionHolder, String)},
+ * {@link #hasPermission(PermissionHolder, String)}, and {@link #getPermissions(PermissionHolder)} methods operate on
+ * {@link PermissionHolder} identities (for example {@code User#asHolder()} from the modern user API, group/world/ladder
+ * holders, etc.). Resolve the manager via {@link dev.rono.permissions.api.PermissionsExApi#getPermissionManager()}
+ * after {@link ru.tehkode.permissions.bukkit.PermissionsEx#getApi()}. World context for advanced adds is supplied
+ * through {@link PermissionAddRequest}.</p>
+ *
  * @see PermissionEntity
  * @see PermissionUser
  * @see PermissionGroup
@@ -65,16 +73,84 @@ public interface PermissionManager {
      */
     int TRANSIENT_PERMISSION = 0;
 
+    /**
+     * Grants a permission to the given holder in the <em>global</em> scope (not world-specific).
+     *
+     * <p>The grant is persisted when the underlying entity is saved. For timed or world-scoped grants, use
+     * {@link #addPermission(PermissionHolder, String, Duration)} or {@link #addPermission(PermissionAddRequest)}.</p>
+     *
+     * @param holder     permission target; must not be {@code null}
+     * @param permission permission node to grant; must not be {@code null} or empty
+     * @return metadata describing the added node
+     * @see PermissionHolder
+     * @see PermissionNode
+     */
     PermissionNode addPermission(PermissionHolder holder, String permission);
 
+    /**
+     * Grants a permission to the holder in the <em>global</em> scope for a limited duration.
+     *
+     * <p>When {@code duration} is {@code null}, behaves like {@link #addPermission(PermissionHolder, String)}.
+     * Timed grants expire automatically after the scheduler runs ({@link #initTimer()}).</p>
+     *
+     * @param holder     permission target; must not be {@code null}
+     * @param permission permission node to grant; must not be {@code null} or empty
+     * @param duration   lifetime of the grant, or {@code null} for a permanent direct assignment
+     * @return metadata describing the added node (including expiry when timed)
+     * @see PermissionHolder
+     * @see PermissionNode
+     */
     PermissionNode addPermission(PermissionHolder holder, String permission, Duration duration);
 
+    /**
+     * Grants a permission using a fully specified add request (world context, expiry, source metadata).
+     *
+     * <p>Build requests with {@link PermissionAddRequest#builder()}. World keys in the request context map to
+     * world-scoped storage; an empty context uses the global scope.</p>
+     *
+     * @param request add specification; must not be {@code null}
+     * @return metadata describing the added node
+     * @see PermissionAddRequest
+     * @see PermissionNode
+     */
     PermissionNode addPermission(PermissionAddRequest request);
 
+    /**
+     * Removes a <em>direct</em> permission assignment from the holder in the <em>global</em> scope.
+     *
+     * <p>Does not remove inherited permissions. Does not clear timed nodes in world-specific scopes; use
+     * {@link PermissionEntity#removeTimedPermission(String, String)} on the resolved classic entity when needed.</p>
+     *
+     * @param holder     permission target; must not be {@code null}
+     * @param permission permission node to remove; must not be {@code null}
+     */
     void removePermission(PermissionHolder holder, String permission);
 
+    /**
+     * Checks whether the holder effectively holds the permission in the <em>global</em> scope.
+     *
+     * <p>Includes inheritance and parent groups for user/group holders. For per-world effective checks, use the
+     * classic {@link #has(Player, String, String)} API or {@link dev.rono.permissions.api.service.PexPermissionService}
+     * world scopes.</p>
+     *
+     * @param holder     permission target; must not be {@code null}
+     * @param permission permission node to check; must not be {@code null}
+     * @return {@code true} if granted after inheritance, {@code false} otherwise
+     * @see PermissionHolder
+     */
     boolean hasPermission(PermissionHolder holder, String permission);
 
+    /**
+     * Returns <em>direct</em> permission assignments for the holder in the <em>global</em> scope.
+     *
+     * <p>Does not include inherited nodes or world-specific assignments. Each entry is a {@link PermissionNode}
+     * without expiry metadata for permanent grants.</p>
+     *
+     * @param holder permission target; must not be {@code null}
+     * @return immutable list of direct global permissions (may be empty)
+     * @see PermissionHolder
+     * @see PermissionNode
+     */
     List<PermissionNode> getPermissions(PermissionHolder holder);
 
     // |---------------------------------------------|
