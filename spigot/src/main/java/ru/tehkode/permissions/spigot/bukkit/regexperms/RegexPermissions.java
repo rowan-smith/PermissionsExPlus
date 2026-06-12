@@ -9,8 +9,11 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.permissions.Permissible;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.spigot.bukkit.SpigotPermissionsExPlugin;
-import dev.rono.permissions.core.events.PermissionSystemEvent;
+import ru.tehkode.permissions.events.PermissionSystemEvent;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import static ru.tehkode.permissions.spigot.bukkit.CraftBukkitInterface.getCBClassName;
@@ -23,6 +26,7 @@ public class RegexPermissions {
 	private PermissionList permsList;
 	// Permissions subscriptions handling
 	private PEXPermissionSubscriptionMap subscriptionHandler;
+	private final Map<UUID, PermissiblePEX> injectedPermissibles = new ConcurrentHashMap<>();
 
 	public RegexPermissions(SpigotPermissionsExPlugin plugin) {
 		this.plugin = plugin;
@@ -53,6 +57,10 @@ public class RegexPermissions {
 		return permsList;
 	}
 
+	public PermissiblePEX getInjectedPermissible(Player player) {
+		return injectedPermissibles.get(player.getUniqueId());
+	}
+
 	public void injectPermissible(Player player) {
 		if (player.hasPermission("permissionsex.disabled")) { // this user shouldn't get permissionsex matching
 			return;
@@ -68,6 +76,7 @@ public class RegexPermissions {
 					Permissible oldPerm = injector.inject(player, permissible);
 					if (oldPerm != null) {
 						permissible.setPreviousPermissible(oldPerm);
+						injectedPermissibles.put(player.getUniqueId(), permissible);
 						success = true;
 						break;
 					}
@@ -113,6 +122,8 @@ public class RegexPermissions {
 					}
 				}
 			}
+
+			injectedPermissibles.remove(player.getUniqueId());
 
 			if (!success) {
 				plugin.getLogger().warning("No Permissible injector found for your server implementation (while uninjecting for " + player.getName() + "!");

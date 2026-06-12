@@ -1,13 +1,11 @@
 package ru.tehkode.permissions.bukkit;
 
-import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionUser;
-import ru.tehkode.permissions.backends.PermissionBackend;
 import ru.tehkode.permissions.exceptions.PermissionsNotAvailable;
 import ru.tehkode.permissions.spigot.bukkit.SpigotPermissionsExPlugin;
 
@@ -32,31 +30,19 @@ public final class PermissionsEx extends SpigotPermissionsExPlugin {
     }
 
     public static PermissionManager getPermissionManager() {
-        Plugin plugin = getPlugin();
-        if (plugin == null || !plugin.isEnabled()) {
+        if (!isAvailable()) {
             throw new PermissionsNotAvailable();
         }
         RegisteredServiceProvider<PermissionManager> reg =
                 Bukkit.getServer().getServicesManager().getRegistration(PermissionManager.class);
-        if (reg == null || reg.getProvider() == null) {
-            throw new PermissionsNotAvailable();
-        }
         return reg.getProvider();
     }
 
-    public static PermissionBackend getBackend() {
-        return getPermissionManager().getBackend();
-    }
-
-    public PermissionUser getUser(Player player) {
-        return getPermissionManager().getUser(player.getUniqueId());
+    public static PermissionUser getUser(Player player) {
+        return getPermissionManager().getUser(player);
     }
 
     public static PermissionUser getUser(String name) {
         return getPermissionManager().getUser(name);
-    }
-
-    public static PermissionUser getUser(UUID uuid) {
-        return getPermissionManager().getUser(uuid);
     }
 }

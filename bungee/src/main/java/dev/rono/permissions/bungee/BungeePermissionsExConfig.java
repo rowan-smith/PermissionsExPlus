@@ -132,7 +132,7 @@ final class BungeePermissionsExConfig implements PermissionsExConfig {
     }
 
     @Override
-    public PEXBackendConfiguration getBackendConfig(String backend) {
+    public PEXBackendConfiguration pexBackendConfiguration(String backend) {
         Map<String, Object> section = getOrCreateSection("permissions.backends." + backend);
         return new BungeeBackendConfiguration(backend, section);
     }

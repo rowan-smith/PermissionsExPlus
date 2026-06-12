@@ -25,6 +25,7 @@ import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionsData;
 import ru.tehkode.permissions.PermissionsGroupData;
 import ru.tehkode.permissions.PermissionsUserData;
+import dev.rono.permissions.core.InternalPermissionManager;
 import dev.rono.permissions.core.backends.AbstractPermissionBackend;
 import ru.tehkode.permissions.backends.PermissionBackend;
 import dev.rono.permissions.core.backends.SchemaUpdate;
@@ -56,7 +57,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class SQLBackend extends AbstractPermissionBackend {
 	protected Map<String, List<String>> worldInheritanceCache = new HashMap<>();
-	private final AtomicReference<ImmutableSet<String>> userNamesCache = new AtomicReference<>(), groupNamesCache = new AtomicReference<>();
+	private final AtomicReference<ImmutableSet<String>> userNamesCache = new AtomicReference<>(),
+			groupNamesCache = new AtomicReference<>(),
+			displayUserNamesCache = new AtomicReference<>();
 	private Map<String, Object> tableNames;
 	private final SQLQueryCache queryCache;
 	private static final SQLQueryCache DEFAULT_QUERY_CACHE;
@@ -82,7 +85,7 @@ public class SQLBackend extends AbstractPermissionBackend {
 			getConfig().set("uri", "mysql://localhost/exampledb");
 			getConfig().set("user", "databaseuser");
 			getConfig().set("password", "databasepassword");
-			manager.saveMainConfiguration();
+			InternalPermissionManager.require(manager).saveMainConfiguration();
 			throw new PermissionBackendException("SQL connection is not configured, see config.yml");
 		}
 
@@ -307,6 +310,7 @@ public class SQLBackend extends AbstractPermissionBackend {
 		switch (data.getType()) {
 			case USER:
 				ref = userNamesCache;
+				displayUserNamesCache.set(null);
 				break;
 			case GROUP:
 				ref = groupNamesCache;
@@ -374,17 +378,27 @@ public class SQLBackend extends AbstractPermissionBackend {
 
 	@Override
 	public Collection<String> getUserNames() {
-		// TODO: Look at implementing caching
-		Set<String> ret = new HashSet<>();
-		try (SQLConnection conn = getSQL()) {
-			ResultSet set = conn.prepAndBind("SELECT `value` FROM `{permissions}` WHERE `type` = ? AND `permission` = 'name' AND `value` IS NOT NULL", SQLData.Type.USER.ordinal()).executeQuery();
-			while (set.next()) {
-				ret.add(set.getString("value"));
+		while (true) {
+			ImmutableSet<String> cache = displayUserNamesCache.get();
+			if (cache != null) {
+				return cache;
 			}
-		} catch (SQLException | IOException e) {
-			throw new RuntimeException(e);
+			Set<String> ret = new HashSet<>();
+			try (SQLConnection conn = getSQL()) {
+				ResultSet set = conn.prepAndBind(
+						"SELECT `value` FROM `{permissions}` WHERE `type` = ? AND `permission` = 'name' AND `value` IS NOT NULL",
+						SQLData.Type.USER.ordinal()).executeQuery();
+				while (set.next()) {
+					ret.add(set.getString("value"));
+				}
+			} catch (SQLException | IOException e) {
+				throw new RuntimeException(e);
+			}
+			ImmutableSet<String> newCache = ImmutableSet.copyOf(ret);
+			if (displayUserNamesCache.compareAndSet(null, newCache)) {
+				return newCache;
+			}
 		}
-		return Collections.unmodifiableSet(ret);
 	}
 
 	protected final void setupAliases() {
@@ -511,6 +525,7 @@ public class SQLBackend extends AbstractPermissionBackend {
 		worldInheritanceCache.clear();
 		userNamesCache.set(null);
 		groupNamesCache.set(null);
+		displayUserNamesCache.set(null);
 	}
 
 	@Override

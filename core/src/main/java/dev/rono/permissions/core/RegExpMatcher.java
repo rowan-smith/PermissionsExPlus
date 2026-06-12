@@ -61,8 +61,9 @@ public class RegExpMatcher implements PermissionMatcher {
 
 		String regexp = rawRegexp ? expression : expression.replace(".", "\\.").replace("*", "(.*)");
 
-	/*	try {
+		try {
 			Matcher rangeMatcher = rangeExpression.matcher(regexp);
+			StringBuffer expanded = new StringBuffer();
 			while (rangeMatcher.find()) {
 				StringBuilder range = new StringBuilder();
 				int from = Integer.parseInt(rangeMatcher.group(1));
@@ -72,23 +73,23 @@ public class RegExpMatcher implements PermissionMatcher {
 					int temp = from;
 					from = to;
 					to = temp;
-				} // swap them
+				}
 
 				range.append("(");
-
 				for (int i = from; i <= to; i++) {
 					range.append(i);
 					if (i < to) {
 						range.append("|");
 					}
 				}
-
 				range.append(")");
-
-				regexp = regexp.replace(rangeMatcher.group(0), range.toString());
+				rangeMatcher.appendReplacement(expanded, Matcher.quoteReplacement(range.toString()));
 			}
+			rangeMatcher.appendTail(expanded);
+			regexp = expanded.toString();
 		} catch (Throwable ignore) {
-		}*/
+			// Keep regexp unchanged if range expansion fails
+		}
 
 		return regexp;
 	}

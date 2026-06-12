@@ -6,14 +6,19 @@
     <parent>
         <groupId>dev.rono.permissions</groupId>
         <artifactId>PermissionsExPlus</artifactId>
-        <version>1.23.5-SNAPSHOT</version>
+        <version>1.23.5</version>
     </parent>
 
     <artifactId>permissionsex-api</artifactId>
     <name>PermissionsExPlus Public API</name>
-    <description>Minimal modern integration surface: dev.rono.permissions.api.service.PermissionService for Bukkit ServicesManager registration.</description>
+    <description>Modern hook integration surface: PermissionService, User, Group, and PermissionSubject on Bukkit ServicesManager.</description>
 
     <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>permissionsex-core-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

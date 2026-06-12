@@ -161,13 +161,10 @@ public abstract class CachingData implements PermissionsData {
 			}
 		});
 		if (options != null) {
-			Map<String, String> optionsMap = options.get(world);
-			if (optionsMap == null) {
-				// TODO Concurrentify
-				optionsMap = new HashMap<>();
-				options.put(world, optionsMap);
+			Map<String, String> optionsMap = options.computeIfAbsent(world, w -> {
 				clearWorldsCache();
-			}
+				return new java.util.concurrent.ConcurrentHashMap<>();
+			});
 			if (value == null) {
 				optionsMap.remove(option);
 			} else {

@@ -7,6 +7,7 @@ import java.util.TreeSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import dev.rono.permissions.core.InternalPermissionManager;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionUser;
@@ -75,14 +76,14 @@ public class CoreCommandService {
 
         for (PermissionGroup group : manager.getGroupList()) {
             permissions.addAll(group.getOwnPermissions(null));
-            for (String world : manager.getWorldNames()) {
+            for (String world : InternalPermissionManager.require(manager).getWorldNames()) {
                 permissions.addAll(group.getOwnPermissions(world));
             }
         }
 
         for (PermissionUser user : manager.getUsers()) {
             permissions.addAll(user.getOwnPermissions(null));
-            for (String world : manager.getWorldNames()) {
+            for (String world : InternalPermissionManager.require(manager).getWorldNames()) {
                 permissions.addAll(user.getOwnPermissions(world));
             }
         }
@@ -104,7 +105,7 @@ public class CoreCommandService {
     }
 
     public List<String> worldNames() {
-        return manager.getWorldNames().stream().sorted().collect(Collectors.toList());
+        return InternalPermissionManager.require(manager).getWorldNames().stream().sorted().collect(Collectors.toList());
     }
 
     public List<String> worldsTreeLines() {

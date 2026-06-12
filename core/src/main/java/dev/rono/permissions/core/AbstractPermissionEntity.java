@@ -29,10 +29,13 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import dev.rono.permissions.api.bus.EntityMutation;
+import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.core.InternalPermissionManager;
 
 import ru.tehkode.permissions.PermissionEntity;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionManager;
+import ru.tehkode.permissions.PermissionUser;
 import ru.tehkode.permissions.PermissionsData;
 /**
  * @author code
@@ -191,7 +194,7 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 	 * @return true if entity has this permission otherwise false
 	 */
 	public boolean has(String permission) {
-		java.util.Collection<String> worlds = manager.getWorldNames();
+		java.util.Collection<String> worlds = InternalPermissionManager.require(manager).getWorldNames();
 		return this.has(permission, worlds.isEmpty() ? null : worlds.iterator().next());
 	}
 
@@ -298,6 +301,18 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 		if (perm.startsWith("-")) {
 			invert = !invert;
 			perm = perm.substring(1);
+		}
+		if (perm.startsWith(PermissionEntity.NON_INHERITABLE_PREFIX)) {
+			perm = perm.substring(1);
+		}
+		if (perm.contains("*") || perm.contains("(")) {
+			return;
+		}
+		String prefix = perm + ".";
+		for (String own : getOwnPermissions(null)) {
+			if (own.startsWith(prefix) && !list.contains(own)) {
+				list.add(invert ? "-" + own : own);
+			}
 		}
 	}
 
@@ -688,7 +703,7 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 				}
 			};
 
-			this.manager.registerTask(task, lifeTime);
+			InternalPermissionManager.require(this.manager).registerTask(task, lifeTime);
 
 			this.timedPermissionsTime.put(world + ":" + permission, (System.currentTimeMillis() / 1000L) + lifeTime);
 		}
@@ -720,7 +735,15 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 	}
 
 	protected void callEvent(EntityMutation action) {
-		manager.publishEntity(this.getIdentifier(), this.getType().toString(), action);
+		if (manager instanceof InternalPermissionManager internal) {
+			internal.publishEntity(this.getIdentifier(), this.getType().toString(), action);
+		}
+	}
+
+	protected PlatformAdapter platformAdapter() {
+		return manager instanceof InternalPermissionManager internal
+				? internal.getPlatform()
+				: null;
 	}
 
 	@Override
@@ -911,6 +934,9 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 	public void setParentsIdentifier(List<String> parentNames, String world) {
 		getData().setParents(parentNames, world);
 		clearCache();
+		if (this instanceof PermissionUser user && manager instanceof DefaultPermissionManager dpm) {
+			dpm.onUserGroupMembershipChanged(user, world);
+		}
 		this.callEvent(EntityMutation.INHERITANCE_CHANGED);
 	}
 

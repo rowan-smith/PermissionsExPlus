@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import dev.rono.permissions.core.InternalPermissionManager;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.spigot.bukkit.SpigotPermissionsExPlugin;
 
@@ -36,7 +37,8 @@ public final class BukkitPermissionBootstrapReporter {
         Logger log = plugin.getLogger();
         PlatformDescriptor desc = describe(plugin.getServer());
         log.info(PREFIX + "Runtime: " + desc.runtimeBannerLine());
-        log.info(PREFIX + "Platform adapter: " + manager.getPlatform().getClass().getSimpleName());
+        log.info(PREFIX + "Platform adapter: "
+                + InternalPermissionManager.require(manager).getPlatform().getClass().getSimpleName());
         log.info(PREFIX + "Core engine: started");
         logModernApi(plugin, manager, log);
         log.info(PREFIX + "API: legacy v1 compatibility enabled");

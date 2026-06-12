@@ -166,6 +166,10 @@ public class PermissiblePEX extends PermissibleBase {
 		}
 	}
 
+	public void clearPermissionCache() {
+		cache.clear();
+	}
+
 	@Override
 	public void recalculatePermissions() {
 		if (cache != null && permissions != null && attachments != null) {

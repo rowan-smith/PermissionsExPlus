@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import dev.rono.permissions.bungee.BungeePermissionsExPlugin;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
+import dev.rono.permissions.core.InternalPermissionManager;
 import ru.tehkode.permissions.PermissionManager;
 
 /**
@@ -31,9 +32,10 @@ public final class BungeePermissionBootstrapReporter {
         Logger log = plugin.getLogger();
         PlatformDescriptor desc = describe(plugin.getProxy());
         log.info(PREFIX + "Runtime: " + desc.runtimeBannerLine());
-        log.info(PREFIX + "Platform adapter: " + manager.getPlatform().getClass().getSimpleName());
+        log.info(PREFIX + "Platform adapter: "
+                + InternalPermissionManager.require(manager).getPlatform().getClass().getSimpleName());
         log.info(PREFIX + "Core engine: started");
-        log.info(PREFIX + "API: modern v2 (PermissionService not published via ServicesManager on proxies)");
+        log.info(PREFIX + "API: modern v2 (PermissionService via ProxyPermissionServices)");
         log.info(PREFIX + "API: legacy v1 compatibility enabled");
         log.info(PREFIX + "Context resolvers: server, static");
         log.info(PREFIX + "Storage: " + manager.getBackend().diagnosticLabel());

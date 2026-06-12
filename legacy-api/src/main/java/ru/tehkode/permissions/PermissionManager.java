@@ -1,20 +1,22 @@
 package ru.tehkode.permissions;
 
-import dev.rono.permissions.api.bus.EntityMutation;
-import dev.rono.permissions.api.runtime.PlatformAdapter;
 import java.util.Collection;
-import java.util.TimerTask;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
+import org.bukkit.entity.Player;
 import ru.tehkode.permissions.backends.PermissionBackend;
+import ru.tehkode.permissions.bukkit.PermissionsExConfig;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
 /**
- * Classic PermissionsEx permission manager contract ({@code ru.tehkode.permissions}).
+ * Classic PermissionsEx permission manager contract ({@code ru.tehkode.permissions}, baseline {@code 628215f}).
+ *
+ * <p>Runtime extensions ({@code PlatformAdapter}, entity bus dispatches, internal scheduling) are implemented on
+ * {@code dev.rono.permissions.core.InternalPermissionManager} and are not part of this surface.</p>
  */
 public interface PermissionManager {
 
@@ -22,23 +24,11 @@ public interface PermissionManager {
 
     boolean shouldCreateUserRecords();
 
-    /** Plugin data directory path used when backends write backups or sidecar files (classic {@code config.yml} {@code basedir}). */
-    String getBasedir();
+    PermissionsExConfig getConfiguration();
 
-    /** Persists root plugin configuration when a backend requests it (for example SQL alias refresh). */
-    default void saveMainConfiguration() {}
+    boolean has(Player player, String permission);
 
-    PlatformAdapter getPlatform();
-
-    boolean allowOps();
-
-    boolean userAddGroupsLast();
-
-    void registerTask(TimerTask task, int delay);
-
-    void publishEntity(String entityIdentifier, String entityType, EntityMutation mutation);
-
-    void scheduleTimedGroupsCheck(long nextExpiration, String identifier);
+    boolean has(Player player, String permission, String world);
 
     boolean has(String playerName, String permission, String world);
 
@@ -48,15 +38,13 @@ public interface PermissionManager {
 
     void cacheUser(String ident, String fallbackName);
 
+    PermissionUser getUser(Player player);
+
     PermissionUser getUser(UUID uid);
 
     Set<PermissionUser> getUsers();
 
     Set<PermissionUser> getActiveUsers();
-
-    Set<PermissionUser> getActiveUsers(String groupName);
-
-    Set<PermissionUser> getActiveUsers(String groupName, boolean inheritance);
 
     Collection<String> getUserIdentifiers();
 
@@ -72,13 +60,13 @@ public interface PermissionManager {
 
     void resetUser(String userName);
 
+    void resetUser(Player player);
+
     void clearUserCache(String userName);
 
     void clearUserCache(UUID uid);
 
-    PermissionGroup getDefaultGroup();
-
-    PermissionGroup getDefaultGroup(String worldName);
+    void clearUserCache(Player player);
 
     PermissionGroup getGroup(String groupname);
 
@@ -88,7 +76,7 @@ public interface PermissionManager {
     PermissionGroup[] getGroups();
 
     @Deprecated
-    String[] getGroupNames();
+    Collection<String> getGroupNames();
 
     List<PermissionGroup> getGroups(String groupName, String worldName);
 
@@ -114,12 +102,6 @@ public interface PermissionManager {
 
     PermissionBackend getBackend();
 
-    int registeredUserNameCount();
-
-    int registeredGroupCount();
-
-    String activeBackendSimpleName();
-
     void setBackend(String backendName) throws PermissionBackendException;
 
     PermissionBackend createBackend(String backendName) throws PermissionBackendException;
@@ -136,64 +118,9 @@ public interface PermissionManager {
 
     void setPermissionMatcher(PermissionMatcher matcher);
 
-    Collection<String> getWorldNames();
-
     Logger getLogger();
 
     ScheduledExecutorService getExecutor();
 
     boolean shouldSaveDefaultGroup();
-
-    /** Classic alias for {@link #reset()}. */
-    default void reload() throws PermissionBackendException {
-        reset();
-    }
-
-    /** Compatibility alias aligning with APIs that historically used {@code createUser}; delegates to {@link #getUser(String)}. */
-    default PermissionUser createUser(String identifier) {
-        return getUser(identifier);
-    }
-
-    /** @see #createUser(String) */
-    default PermissionUser createUser(UUID uuid) {
-        return getUser(uuid);
-    }
-
-    default void removeUser(String identifier) {
-        try {
-            getUser(identifier).remove();
-        } catch (Throwable first) {
-            if (getBackend().hasUser(identifier)) {
-                getBackend().getUserData(identifier).remove();
-            }
-        }
-        resetUser(identifier.toLowerCase());
-        try {
-            clearUserCache(UUID.fromString(identifier));
-        } catch (IllegalArgumentException notUuidLiteral) {
-            try {
-                clearUserCache(identifier);
-            } catch (Throwable ignored) {
-            }
-        }
-    }
-
-    default void removeGroup(String groupName) {
-        if (groupName == null || groupName.isEmpty()) {
-            return;
-        }
-        try {
-            PermissionGroup group = getGroup(groupName);
-            group.remove();
-        } catch (Throwable first) {
-            if (getBackend().hasGroup(groupName)) {
-                getBackend().getGroupData(groupName).remove();
-            }
-        }
-        resetGroup(groupName);
-    }
-
-    default void removeUser(UUID uuid) {
-        removeUser(uuid.toString());
-    }
 }

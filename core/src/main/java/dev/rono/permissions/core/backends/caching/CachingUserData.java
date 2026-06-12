@@ -21,12 +21,13 @@ public class CachingUserData extends CachingData implements PermissionsUserData 
 
 	@Override
 	public boolean setIdentifier(final String identifier) {
+		final boolean[] changed = {false};
 		execute(new Runnable() {
 			@Override
 			public void run() {
-				getBackingData().setIdentifier(identifier);
+				changed[0] = getBackingData().setIdentifier(identifier);
 			}
 		});
-		return true; // TODO make this more accurate
+		return changed[0];
 	}
 }

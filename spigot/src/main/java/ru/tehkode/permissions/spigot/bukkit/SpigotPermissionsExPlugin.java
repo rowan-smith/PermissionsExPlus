@@ -65,8 +65,10 @@ import dev.rono.permissions.api.bus.SystemDispatch;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
 import dev.rono.permissions.api.service.PermissionService;
 import dev.rono.permissions.runtime.startup.BukkitPermissionBootstrapReporter;
+import dev.rono.permissions.spigot.platform.SpigotEventPublisher;
+import dev.rono.permissions.spigot.platform.SpigotPlatformBridge;
 import dev.rono.permissions.core.DefaultPermissionManager;
-import dev.rono.permissions.core.NativeInterface;
+import ru.tehkode.permissions.NativeInterface;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionsUserData;
 import ru.tehkode.permissions.PermissionUser;
@@ -76,9 +78,9 @@ import ru.tehkode.permissions.spigot.backends.MemoryBackend;
 import dev.rono.permissions.core.commands.CoreCloudCommandRegistrar;
 import dev.rono.permissions.core.commands.CoreCommandService;
 import ru.tehkode.permissions.spigot.bukkit.regexperms.RegexPermissions;
-import dev.rono.permissions.core.events.PermissionEntityEvent;
-import dev.rono.permissions.core.events.PermissionEvent;
-import dev.rono.permissions.core.events.PermissionSystemEvent;
+import ru.tehkode.permissions.events.PermissionEntityEvent;
+import ru.tehkode.permissions.events.PermissionEvent;
+import ru.tehkode.permissions.events.PermissionSystemEvent;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
 /**
@@ -92,6 +94,8 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
     private StrippingBukkitCommandManager<CommandSender> cloudManager;
     private CoreCommandService coreCommandService;
 	private boolean errored = false;
+	private SpigotPlatformBridge platformBridge;
+	private SpigotEventPublisher eventPublisher;
 
 	public SpigotPermissionsExPlugin() {
 		super();
@@ -193,6 +197,16 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 				return;
 			}
 
+			platformBridge = new SpigotPlatformBridge(this);
+			eventPublisher = new SpigotEventPublisher(this);
+			if (!dev.rono.permissions.spigot.compat.ServerVersions.isWithinSupportedRange(getServer())) {
+				getLogger().warning("Minecraft version " + dev.rono.permissions.spigot.compat.ServerVersions.minecraftVersion(getServer())
+						+ " is outside the tested range "
+						+ dev.rono.permissions.spigot.compat.ServerVersions.MIN_MC
+						+ "–"
+						+ dev.rono.permissions.spigot.compat.ServerVersions.MAX_MC
+						+ "; continuing with compatibility shims enabled.");
+			}
 			if (this.permissionsManager == null) {
 				this.permissionsManager = new DefaultPermissionManager(config, getLogger(), this);
 			}
@@ -368,125 +382,73 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 		return regexPerms;
 	}
 
+	public SuperpermsListener getSuperpermsListener() {
+		return superms;
+	}
+
 	@Override
 	public String UUIDToName(UUID uid) {
-		OfflinePlayer ply = null;
-		try {
-			ply = getServer().getPlayer(uid); // to make things cheaper, we're just checking online players (can be improved later on)
-			// Also, only online players are really necessary to convert to proper names
-		} catch (NoSuchMethodError e) {
-			// Old craftbukkit, guess we won't have a fallback name. Much shame.
-		}
-		return ply != null ? ply.getName() : null;
+		return platformBridge.uuidToName(uid);
 	}
 
 	@Override
 	public UUID nameToUUID(String name) {
-		OfflinePlayer player = getServer().getOfflinePlayer(name);
-		UUID userUUID = null;
-		try {
-			userUUID = player.getUniqueId();
-		} catch (Throwable t) {
-			// Handle cases where the plugin is not running on a uuid-aware Bukkit by just not converting here
-		}
-		return userUUID;
+		return platformBridge.nameToUuid(name);
 	}
 
 	@Override
 	public boolean isOnline(UUID uuid) {
-		Player player = getServer().getPlayer(uuid);
-		return (player != null && player.isOnline());
+		return platformBridge.isOnline(uuid);
 	}
 
 	@Override
 	public UUID getServerUUID() {
-		List<World> worlds = getServer().getWorlds();
-
-		if (worlds.isEmpty()) {
-			return null;
-		}
-
-		return worlds.getFirst().getUID();
+		return platformBridge.serverId();
 	}
 
 	@Override
 	public void callEvent(PermissionEvent event) {
-		getServer().getPluginManager().callEvent(event);
+		eventPublisher.callEvent(event);
 	}
 
 	@Override
 	public void publish(PermissionDispatch dispatch) {
-		if (dispatch instanceof EntityDispatch ed) {
-			callEvent(new PermissionEntityEvent(
-					ed.sourceId(),
-					ed.entityIdentifier(),
-					ed.entityType(),
-					PermissionEntityEvent.Action.valueOf(ed.mutation().name())));
-			return;
-		}
-		if (dispatch instanceof SystemDispatch sd) {
-			callEvent(new PermissionSystemEvent(sd.sourceId(), PermissionSystemEvent.Action.valueOf(sd.mutation().name())));
-			return;
-		}
-		throw new IllegalArgumentException("Unknown dispatch: " + dispatch.getClass().getName());
+		eventPublisher.publish(dispatch);
 	}
 
 	@Override
 	public String uuidToName(UUID uid) {
-		return UUIDToName(uid);
+		return platformBridge.uuidToName(uid);
 	}
 
 	@Override
 	public UUID nameToUuid(String name) {
-		return nameToUUID(name);
+		return platformBridge.nameToUuid(name);
 	}
 
 	@Override
 	public UUID serverId() {
-		return getServerUUID();
+		return platformBridge.serverId();
 	}
 
 	@Override
 	public Collection<String> realmNames() {
-		return getWorldNames();
+		return platformBridge.realmNames();
 	}
 
 	@Override
 	public String onlineRealm(UUID player) {
-		return getOnlineWorldName(player);
+		return platformBridge.onlineRealm(player);
 	}
 
 	@Override
 	public String onlineDisplayName(UUID player) {
-		return getOnlinePlayerName(player);
-	}
-
-	@Override
-	public String getOnlineWorldName(UUID uuid) {
-		Player player = getServer().getPlayer(uuid);
-		return player != null ? player.getWorld().getName() : null;
-	}
-
-	@Override
-	public String getOnlinePlayerName(UUID uuid) {
-		Player player = getServer().getPlayer(uuid);
-		return player != null ? player.getName() : null;
+		return platformBridge.onlineDisplayName(player);
 	}
 
 	@Override
 	public boolean isOperator(UUID uuid) {
-		Player player = getServer().getPlayer(uuid);
-		return player != null && player.isOp();
-	}
-
-	@Override
-	public Collection<String> getWorldNames() {
-		List<World> worlds = getServer().getWorlds();
-		List<String> names = new ArrayList<>(worlds.size());
-		for (World world : worlds) {
-			names.add(world.getName());
-		}
-		return names;
+		return platformBridge.isOperator(uuid);
 	}
 
 	public PermissionManager getPermissionsManager() {
@@ -494,23 +456,19 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 	}
 
 	public boolean has(Player player, String permission) {
-		return this.permissionsManager.has(player.getUniqueId(), permission, player.getWorld().getName());
+		return this.permissionsManager.has(player, permission);
 	}
 
 	public boolean has(Player player, String permission, String world) {
-		return this.permissionsManager.has(player.getUniqueId(), permission, world);
-	}
-
-	public PermissionUser getUser(Player player) {
-		return this.permissionsManager.getUser(player.getUniqueId());
+		return this.permissionsManager.has(player, permission, world);
 	}
 
 	public void resetUser(Player player) {
-		this.permissionsManager.resetUser(player.getUniqueId().toString());
+		this.permissionsManager.resetUser(player);
 	}
 
 	public void clearUserCache(Player player) {
-		this.permissionsManager.clearUserCache(player.getUniqueId());
+		this.permissionsManager.clearUserCache(player);
 	}
 
     private final class SpigotSenderAdapter implements CoreCloudCommandRegistrar.SenderAdapter<CommandSender> {
