@@ -1,5 +1,6 @@
 package dev.rono.permissions.example;
 
+import dev.rono.permissions.api.PermissionsExApi;
 import dev.rono.permissions.bukkit.PexBukkitPermissions;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
@@ -15,7 +16,7 @@ import java.util.Locale;
 /** Sample plugin using {@link PermissionsEx#getApi()}. */
 public class ExamplePlugin extends JavaPlugin implements Listener {
 
-    private PermissionManager permissions;
+    private PermissionsExApi permissions;
 
     @Override
     public void onEnable() {
@@ -27,10 +28,11 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
         }
 
         permissions = PermissionsEx.getApi();
+        PermissionManager manager = permissions.getPermissionManager();
         getLogger().info(String.format(Locale.ROOT,
                 "PEX users=%d groups=%d",
-                permissions.getUserIdentifiers().size(),
-                permissions.getGroupNames().size()));
+                manager.getUserIdentifiers().size(),
+                manager.getGroupNames().size()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

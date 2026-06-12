@@ -16,9 +16,8 @@ import java.util.logging.Logger;
  * Runtime extensions ({@code PlatformAdapter}, entity bus dispatches, internal scheduling) are implemented on
  * {@code dev.rono.permissions.core.InternalPermissionManager} and are not part of this surface.</p>
  *
- * <p>Modern hook plugins should use {@link #getUserManager()}, {@link #getGroupManager()},
- * {@link #getWorldManager()}, {@link #getLadderManager()}, and {@link #getPermissionService()}.
- * Classic methods remain for binary compatibility but are deprecated.</p>
+ * <p>Classic methods remain for binary compatibility but are deprecated — use
+ * {@link dev.rono.permissions.api.PermissionsExApi} via {@link ru.tehkode.permissions.bukkit.PermissionsEx#getApi()}.</p>
  *
  * <h2>World scope</h2>
  * <p>A {@code null} world name denotes the <em>global</em> (common) scope shared across worlds unless
@@ -59,32 +58,6 @@ public interface PermissionManager {
      * <p>Passed to {@link PermissionEntity#addTimedPermission(String, String, int)} as {@code lifeTime}.</p>
      */
     int TRANSIENT_PERMISSION = 0;
-
-
-    /**
-     * Returns the modern user registry ({@code find} / {@code get} / {@code create} / {@code exists}).
-     */
-    dev.rono.permissions.api.user.UserManager getUserManager();
-
-    /**
-     * Returns the modern group registry ({@code find} / {@code get} / {@code create} / {@code exists}).
-     */
-    dev.rono.permissions.api.group.GroupManager getGroupManager();
-
-    /**
-     * Returns the modern world registry ({@code find} / {@code get} / {@code create} / {@code exists}).
-     */
-    dev.rono.permissions.api.world.WorldManager getWorldManager();
-
-    /**
-     * Returns the modern rank ladder registry ({@code find} / {@code get} / {@code create} / {@code exists}).
-     */
-    dev.rono.permissions.api.ladder.LadderManager getLadderManager();
-
-    /**
-     * Returns holder-based permission operations (add / remove / has).
-     */
-    dev.rono.permissions.api.permission.PermissionService getPermissionService();
 
     /**
      * Returns whether the engine should create user records automatically when unknown players are resolved.

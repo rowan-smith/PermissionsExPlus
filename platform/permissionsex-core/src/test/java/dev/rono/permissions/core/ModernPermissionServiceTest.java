@@ -1,5 +1,6 @@
 package dev.rono.permissions.core;
 
+import dev.rono.permissions.api.PermissionsExApi;
 import dev.rono.permissions.api.service.PexPermissionService;
 import dev.rono.permissions.api.service.PexPermissionServiceBridge;
 import dev.rono.permissions.api.subject.PexGroup;
@@ -8,7 +9,6 @@ import dev.rono.permissions.api.subject.PexTimedPermissionEntry;
 import dev.rono.permissions.api.subject.PexUser;
 import dev.rono.permissions.api.world.PexWorlds;
 import org.junit.jupiter.api.Test;
-import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PEXTestBase;
 
 import java.util.List;
@@ -215,7 +215,7 @@ class ModernPermissionServiceTest extends PEXTestBase {
 
     @Test
     void permissionsExApiLifecycle() {
-        PermissionManager api = manager;
+        PermissionsExApi api = ((DefaultPermissionManager) manager).permissionsExApi();
         UUID uuid = UUID.randomUUID();
 
         assertFalse(api.getUserManager().exists(uuid));
@@ -228,6 +228,7 @@ class ModernPermissionServiceTest extends PEXTestBase {
 
         api.getPermissionService().addPermission(created.asHolder(), "lifecycle.test");
         assertTrue(api.getPermissionService().hasPermission(created.asHolder(), "lifecycle.test"));
+        assertSame(manager, api.getPermissionManager());
 
         assertThrows(dev.rono.permissions.api.user.UserAlreadyExistsException.class,
                 () -> api.getUserManager().createUser(uuid));

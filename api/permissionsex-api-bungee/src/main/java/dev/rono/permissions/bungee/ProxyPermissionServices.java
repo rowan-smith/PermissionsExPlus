@@ -1,5 +1,6 @@
 package dev.rono.permissions.bungee;
 
+import dev.rono.permissions.api.PermissionsExApi;
 import dev.rono.permissions.api.service.PexPermissionService;
 import ru.tehkode.permissions.PermissionManager;
 
@@ -12,31 +13,37 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>Hook plugins should use {@link PermissionsEx#getApi()}.</p>
  */
 public final class ProxyPermissionServices {
-    private static final AtomicReference<PermissionManager> PERMISSION_MANAGER = new AtomicReference<>();
+    private static final AtomicReference<PermissionsExApi> PERMISSIONS_EX_API = new AtomicReference<>();
     private static final AtomicReference<PexPermissionService> PERMISSION_SERVICE = new AtomicReference<>();
+    private static final AtomicReference<PermissionManager> PERMISSION_MANAGER = new AtomicReference<>();
 
     private ProxyPermissionServices() {}
 
-    public static void register(PermissionManager manager, PexPermissionService service) {
-        PERMISSION_MANAGER.set(Objects.requireNonNull(manager, "manager"));
+    public static void register(
+            PermissionsExApi api,
+            PexPermissionService service,
+            PermissionManager manager) {
+        PERMISSIONS_EX_API.set(Objects.requireNonNull(api, "api"));
         PERMISSION_SERVICE.set(Objects.requireNonNull(service, "service"));
+        PERMISSION_MANAGER.set(Objects.requireNonNull(manager, "manager"));
     }
 
     public static void unregister() {
-        PERMISSION_MANAGER.set(null);
+        PERMISSIONS_EX_API.set(null);
         PERMISSION_SERVICE.set(null);
+        PERMISSION_MANAGER.set(null);
     }
 
     public static boolean isRegistered() {
-        return PERMISSION_MANAGER.get() != null;
+        return PERMISSIONS_EX_API.get() != null && PERMISSION_MANAGER.get() != null;
     }
 
-    public static PermissionManager permissionManager() {
-        PermissionManager manager = PERMISSION_MANAGER.get();
-        if (manager == null) {
-            throw new IllegalStateException("PermissionManager is not registered on this proxy");
+    public static PermissionsExApi permissionsExApi() {
+        PermissionsExApi api = PERMISSIONS_EX_API.get();
+        if (api == null) {
+            throw new IllegalStateException("PermissionsExApi is not registered on this proxy");
         }
-        return manager;
+        return api;
     }
 
     public static PexPermissionService permissionService() {
@@ -47,14 +54,25 @@ public final class ProxyPermissionServices {
         return service;
     }
 
+    public static PermissionManager permissionManager() {
+        PermissionManager manager = PERMISSION_MANAGER.get();
+        if (manager == null) {
+            throw new IllegalStateException("PermissionManager is not registered on this proxy");
+        }
+        return manager;
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> T get(Class<T> type) {
         Objects.requireNonNull(type, "type");
-        if (PermissionManager.class.equals(type)) {
-            return (T) permissionManager();
+        if (PermissionsExApi.class.equals(type)) {
+            return (T) permissionsExApi();
         }
         if (PexPermissionService.class.equals(type)) {
             return (T) permissionService();
+        }
+        if (PermissionManager.class.equals(type)) {
+            return (T) permissionManager();
         }
         throw new IllegalArgumentException("Unsupported service type on proxy: " + type.getName());
     }

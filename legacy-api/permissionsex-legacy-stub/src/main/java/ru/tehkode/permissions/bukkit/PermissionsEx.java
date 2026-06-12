@@ -1,5 +1,6 @@
 package ru.tehkode.permissions.bukkit;
 
+import dev.rono.permissions.api.PermissionsExApi;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -12,8 +13,8 @@ import ru.tehkode.permissions.exceptions.PermissionsNotAvailable;
  * Compile-only static entry points for hook plugins.
  *
  * <pre>{@code
- * PermissionManager api = PermissionsEx.getApi();
- * User user = api.getUserManager().getUser(uuid);
+ * PermissionsExApi api = PermissionsEx.getApi();
+ * PermissionManager manager = api.getPermissionManager();
  * }</pre>
  */
 public final class PermissionsEx {
@@ -28,44 +29,54 @@ public final class PermissionsEx {
         if (plugin == null || !plugin.isEnabled()) {
             return false;
         }
-        RegisteredServiceProvider<PermissionManager> reg =
+        RegisteredServiceProvider<PermissionsExApi> modern =
+                Bukkit.getServer().getServicesManager().getRegistration(PermissionsExApi.class);
+        if (modern != null && modern.getProvider() != null) {
+            return true;
+        }
+        RegisteredServiceProvider<PermissionManager> legacy =
                 Bukkit.getServer().getServicesManager().getRegistration(PermissionManager.class);
-        return reg != null && reg.getProvider() != null;
+        return legacy != null && legacy.getProvider() != null;
     }
 
-    /**
-     * Returns the PermissionsEx hook API ({@link PermissionManager} with modern manager accessors).
-     */
-    public static PermissionManager getApi() {
+    public static PermissionsExApi getApi() {
         if (!isAvailable()) {
             throw new PermissionsNotAvailable();
         }
-        RegisteredServiceProvider<PermissionManager> reg =
+        RegisteredServiceProvider<PermissionsExApi> reg =
+                Bukkit.getServer().getServicesManager().getRegistration(PermissionsExApi.class);
+        if (reg != null && reg.getProvider() != null) {
+            return reg.getProvider();
+        }
+        RegisteredServiceProvider<PermissionManager> legacyReg =
                 Bukkit.getServer().getServicesManager().getRegistration(PermissionManager.class);
-        return reg.getProvider();
+        if (legacyReg != null && legacyReg.getProvider() instanceof PermissionsExApi api) {
+            return api;
+        }
+        throw new PermissionsNotAvailable();
     }
 
     /**
-     * @deprecated Use {@link #getApi()}.
+     * @deprecated Use {@link #getApi()} and {@link PermissionsExApi#getPermissionManager()}.
      */
     @Deprecated(forRemoval = false)
     public static PermissionManager getPermissionManager() {
-        return getApi();
+        return getApi().getPermissionManager();
     }
 
     /**
-     * @deprecated Use {@link PermissionManager#getUserManager()} and modern {@code User} types.
+     * @deprecated Use {@link PermissionsExApi#getPermissionManager()}.
      */
     @Deprecated(forRemoval = false)
     public static PermissionUser getUser(Player player) {
-        return getApi().getUser(player);
+        return getPermissionManager().getUser(player);
     }
 
     /**
-     * @deprecated Use {@link PermissionManager#getUserManager()} and modern {@code User} types.
+     * @deprecated Use {@link PermissionsExApi#getPermissionManager()}.
      */
     @Deprecated(forRemoval = false)
     public static PermissionUser getUser(String name) {
-        return getApi().getUser(name);
+        return getPermissionManager().getUser(name);
     }
 }

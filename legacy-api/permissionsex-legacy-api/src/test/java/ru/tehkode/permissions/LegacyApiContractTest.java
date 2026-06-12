@@ -20,68 +20,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Guards the {@code ru.tehkode.*} compile contract against baseline {@code 628215f} / {@code 1.23.4}.
- * {@link PermissionManager} is extended with modern manager accessors; classic methods must remain.
  */
 public class LegacyApiContractTest {
-
-  private static final Set<String> CLASSIC_PERMISSION_MANAGER_METHODS = Set.of(
-          "shouldCreateUserRecords()",
-          "getConfiguration()",
-          "has(Player,String)",
-          "has(Player,String,String)",
-          "has(String,String,String)",
-          "has(UUID,String,String)",
-          "getUser(String)",
-          "cacheUser(String,String)",
-          "getUser(Player)",
-          "getUser(UUID)",
-          "getUsers()",
-          "getActiveUsers()",
-          "getUserIdentifiers()",
-          "getUserNames()",
-          "getUsers(String,String)",
-          "getUsers(String)",
-          "getUsers(String,String,boolean)",
-          "getUsers(String,boolean)",
-          "resetUser(String)",
-          "resetUser(Player)",
-          "clearUserCache(String)",
-          "clearUserCache(UUID)",
-          "clearUserCache(Player)",
-          "getGroup(String)",
-          "getGroupList()",
-          "getGroups()",
-          "getGroupNames()",
-          "getGroups(String,String)",
-          "getGroups(String)",
-          "getGroups(String,String,boolean)",
-          "getGroups(String,boolean)",
-          "getDefaultGroups(String)",
-          "resetGroup(String)",
-          "setDebug(boolean)",
-          "isDebug()",
-          "getRankLadder(String)",
-          "getWorldInheritance(String)",
-          "setWorldInheritance(String,List)",
-          "getBackend()",
-          "setBackend(String)",
-          "createBackend(String)",
-          "reset()",
-          "reset(boolean)",
-          "end()",
-          "initTimer()",
-          "getPermissionMatcher()",
-          "setPermissionMatcher(PermissionMatcher)",
-          "getLogger()",
-          "getExecutor()",
-          "shouldSaveDefaultGroup()");
-
-  private static final Set<String> MODERN_PERMISSION_MANAGER_METHODS = Set.of(
-          "getUserManager()",
-          "getGroupManager()",
-          "getWorldManager()",
-          "getLadderManager()",
-          "getPermissionService()");
 
     @Test
     public void permissionManagerMatchesClassicPublicSurface() throws NoSuchMethodException {
@@ -132,11 +72,58 @@ public class LegacyApiContractTest {
                 .filter(m -> m.getDeclaringClass() == PermissionManager.class)
                 .map(LegacyApiContractTest::signature)
                 .collect(Collectors.toSet());
-        assertTrue(declared.containsAll(CLASSIC_PERMISSION_MANAGER_METHODS));
-        assertTrue(declared.containsAll(MODERN_PERMISSION_MANAGER_METHODS));
-        assertEquals(
-                CLASSIC_PERMISSION_MANAGER_METHODS.size() + MODERN_PERMISSION_MANAGER_METHODS.size(),
-                declared.size());
+        Set<String> expected = Set.of(
+                "shouldCreateUserRecords()",
+                "getConfiguration()",
+                "has(Player,String)",
+                "has(Player,String,String)",
+                "has(String,String,String)",
+                "has(UUID,String,String)",
+                "getUser(String)",
+                "cacheUser(String,String)",
+                "getUser(Player)",
+                "getUser(UUID)",
+                "getUsers()",
+                "getActiveUsers()",
+                "getUserIdentifiers()",
+                "getUserNames()",
+                "getUsers(String,String)",
+                "getUsers(String)",
+                "getUsers(String,String,boolean)",
+                "getUsers(String,boolean)",
+                "resetUser(String)",
+                "resetUser(Player)",
+                "clearUserCache(String)",
+                "clearUserCache(UUID)",
+                "clearUserCache(Player)",
+                "getGroup(String)",
+                "getGroupList()",
+                "getGroups()",
+                "getGroupNames()",
+                "getGroups(String,String)",
+                "getGroups(String)",
+                "getGroups(String,String,boolean)",
+                "getGroups(String,boolean)",
+                "getDefaultGroups(String)",
+                "resetGroup(String)",
+                "setDebug(boolean)",
+                "isDebug()",
+                "getRankLadder(String)",
+                "getWorldInheritance(String)",
+                "setWorldInheritance(String,List)",
+                "getBackend()",
+                "setBackend(String)",
+                "createBackend(String)",
+                "reset()",
+                "reset(boolean)",
+                "end()",
+                "initTimer()",
+                "getPermissionMatcher()",
+                "setPermissionMatcher(PermissionMatcher)",
+                "getLogger()",
+                "getExecutor()",
+                "shouldSaveDefaultGroup()");
+        assertEquals(expected, declared);
     }
 
     @Test

@@ -25,23 +25,27 @@ Sample plugin: [`plugin/permissionsex-example-plugin/`](../../plugin/permissions
 ## Entry point
 
 ```java
-PermissionManager api = PermissionsEx.getApi();
+PermissionsExApi api = PermissionsEx.getApi();
+PermissionManager manager = api.getPermissionManager();
 ```
 
 | Method | Role |
 |--------|------|
-| `PermissionsEx.getApi()` | `PermissionManager` with modern manager accessors + deprecated classic methods |
-| `PermissionsEx.getPermissionManager()` | **Deprecated** — alias for `getApi()` |
+| `PermissionsEx.getApi()` | Modern `PermissionsExApi` (managers + holder-based permissions) |
+| `PermissionsEx.getPermissionManager()` | **Deprecated** — `getApi().getPermissionManager()` |
+| `PermissionsExApi.getPermissionManager()` | Classic `ru.tehkode.permissions.PermissionManager` |
+| `PermissionsExApi.getPermissionService()` | Holder-based `dev.rono.permissions.api.permission.PermissionService` |
 
 **Bungee/Waterfall:** `dev.rono.permissions.bungee.PermissionsEx.getApi()`
 
-`PermissionManager` provides `getUserManager()`, `getGroupManager()`, `getWorldManager()`, `getLadderManager()`, and `getPermissionService()` with explicit `find` / `get` / `create` / `exists` lifecycle (no hidden creation in `getX()`). Classic `getUser` / `getGroup` methods remain for binary compatibility but are deprecated.
+`PermissionsExApi` provides `getUserManager()`, `getGroupManager()`, `getWorldManager()`, `getLadderManager()`, and `getPermissionService()` with explicit `find` / `get` / `create` / `exists` lifecycle (no hidden creation in `getX()`).
 
 ---
 
 ## Quick start
 
 ```java
+import dev.rono.permissions.api.PermissionsExApi;
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.bukkit.PexBukkitPermissions;
 import ru.tehkode.permissions.PermissionManager;
@@ -52,7 +56,7 @@ if (!PermissionsEx.isAvailable()) {
     getLogger().warning("PermissionsEx not loaded");
     return;
 }
-PermissionManager api = PermissionsEx.getApi();
+PermissionsExApi api = PermissionsEx.getApi();
 User user = api.getUserManager().getUser(player.getUniqueId());
 
 // Holder-based permission check
@@ -60,13 +64,14 @@ if (api.getPermissionService().hasPermission(user.asHolder(), "my.plugin.use")) 
     ...
 }
 
-// Player's current world (Bukkit helper)
+// Classic manager (deprecated methods on PermissionManager)
+PermissionManager manager = api.getPermissionManager();
 if (PexBukkitPermissions.on(player).hasPermission("my.plugin.use")) {
-    ((dev.rono.permissions.api.service.PexPermissionService) api)
+    ((dev.rono.permissions.api.service.PexPermissionService) manager)
             .world(player.getWorld().getName())
             .user(player.getUniqueId())
             .addTimedPermission("my.plugin.temp", 3600);
-    api.getUser(player).save();
+    manager.getUser(player).save();
 }
 ```
 
@@ -234,9 +239,9 @@ PexBukkitPermissions.on(player).hasPermissionGlobal("my.global.node");
 
 ```java
 import dev.rono.permissions.bungee.PermissionsEx;
-import ru.tehkode.permissions.PermissionManager;
+import dev.rono.permissions.api.PermissionsExApi;
 
-PermissionManager api = PermissionsEx.getApi();
+PermissionsExApi api = PermissionsEx.getApi();
 ```
 
 Maven artifact: `permissionsex-api-bungee` (optional; includes `ProxyPermissionServices` for advanced use).

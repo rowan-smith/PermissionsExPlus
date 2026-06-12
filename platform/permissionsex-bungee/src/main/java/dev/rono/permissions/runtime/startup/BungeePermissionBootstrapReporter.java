@@ -35,7 +35,7 @@ public final class BungeePermissionBootstrapReporter {
         log.info(PREFIX + "Platform adapter: "
                 + InternalPermissionManager.require(manager).getPlatform().getClass().getSimpleName());
         log.info(PREFIX + "Core engine: started");
-        log.info(PREFIX + "API: modern v2 (PermissionManager managers via PermissionsEx.getApi())");
+        log.info(PREFIX + "API: modern v2 (PermissionsExApi via PermissionsEx.getApi())");
         log.info(PREFIX + "API: legacy v1 compatibility enabled");
         log.info(PREFIX + "Context resolvers: server, static");
         log.info(PREFIX + "Storage: " + manager.getBackend().diagnosticLabel());

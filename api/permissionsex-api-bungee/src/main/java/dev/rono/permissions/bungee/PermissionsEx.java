@@ -1,5 +1,6 @@
 package dev.rono.permissions.bungee;
 
+import dev.rono.permissions.api.PermissionsExApi;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import ru.tehkode.permissions.PermissionManager;
@@ -21,16 +22,19 @@ public final class PermissionsEx {
         return getPlugin() != null && ProxyPermissionServices.isRegistered();
     }
 
-    public static PermissionManager getApi() {
+    public static PermissionsExApi getApi() {
         if (!isAvailable()) {
             throw new IllegalStateException(
-                    "PermissionManager is not registered on this proxy — is PermissionsEx loaded?");
+                    "PermissionsExApi is not registered on this proxy — is PermissionsEx loaded?");
         }
-        return ProxyPermissionServices.permissionManager();
+        return ProxyPermissionServices.permissionsExApi();
     }
 
+    /**
+     * @deprecated Use {@link #getApi()} and {@link PermissionsExApi#getPermissionManager()}.
+     */
     @Deprecated(forRemoval = false)
     public static PermissionManager getPermissionManager() {
-        return getApi();
+        return getApi().getPermissionManager();
     }
 }

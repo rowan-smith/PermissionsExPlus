@@ -18,11 +18,7 @@
  */
 package dev.rono.permissions.core;
 
-import dev.rono.permissions.api.group.GroupManager;
-import dev.rono.permissions.api.ladder.LadderManager;
-import dev.rono.permissions.api.permission.PermissionService;
-import dev.rono.permissions.api.user.UserManager;
-import dev.rono.permissions.api.world.WorldManager;
+import dev.rono.permissions.api.PermissionsExApi;
 import dev.rono.permissions.api.PexPermissionsExException;
 import dev.rono.permissions.api.backend.PexBackendHandle;
 import dev.rono.permissions.api.backend.PexBackendInfo;
@@ -70,7 +66,7 @@ public class DefaultPermissionManager implements PermissionManager, PexPermissio
 	protected PermissionMatcher matcher = new RegExpMatcher();
 	private final GroupMembershipIndex groupMembershipIndex = new GroupMembershipIndex();
 	private final DefaultPermissionEventBus eventBus = new DefaultPermissionEventBus();
-	private final PermissionsExApiImpl modernApi;
+	private final PermissionsExApiImpl permissionsExApi;
 
 	public DefaultPermissionManager(PermissionsExConfig config, Logger logger, PlatformAdapter platform) throws PermissionBackendException {
 		CorePermissionBackendRegistrar.ensureRegistered();
@@ -81,32 +77,11 @@ public class DefaultPermissionManager implements PermissionManager, PexPermissio
 		this.allowOps = config.allowOps();
 		this.userAddGroupsLast = config.userAddGroupsLast();
 		this.initBackend();
-		this.modernApi = new PermissionsExApiImpl(this);
+		this.permissionsExApi = new PermissionsExApiImpl(this);
 	}
 
-	@Override
-	public UserManager getUserManager() {
-		return modernApi.getUserManager();
-	}
-
-	@Override
-	public GroupManager getGroupManager() {
-		return modernApi.getGroupManager();
-	}
-
-	@Override
-	public WorldManager getWorldManager() {
-		return modernApi.getWorldManager();
-	}
-
-	@Override
-	public LadderManager getLadderManager() {
-		return modernApi.getLadderManager();
-	}
-
-	@Override
-	public PermissionService getPermissionService() {
-		return modernApi.getPermissionService();
+	public PermissionsExApi permissionsExApi() {
+		return permissionsExApi;
 	}
 
 	UUID getServerUUID() {

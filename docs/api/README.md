@@ -14,7 +14,7 @@ PermissionsExPlus exposes **two compile surfaces** for companion plugins. Both t
 | New plugin | [Modern API](MODERN_API.md) (`PermissionsEx.getApi()`) |
 | Existing PEX 1.23.x hook plugin | [Legacy API](LEGACY_API.md) — no recompile required for typical hooks |
 | Static `PermissionsEx.getUser(...)` calls | Legacy API + `permissionsex-legacy-stub` |
-| Static modern entry | `permissionsex-api` + `PermissionsEx.getApi()` (`PermissionManager`) |
+| Static modern entry | `permissionsex-api` + `PermissionsEx.getApi()` (`PermissionsExApi`) |
 | Permission change events (modern) | `pex.events()` or legacy Bukkit events on Spigot |
 | Proxy (Bungee/Waterfall) | `PermissionsEx.getApi()` (+ deprecated classic `PermissionManager` methods) |
 
@@ -32,9 +32,12 @@ Both APIs resolve to the **same object** (`DefaultPermissionManager`):
 
 ```java
 // Modern (managers + holder permissions)
-PermissionManager api = PermissionsEx.getApi();
+PermissionsExApi api = PermissionsEx.getApi();
 
-// Deprecated alias — same runtime object
+// Classic manager
+PermissionManager manager = api.getPermissionManager();
+
+// Deprecated static alias
 PermissionManager legacy = PermissionsEx.getPermissionManager();
 ```
 

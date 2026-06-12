@@ -65,7 +65,10 @@ public class BungeePermissionsExPlugin extends Plugin implements PlatformAdapter
                             CoreCloudPlatform.PROXY)
                     .register();
             this.manager.initTimer();
-            ProxyPermissionServices.register(this.manager, (PexPermissionService) this.manager);
+            ProxyPermissionServices.register(
+                    ((DefaultPermissionManager) this.manager).permissionsExApi(),
+                    (PexPermissionService) this.manager,
+                    this.manager);
             BungeePermissionBootstrapReporter.log(this, this.manager);
         } catch (PermissionBackendException ex) {
             getLogger().severe("Failed to initialize PermissionsExPlus Bungee adapter: " + ex.getMessage());
