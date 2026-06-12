@@ -5,18 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>dev.rono.permissions</groupId>
-        <artifactId>PermissionsExPlus</artifactId>
+        <artifactId>api</artifactId>
         <version>1.23.5</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>legacy-api</artifactId>
-    <packaging>pom</packaging>
-    <name>PermissionsEx Legacy API (reactor)</name>
-
-    <modules>
-        <module>permissionsex-legacy-api</module>
-        <module>permissionsex-legacy-stub</module>
-        <module>permissionsex-legacy-compat</module>
-    </modules>
+    <artifactId>permissionsex-core-api</artifactId>
+    <name>PermissionsEx Core API (platform-neutral SPI)</name>
+    <description>Internal contracts shared by core and platform adapters: permission dispatches and {@code PlatformAdapter}.</description>
 </project>

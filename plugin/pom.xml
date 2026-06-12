@@ -10,13 +10,12 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>legacy-api</artifactId>
+    <artifactId>plugin</artifactId>
     <packaging>pom</packaging>
-    <name>PermissionsEx Legacy API (reactor)</name>
+    <name>PermissionsEx Plugin Examples (reactor)</name>
 
     <modules>
-        <module>permissionsex-legacy-api</module>
-        <module>permissionsex-legacy-stub</module>
-        <module>permissionsex-legacy-compat</module>
+        <module>permissionsex-example-legacy-plugin</module>
+        <module>permissionsex-example-plugin</module>
     </modules>
 </project>

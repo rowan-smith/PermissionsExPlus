@@ -16,7 +16,7 @@ Runtime: on **Spigot/Paper**, `PermissionService` is registered on Bukkit `Servi
 
 Optional Bukkit helpers: artifact `permissionsex-api-bukkit` (`BukkitPermissions.on(player).hasPermission("node")`).
 
-Sample plugin: [`example-plugin/`](../../example-plugin/)
+Sample plugin: [`plugin/permissionsex-example-plugin/`](../../plugin/permissionsex-example-plugin/)
 
 ---
 

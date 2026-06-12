@@ -45,8 +45,8 @@ RegisteredServiceProvider<PermissionManager> legacy =
 
 | Module | API |
 |--------|-----|
-| [`example-plugin/`](../../example-plugin/) | Modern only |
-| [`example-legacy-plugin/`](../../example-legacy-plugin/) | Legacy + stub |
+| [`plugin/permissionsex-example-plugin/`](../../plugin/permissionsex-example-plugin/) | Modern only |
+| [`plugin/permissionsex-example-legacy-plugin/`](../../plugin/permissionsex-example-legacy-plugin/) | Legacy + stub |
 
 ## Related docs
 

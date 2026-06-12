@@ -8,9 +8,9 @@ Maven artifacts:
 | `permissionsex-legacy-api` | Types, interfaces, events, utils (**required**) |
 | `permissionsex-legacy-stub` | Compile-only `PermissionsEx` static helpers (**optional**) |
 
-**Status:** Frozen public contract. Baseline commit **`628215f`**. Guarded by `LegacyApiContractTest` in `legacy-api`. Do not add methods to `ru.tehkode.*` — use the [modern API](MODERN_API.md) for new features.
+**Status:** Frozen public contract. Baseline commit **`628215f`**. Guarded by `LegacyApiContractTest` in `permissionsex-legacy-api`. Do not add methods to `ru.tehkode.*` — use the [modern API](MODERN_API.md) for new features.
 
-Sample plugin: [`example-legacy-plugin/`](../../example-legacy-plugin/)
+Sample plugin: [`plugin/permissionsex-example-legacy-plugin/`](../../plugin/permissionsex-example-legacy-plugin/)
 
 ---
 

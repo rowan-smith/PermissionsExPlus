@@ -7,9 +7,17 @@
         <groupId>dev.rono.permissions</groupId>
         <artifactId>PermissionsExPlus</artifactId>
         <version>1.23.5</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>permissionsex-core-api</artifactId>
-    <name>PermissionsEx Core API (platform-neutral SPI)</name>
-    <description>Internal contracts shared by core and platform adapters: permission dispatches and {@code PlatformAdapter}.</description>
+    <artifactId>platform</artifactId>
+    <packaging>pom</packaging>
+    <name>PermissionsEx Platform (reactor)</name>
+
+    <modules>
+        <module>permissionsex-core</module>
+        <module>permissionsex-spigot</module>
+        <module>permissionsex-bungee</module>
+        <module>permissionsex-bootstrap</module>
+    </modules>
 </project>

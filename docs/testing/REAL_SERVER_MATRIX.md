@@ -47,4 +47,4 @@ Verify `/pex` on proxy and permission checks for connected players.
 - `example-legacy-plugin` JAR — compiles only against legacy API + stub
 - `example-plugin` JAR — compiles only against modern API
 - API docs: [docs/api/README.md](../api/README.md)
-- Optional: drop classic hook plugin JARs into `legacy-compat/src/test/resources/plugin-jars/` and run `mvn -pl legacy-compat test`
+- Optional: drop classic hook plugin JARs into `legacy-api/permissionsex-legacy-compat/src/test/resources/plugin-jars/` and run `mvn -pl legacy-api/permissionsex-legacy-compat test`

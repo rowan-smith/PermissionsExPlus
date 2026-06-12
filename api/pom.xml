@@ -7,22 +7,16 @@
         <groupId>dev.rono.permissions</groupId>
         <artifactId>PermissionsExPlus</artifactId>
         <version>1.23.5</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>permissionsex-api</artifactId>
-    <name>PermissionsExPlus Public API</name>
-    <description>Modern hook integration surface: PermissionService, User, Group, and PermissionSubject on Bukkit ServicesManager.</description>
+    <artifactId>api</artifactId>
+    <packaging>pom</packaging>
+    <name>PermissionsEx API (reactor)</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-core-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>permissionsex-core-api</module>
+        <module>permissionsex-api</module>
+        <module>permissionsex-api-bukkit</module>
+    </modules>
 </project>

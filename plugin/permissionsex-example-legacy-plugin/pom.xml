@@ -6,13 +6,14 @@
 
     <parent>
         <groupId>dev.rono.permissions</groupId>
-        <artifactId>PermissionsExPlus</artifactId>
+        <artifactId>plugin</artifactId>
         <version>1.23.5</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>permissionsex-example-plugin</artifactId>
-    <name>PermissionsEx Example Modern Hook Plugin</name>
-    <description>Sample plugin that compiles against {@code permissionsex-api} (+ {@code spigot-api}) to exercise {@code dev.rono.permissions.api.*}. Runtime expects PEX deployed on the server.</description>
+    <artifactId>permissionsex-example-legacy-plugin</artifactId>
+    <name>PermissionsEx Example Legacy Hook Plugin</name>
+    <description>Sample plugin that compiles against {@code permissionsex-legacy-api} + {@code permissionsex-legacy-stub} (+ {@code spigot-api}) to exercise classic {@code ru.tehkode.permissions.*} signatures. Runtime expects PEX deployed on the server.</description>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -26,20 +27,20 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-api</artifactId>
+            <artifactId>permissionsex-legacy-api</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-api-bukkit</artifactId>
+            <artifactId>permissionsex-legacy-stub</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
-        <finalName>permissionsex-example-plugin-${project.version}</finalName>
+        <finalName>permissionsex-example-legacy-plugin-${project.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

@@ -33,5 +33,5 @@ Runtime uses the live `ru.tehkode.permissions.bukkit.PermissionsEx` class from t
 ## Verification
 
 - Unit tests: `mvn test`
-- Hook smoke test: `legacy-compat` module (MockBukkit + example hook plugin)
+- Hook smoke test: `permissionsex-legacy-compat` module (MockBukkit + example hook plugin)
 - Manual matrix: [REAL_SERVER_MATRIX.md](testing/REAL_SERVER_MATRIX.md)

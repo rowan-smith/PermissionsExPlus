@@ -57,33 +57,33 @@ Maven reactor order matches four groups (see root `pom.xml`). Maven still resolv
 
 | Directory | Artifact ID | Ships in plugin jar? | Purpose |
 |-----------|-------------|----------------------|---------|
-| `legacy-api/` | `permissionsex-legacy-api` | Yes (shaded) | **Classic hook surface:** frozen `ru.tehkode.permissions.*` — `PermissionManager`, `PermissionUser`, `PermissionGroup`, events, `NativeInterface`, `ru.tehkode.utils.*`, backend interfaces. Baseline **`628215f`**. |
-| `legacy-stub/` | `permissionsex-legacy-stub` | **No** | **Compile-only** `ru.tehkode.permissions.bukkit.PermissionsEx` static helpers. Not in the Spigot runtime classpath as a duplicate class. |
-| `legacy-compat/` | `permissionsex-legacy-compat` | No (tests only) | Regression tests: MockBukkit smoke test + optional classic plugin JAR probe (`src/test/resources/plugin-jars/`). |
+| `legacy-api/permissionsex-legacy-api/` | `permissionsex-legacy-api` | Yes (shaded) | **Classic hook surface:** frozen `ru.tehkode.permissions.*` — `PermissionManager`, `PermissionUser`, `PermissionGroup`, events, `NativeInterface`, `ru.tehkode.utils.*`, backend interfaces. Baseline **`628215f`**. |
+| `legacy-api/permissionsex-legacy-stub/` | `permissionsex-legacy-stub` | **No** | **Compile-only** `ru.tehkode.permissions.bukkit.PermissionsEx` static helpers. Not in the Spigot runtime classpath as a duplicate class. |
+| `legacy-api/permissionsex-legacy-compat/` | `permissionsex-legacy-compat` | No (tests only) | Regression tests: MockBukkit smoke test + optional classic plugin JAR probe (`src/test/resources/plugin-jars/`). |
 
 ### `api` — modern integration SPI
 
 | Directory | Artifact ID | Ships in plugin jar? | Purpose |
 |-----------|-------------|----------------------|---------|
-| `core-api/` | `permissionsex-core-api` | Yes (shaded) | Platform-neutral SPI: `PlatformAdapter`, bus dispatches, `SchedulerBridge`, `ContextResolver`. For platform hosts and deep integration. |
-| `api/` | `permissionsex-api` | Yes (shaded) | **Modern hook surface:** `PermissionService` on Bukkit `ServicesManager`. Preferred entry for new companion plugins. |
-| `api-bukkit/` | `permissionsex-api-bukkit` | No (optional compile) | Bukkit `Player` helpers for `PermissionService`. |
+| `api/permissionsex-core-api/` | `permissionsex-core-api` | Yes (shaded) | Platform-neutral SPI: `PlatformAdapter`, bus dispatches, `SchedulerBridge`, `ContextResolver`. For platform hosts and deep integration. |
+| `api/permissionsex-api/` | `permissionsex-api` | Yes (shaded) | **Modern hook surface:** `PermissionService` on Bukkit `ServicesManager`. Preferred entry for new companion plugins. |
+| `api/permissionsex-api-bukkit/` | `permissionsex-api-bukkit` | No (optional compile) | Bukkit `Player` helpers for `PermissionService`. |
 
 ### `platform` — engine, runtimes, bootstrap
 
 | Directory | Artifact ID | Ships in plugin jar? | Purpose |
 |-----------|-------------|----------------------|---------|
-| `core/` | `permissionsex-core` | Yes (shaded) | Engine: manager, backends (YAML/SQL/multi), hierarchy, commands, config. Internal — not a hook compile dependency. |
-| `spigot/` | `permissionsex-spigot` | Yes (shaded) | Bukkit/Paper runtime: live `PermissionsEx` `JavaPlugin`, superperms bridge, Cloud commands, Bukkit events. |
-| `bungee/` | `permissionsex-bungee` | Yes (shaded) | Bungee/Waterfall proxy runtime and permission bridge. |
-| `bootstrap/` | `permissionsex-bootstrap` | **Install this jar** | Merges Spigot + Bungee → `PermissionsExPlus-{version}.jar`. |
+| `platform/permissionsex-core/` | `permissionsex-core` | Yes (shaded) | Engine: manager, backends (YAML/SQL/multi), hierarchy, commands, config. Internal — not a hook compile dependency. |
+| `platform/permissionsex-spigot/` | `permissionsex-spigot` | Yes (shaded) | Bukkit/Paper runtime: live `PermissionsEx` `JavaPlugin`, superperms bridge, Cloud commands, Bukkit events. |
+| `platform/permissionsex-bungee/` | `permissionsex-bungee` | Yes (shaded) | Bungee/Waterfall proxy runtime and permission bridge. |
+| `platform/permissionsex-bootstrap/` | `permissionsex-bootstrap` | **Install this jar** | Merges Spigot + Bungee → `PermissionsExPlus-{version}.jar`. |
 
 ### `plugin` — sample companion plugins
 
 | Directory | Artifact ID | Ships in plugin jar? | Purpose |
 |-----------|-------------|----------------------|---------|
-| `example-legacy-plugin/` | `permissionsex-example-legacy-plugin` | Separate jar | Sample **classic** hook plugin (`legacy-api` + `legacy-stub`). |
-| `example-plugin/` | `permissionsex-example-plugin` | Separate jar | Sample **modern** hook plugin (`permissionsex-api` only). |
+| `plugin/permissionsex-example-legacy-plugin/` | `permissionsex-example-legacy-plugin` | Separate jar | Sample **classic** hook plugin (`legacy-api` + `legacy-stub`). |
+| `plugin/permissionsex-example-plugin/` | `permissionsex-example-plugin` | Separate jar | Sample **modern** hook plugin (`permissionsex-api` only). |
 
 ### Namespace map
 
@@ -136,7 +136,7 @@ For plugins originally written against PermissionsEx 1.23.x (`PermissionsEx.getP
 
 **Runtime:** the server provides the real `ru.tehkode.permissions.bukkit.PermissionsEx` (`JavaPlugin`) and registers `PermissionManager` on `ServicesManager`. Pre-1.23.5 PEX hook JARs should run **without recompiling** if they only used the classic public API.
 
-Working example: [`example-legacy-plugin/`](example-legacy-plugin/). Full reference: **[Legacy API docs](docs/api/LEGACY_API.md)**.
+Working example: [`plugin/permissionsex-example-legacy-plugin/`](plugin/permissionsex-example-legacy-plugin/). Full reference: **[Legacy API docs](docs/api/LEGACY_API.md)**.
 
 ### Modern (new) API hook — `dev.rono.*`
 
@@ -304,7 +304,7 @@ Platform-neutral host bridge implemented by Spigot/Bungee runtimes. **Not regist
 
 On Spigot, `SpigotPermissionsExPlugin` implements this interface; game-server logic is delegated to `SpigotPlatformBridge`.
 
-Source: `core-api/src/main/java/dev/rono/permissions/api/runtime/PlatformAdapter.java`
+Source: `api/permissionsex-core-api/src/main/java/dev/rono/permissions/api/runtime/PlatformAdapter.java`
 
 #### Bus dispatches (`permissionsex-core-api`)
 
@@ -320,7 +320,7 @@ Immutable notifications from the engine to the active `PlatformAdapter`. On **Sp
 
 **Listening from a hook plugin today:** subscribe to legacy **`PermissionEntityEvent`** / **`PermissionSystemEvent`** on Spigot rather than consuming bus records directly.
 
-Sources: `core-api/src/main/java/dev/rono/permissions/api/bus/`
+Sources: `api/permissionsex-core-api/src/main/java/dev/rono/permissions/api/bus/`
 
 #### Supporting runtime types (`permissionsex-core-api`)
 
@@ -365,7 +365,7 @@ public void onJoin(PlayerJoinEvent event, PermissionService pex) {
 }
 ```
 
-For a full modern sample, see [`example-plugin/`](example-plugin/). For classic `PermissionsEx.*` static entry points, see [`example-legacy-plugin/`](example-legacy-plugin/).
+For a full modern sample, see [`plugin/permissionsex-example-plugin/`](plugin/permissionsex-example-plugin/). For classic `PermissionsEx.*` static entry points, see [`plugin/permissionsex-example-legacy-plugin/`](plugin/permissionsex-example-legacy-plugin/).
 
 ### Which API should I use?
 
