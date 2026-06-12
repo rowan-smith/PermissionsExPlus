@@ -12,7 +12,7 @@ Maven artifact: `permissionsex-api`
 </dependency>
 ```
 
-Runtime: on **Spigot/Paper**, `PexPermissionService` is registered on Bukkit `ServicesManager`. On **Bungee/Waterfall**, use `dev.rono.permissions.bungee.ProxyPermissionServices.permissionService()`.
+Runtime: on **Spigot/Paper**, `PexPermissionService` is registered on Bukkit `ServicesManager`. Hook plugins should resolve it via **`PermissionsExPlus.getPermissionService()`** (see [Entry points](#entry-points)). On **Bungee/Waterfall**, use **`dev.rono.permissions.bungee.PermissionsExPlus`**.
 
 Optional Bukkit helpers: artifact `permissionsex-api-bukkit` (`PexBukkitPermissions.on(player).hasPermission("node")`).
 
@@ -20,21 +20,35 @@ Sample plugin: [`plugin/permissionsex-example-plugin/`](../../plugin/permissions
 
 ---
 
+## Entry points
+
+PermissionsExPlus exposes **two static entry surfaces** for hook plugins. Both resolve the same runtime manager.
+
+| API | Entry class | Typical usage |
+|-----|-------------|---------------|
+| **Legacy (classic)** | `ru.tehkode.permissions.bukkit.PermissionsEx` | `PermissionManager mgr = PermissionsEx.getPermissionManager();` |
+| **Modern** | `dev.rono.permissions.bukkit.PermissionsExPlus` | `PexPermissionService pex = PermissionsExPlus.getPermissionService();` |
+
+**Bungee/Waterfall (modern):** `dev.rono.permissions.bungee.PermissionsExPlus.getPermissionService()`  
+**Bungee/Waterfall (legacy):** `PermissionsExPlus.getPermissionManager()` or `PermissionsEx.getPermissionManager()` via proxy services.
+
+Add `permissionsex-api-bukkit` (Spigot) or `permissionsex-api-bungee` (proxy) when using `PermissionsExPlus` static helpers.
+
+---
+
 ## Quick start
 
 ```java
 import dev.rono.permissions.api.service.PexPermissionService;
-import dev.rono.permissions.api.subject.PexUser;
+import dev.rono.permissions.bukkit.PermissionsExPlus;
 import dev.rono.permissions.bukkit.PexBukkitPermissions;
-import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.entity.Player;
 
-RegisteredServiceProvider<PexPermissionService> reg =
-        getServer().getServicesManager().getRegistration(PexPermissionService.class);
-if (reg == null) {
+if (!PermissionsExPlus.isAvailable()) {
     getLogger().warning("PermissionsEx not loaded");
     return;
 }
-PexPermissionService pex = reg.getProvider();
+PexPermissionService pex = PermissionsExPlus.getPermissionService();
 
 // Global permission (all worlds unless overridden per world)
 if (pex.user(player.getUniqueId()).hasPermission("my.plugin.use")) {
@@ -213,11 +227,13 @@ PexBukkitPermissions.on(player).hasPermissionGlobal("my.global.node");
 ## Proxy registration (Bungee/Waterfall)
 
 ```java
-import dev.rono.permissions.bungee.ProxyPermissionServices;
+import dev.rono.permissions.bungee.PermissionsExPlus;
 
-PexPermissionService pex = ProxyPermissionServices.permissionService();
-// or ProxyPermissionServices.get(PexPermissionService.class);
+PexPermissionService pex = PermissionsExPlus.getPermissionService();
+// legacy: PermissionManager mgr = PermissionsExPlus.getPermissionManager();
 ```
+
+Maven artifact: `permissionsex-api-bungee` (optional; includes `ProxyPermissionServices` for advanced use).
 
 ---
 

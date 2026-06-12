@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Service registry for Bungee/Waterfall (no Bukkit {@code ServicesManager}).
  *
- * <p>PermissionsEx registers {@link PexPermissionService} and {@link PermissionManager} here on enable.</p>
+ * <p>PermissionsEx registers {@link PexPermissionService} and {@link PermissionManager} here on enable.
+ * Hook plugins should prefer {@link PermissionsExPlus#getPermissionService()}.</p>
  */
 public final class ProxyPermissionServices {
     private static final AtomicReference<PexPermissionService> PERMISSION_SERVICE = new AtomicReference<>();
@@ -32,6 +33,15 @@ public final class ProxyPermissionServices {
     public static void unregister() {
         PERMISSION_SERVICE.set(null);
         PERMISSION_MANAGER.set(null);
+    }
+
+    /**
+     * Reports whether modern and legacy services are registered on this proxy.
+     *
+     * @return {@code true} when both services are available
+     */
+    public static boolean isRegistered() {
+        return PERMISSION_SERVICE.get() != null && PERMISSION_MANAGER.get() != null;
     }
 
     public static PexPermissionService permissionService() {

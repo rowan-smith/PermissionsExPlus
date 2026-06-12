@@ -5,8 +5,8 @@ import org.bukkit.entity.Player;
 /**
  * Bukkit {@link Player} convenience helpers for PermissionsEx.
  *
- * <p>Resolves {@link dev.rono.permissions.api.service.PexPermissionService} from Bukkit
- * {@code ServicesManager} automatically — hook plugins do not pass the service explicitly.</p>
+ * <p>Resolves {@link dev.rono.permissions.api.service.PexPermissionService} via
+ * {@link PermissionsExPlus#getPermissionService()} — hook plugins do not pass the service explicitly.</p>
  *
  * <pre>{@code
  * PexBukkitPermissions.on(player).hasPermission("my.node");

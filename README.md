@@ -211,7 +211,7 @@ Summary below; see the linked docs for complete method lists and examples.
 
 #### `PexPermissionService` (`permissionsex-api`)
 
-Primary entry: flat methods on **`PexPermissionService`**. Lookup: `ServicesManager.getRegistration(PexPermissionService.class)`.
+Primary entry: flat methods on **`PexPermissionService`**. Lookup: **`PermissionsExPlus.getPermissionService()`** (Spigot) or **`dev.rono.permissions.bungee.PermissionsExPlus`** (proxy).
 
 | Method | Description |
 |--------|-------------|

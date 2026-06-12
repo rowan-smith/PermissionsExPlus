@@ -18,5 +18,6 @@
         <module>permissionsex-core-api</module>
         <module>permissionsex-api</module>
         <module>permissionsex-api-bukkit</module>
+        <module>permissionsex-api-bungee</module>
     </modules>
 </project>

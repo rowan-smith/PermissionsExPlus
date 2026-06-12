@@ -11,17 +11,18 @@ PermissionsExPlus exposes **two compile surfaces** for companion plugins. Both t
 
 | Situation | Use |
 |-----------|-----|
-| New plugin | [Modern API](MODERN_API.md) (`PexPermissionService`) |
+| New plugin | [Modern API](MODERN_API.md) (`PermissionsExPlus.getPermissionService()`) |
 | Existing PEX 1.23.x hook plugin | [Legacy API](LEGACY_API.md) — no recompile required for typical hooks |
 | Static `PermissionsEx.getUser(...)` calls | Legacy API + `permissionsex-legacy-stub` |
+| Static modern entry | `permissionsex-api-bukkit` + `PermissionsExPlus.getPermissionService()` |
 | Permission change events (modern) | `pex.events()` or legacy Bukkit events on Spigot |
-| Proxy (Bungee/Waterfall) | `ProxyPermissionServices.permissionService()` (+ legacy `PermissionManager`) |
+| Proxy (Bungee/Waterfall) | `PermissionsExPlus.getPermissionService()` (+ legacy `PermissionManager`) |
 
 ## Documentation
 
 | Document | Contents |
 |----------|----------|
-| [MODERN_API.md](MODERN_API.md) | `PexPermissionService`, `PexUser`, `PexGroup`, world contexts, timed permissions, Maven setup, examples |
+| [MODERN_API.md](MODERN_API.md) | `PermissionsExPlus`, `PexPermissionService`, `PexUser`, `PexGroup`, world contexts, timed permissions, Maven setup, examples |
 | [LEGACY_API.md](LEGACY_API.md) | `PermissionManager`, `PermissionUser`, `PermissionGroup`, `PermissionsEx` stub, events, utils |
 | [FUTURE.md](FUTURE.md) | Recommended additions and known gaps |
 
@@ -31,14 +32,12 @@ Both APIs resolve to the **same object** (`DefaultPermissionManager`):
 
 ```java
 // Modern
-RegisteredServiceProvider<PexPermissionService> modern =
-        getServer().getServicesManager().getRegistration(PexPermissionService.class);
+PexPermissionService modern = PermissionsExPlus.getPermissionService();
 
 // Legacy
-RegisteredServiceProvider<PermissionManager> legacy =
-        getServer().getServicesManager().getRegistration(PermissionManager.class);
+PermissionManager legacy = PermissionsEx.getPermissionManager();
 
-// modern.getProvider() == legacy.getProvider()  (same instance)
+// modern and legacy resolve the same runtime object (DefaultPermissionManager)
 ```
 
 ## Sample plugins

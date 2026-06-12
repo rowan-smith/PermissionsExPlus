@@ -18,7 +18,7 @@ Policy: **legacy `ru.tehkode.*` stays frozen**. New capabilities belong under `d
 | Flat API | `pex.user()`, `pex.world()`, `pex.users()`, `pex.groups()`, `pex.backend()` |
 | Batch edits | `pex.session().start()` → `PexPermissionEditSession` |
 | Async reload | `pex.reloadAsync()` → `CompletableFuture<Void>` |
-| Proxy `PexPermissionService` | `ProxyPermissionServices` on Bungee/Waterfall |
+| Proxy `PexPermissionService` | `PermissionsExPlus` on Bungee/Waterfall |
 
 ---
 

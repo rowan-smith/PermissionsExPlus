@@ -2,17 +2,17 @@ package dev.rono.permissions.example;
 
 import dev.rono.permissions.api.service.PexPermissionService;
 import dev.rono.permissions.bukkit.PexBukkitPermissions;
+import dev.rono.permissions.bukkit.PermissionsExPlus;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Locale;
 
-/** Sample plugin using the modern {@link PexPermissionService} API. */
+/** Sample plugin using the modern {@link PermissionsExPlus} entry point. */
 public class ExamplePlugin extends JavaPlugin implements Listener {
 
     private PexPermissionService permissions;
@@ -21,14 +21,12 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
 
-        RegisteredServiceProvider<PexPermissionService> registration =
-                getServer().getServicesManager().getRegistration(PexPermissionService.class);
-        if (registration == null) {
+        if (!PermissionsExPlus.isAvailable()) {
             getLogger().warning("PexPermissionService is not registered — is PermissionsEx loaded?");
             return;
         }
 
-        permissions = registration.getProvider();
+        permissions = PermissionsExPlus.getPermissionService();
         getLogger().info(String.format(Locale.ROOT,
                 "PEX backend: %s (%s), users=%d groups=%d worlds=%d",
                 permissions.backend().type(),
