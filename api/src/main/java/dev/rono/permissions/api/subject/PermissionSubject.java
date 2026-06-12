@@ -22,8 +22,13 @@ public interface PermissionSubject {
 
     // --- Global convenience (same as passing {@link Worlds#GLOBAL}) ---
 
-    default boolean has(String permission) {
+    /** Effective check in the global namespace (all worlds unless overridden per world). */
+    default boolean hasPermission(String permission) {
         return has(permission, Worlds.GLOBAL);
+    }
+
+    default boolean has(String permission) {
+        return hasPermission(permission);
     }
 
     default List<String> permissions() {
@@ -109,6 +114,10 @@ public interface PermissionSubject {
     // --- Per-world operations ---
 
     boolean has(String permission, String world);
+
+    default boolean hasPermission(String permission, String world) {
+        return has(permission, world);
+    }
 
     /** Direct assignments in the given world (not inherited). */
     List<String> permissions(String world);

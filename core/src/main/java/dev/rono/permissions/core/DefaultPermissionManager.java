@@ -642,7 +642,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public BackendInfo backend() {
+	public BackendInfo activeBackend() {
 		String type = config.getDefaultBackend();
 		PermissionBackend active = this.backend;
 		String simpleName = active != null ? active.getClass().getSimpleName() : "?";
@@ -665,12 +665,12 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public Collection<String> worlds() {
+	public Collection<String> registeredWorlds() {
 		return getWorldNames();
 	}
 
 	@Override
-	public Optional<User> findUser(String identifier) {
+	public Optional<User> lookupUser(String identifier) {
 		if (identifier == null || identifier.isEmpty()) {
 			return Optional.empty();
 		}
@@ -688,7 +688,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public Optional<User> findUser(UUID uuid) {
+	public Optional<User> lookupUser(UUID uuid) {
 		if (uuid == null || !backend.hasUser(uuid.toString())) {
 			return Optional.empty();
 		}
@@ -718,7 +718,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public Optional<Group> findGroup(String name) {
+	public Optional<Group> lookupGroup(String name) {
 		if (name == null || name.isEmpty() || !backend.hasGroup(name)) {
 			return Optional.empty();
 		}

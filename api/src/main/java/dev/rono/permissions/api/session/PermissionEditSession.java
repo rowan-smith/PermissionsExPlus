@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 /**
  * Batch edit helper: track subjects touched in a session and {@link #save()} once.
  *
- * <p>Obtain via {@link dev.rono.permissions.api.query.PermissionQuery#editSession()}.</p>
+ * <p>Obtain via {@link dev.rono.permissions.api.service.PermissionService#session()}.</p>
  */
 public interface PermissionEditSession extends AutoCloseable {
 

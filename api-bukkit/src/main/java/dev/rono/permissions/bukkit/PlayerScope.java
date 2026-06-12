@@ -7,11 +7,6 @@ import org.bukkit.entity.Player;
 
 /**
  * Player-scoped fluent permissions — obtain via {@link BukkitPermissions#on(Player)}.
- *
- * <pre>{@code
- * if (BukkitPermissions.on(player).has("my.node")) { ... }
- * BukkitPermissions.on(player).context().inGroup("vip");
- * }</pre>
  */
 public final class PlayerScope {
 
@@ -32,22 +27,22 @@ public final class PlayerScope {
     }
 
     /** Effective check in the player's current world. */
-    public boolean has(String permission) {
-        return context().has(permission);
+    public boolean hasPermission(String permission) {
+        return context().hasPermission(permission);
     }
 
     /** Effective check in the global namespace. */
-    public boolean hasGlobal(String permission) {
-        return service.query().global().user(player.getUniqueId()).has(permission);
+    public boolean hasPermissionGlobal(String permission) {
+        return service.global().user(player.getUniqueId()).hasPermission(permission);
     }
 
     /** World-scoped view (player's current world). */
     public UserWorldContext context() {
-        return service.query().world(player.getWorld().getName()).user(player.getUniqueId());
+        return service.world(player.getWorld().getName()).user(player.getUniqueId());
     }
 
-    /** Materialized user (any world). */
+    /** Materialized user — global namespace for {@link User#hasPermission(String)}. */
     public User user() {
-        return service.query().users().resolve(player.getUniqueId()).get();
+        return service.user(player.getUniqueId());
     }
 }

@@ -17,7 +17,11 @@ public interface SubjectWorldContext {
 
     PermissionSubject subject();
 
-    boolean has(String permission);
+    boolean hasPermission(String permission);
+
+    default boolean has(String permission) {
+        return hasPermission(permission);
+    }
 
     List<String> permissions();
 

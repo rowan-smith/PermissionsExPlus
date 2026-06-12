@@ -7,40 +7,40 @@ import dev.rono.permissions.api.data.ImportMode;
 import dev.rono.permissions.api.service.PermissionServiceBridge;
 
 /**
- * Backend administration — obtain via {@link PermissionQuery#backend()}.
- *
- * <pre>{@code
- * pex.query().backend().info();
- * pex.query().backend().activate("sql");
- * pex.query().backend().exportData();
- * }</pre>
+ * Backend administration — obtain via {@link dev.rono.permissions.api.service.PermissionService#backend()}.
  */
 public final class BackendScope {
 
     private final PermissionServiceBridge service;
 
-    BackendScope(PermissionServiceBridge service) {
+    public BackendScope(PermissionServiceBridge service) {
         this.service = service;
     }
 
-    /** Active backend snapshot. */
-    public BackendInfo info() {
-        return service.backend();
+    public BackendInfo getActive() {
+        return service.activeBackend();
+    }
+
+    public boolean isActive() {
+        return service.activeBackend() != null;
+    }
+
+    public boolean isActive(String alias) {
+        return alias != null && alias.equals(getActive().type());
     }
 
     public String type() {
-        return info().type();
+        return getActive().type();
     }
 
     public String simpleName() {
-        return info().simpleName();
+        return getActive().simpleName();
     }
 
     public String diagnosticLabel() {
-        return info().diagnosticLabel();
+        return getActive().diagnosticLabel();
     }
 
-    /** Switch the active backend alias. */
     public void activate(String alias) throws PermissionsExException {
         service.setActiveBackend(alias);
     }

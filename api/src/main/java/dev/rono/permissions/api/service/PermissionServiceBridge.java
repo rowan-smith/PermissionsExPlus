@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Runtime operations backing {@link PermissionService#query()}.
+ * Runtime operations backing {@link PermissionService}.
  *
  * <p>Implemented by the core manager; not intended for direct use in plugins.</p>
  */
@@ -27,7 +27,7 @@ public interface PermissionServiceBridge {
 
     int groupCount();
 
-    BackendInfo backend();
+    BackendInfo activeBackend();
 
     void setActiveBackend(String alias) throws PermissionsExException;
 
@@ -41,7 +41,7 @@ public interface PermissionServiceBridge {
 
     PermissionEventBus events();
 
-    Collection<String> worlds();
+    Collection<String> registeredWorlds();
 
     boolean isDebug();
 
@@ -55,9 +55,9 @@ public interface PermissionServiceBridge {
 
     Map<Integer, Group> rankLadder(String ladderName);
 
-    Optional<User> findUser(String identifier);
+    Optional<User> lookupUser(String identifier);
 
-    Optional<User> findUser(UUID uuid);
+    Optional<User> lookupUser(UUID uuid);
 
     User user(String identifier);
 
@@ -67,7 +67,7 @@ public interface PermissionServiceBridge {
 
     void deleteUser(String identifier);
 
-    Optional<Group> findGroup(String name);
+    Optional<Group> lookupGroup(String name);
 
     Group group(String name);
 

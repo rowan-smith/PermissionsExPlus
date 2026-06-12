@@ -22,8 +22,13 @@ final class SubjectWorldContexts {
             }
 
             @Override
-            public boolean has(String permission) {
+            public boolean hasPermission(String permission) {
                 return subject.has(permission, normalized);
+            }
+
+            @Override
+            public boolean has(String permission) {
+                return hasPermission(permission);
             }
 
             @Override
@@ -133,8 +138,13 @@ final class SubjectWorldContexts {
             }
 
             @Override
+            public boolean hasPermission(String permission) {
+                return base.hasPermission(permission);
+            }
+
+            @Override
             public boolean has(String permission) {
-                return base.has(permission);
+                return hasPermission(permission);
             }
 
             @Override
@@ -279,8 +289,13 @@ final class SubjectWorldContexts {
             }
 
             @Override
+            public boolean hasPermission(String permission) {
+                return base.hasPermission(permission);
+            }
+
+            @Override
             public boolean has(String permission) {
-                return base.has(permission);
+                return hasPermission(permission);
             }
 
             @Override
