@@ -8,15 +8,16 @@ Policy: **legacy `ru.tehkode.*` stays frozen**. New capabilities belong under `d
 
 | Feature | API |
 |---------|-----|
-| Modern event bus | `query().events()` → `PermissionEventBus` |
-| Player checks (Bukkit) | `BukkitPermissions.on(player).has(...)` |
+| Modern event bus | `pex.events()` → `PermissionEventBus` |
+| Player checks (Bukkit) | `BukkitPermissions.on(player).hasPermission(...)` |
+| Global permission checks | `pex.user(id).hasPermission("node")` |
 | Promote / demote | `User.promote` / `User.demote` (+ `RankingException`) |
-| Backend admin | `query().backend().activate`, `createHandle`, `importFrom` |
-| Import / export | `query().backend().exportData`, `importData(document, ImportMode)` |
+| Backend admin | `pex.backend().activate`, `createHandle`, `importFrom` |
+| Import / export | `pex.backend().exportData`, `importData(document, ImportMode)` |
 | Hierarchy helpers | `Group.children` / `Group.descendants`, `Group.members(world, inherit)` |
-| Query API | `query()` → `world()`, `users()`, `groups()`, `backend()` |
-| Batch edits | `query().editSession()` → `PermissionEditSession` |
-| Async reload | `query().reloadAsync()` → `CompletableFuture<Void>` |
+| Flat API | `pex.user()`, `pex.world()`, `pex.users()`, `pex.groups()`, `pex.backend()` |
+| Batch edits | `pex.session().start()` → `PermissionEditSession` |
+| Async reload | `pex.reloadAsync()` → `CompletableFuture<Void>` |
 | Proxy `PermissionService` | `ProxyPermissionServices` on Bungee/Waterfall |
 
 ---

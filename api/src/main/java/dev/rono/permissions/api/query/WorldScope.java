@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * World-scoped fluent chain — obtain via {@link PermissionQuery#world(String)}.
+ * World-scoped chain — obtain via {@link dev.rono.permissions.api.service.PermissionService#world(String)}.
  *
  * <h2>Resolve vs find</h2>
  * <ul>
@@ -24,8 +24,8 @@ import java.util.UUID;
  * </ul>
  *
  * <pre>{@code
- * pex.query().world(world).user(uuid).inGroup("vip", true);
- * pex.query().world(world).findUser(uuid).map(u -> u.has("node")).orElse(false);
+ * pex.world(world).user(uuid).inGroup("vip", true);
+ * pex.world(world).findUser(uuid).map(u -> u.hasPermission("node")).orElse(false);
  * }</pre>
  */
 public final class WorldScope {
@@ -33,7 +33,7 @@ public final class WorldScope {
     private final PermissionServiceBridge service;
     private final String world;
 
-    WorldScope(PermissionServiceBridge service, String world) {
+    public WorldScope(PermissionServiceBridge service, String world) {
         this.service = service;
         this.world = Worlds.normalize(world);
     }
@@ -55,8 +55,6 @@ public final class WorldScope {
     public boolean isGlobal() {
         return Worlds.isGlobal(world);
     }
-
-    // --- World configuration ---
 
     /**
      * Returns the inheritance chain for this world (parent worlds whose permissions apply).
@@ -94,8 +92,6 @@ public final class WorldScope {
     public Map<Integer, Group> rankLadder(String ladderName) {
         return service.rankLadder(ladderName);
     }
-
-    // --- Subjects (world bound) ---
 
     /**
      * Resolves a user in this world, materializing a backend record when none exists yet.

@@ -24,7 +24,7 @@ final class UserRef {
     }
 
     Optional<User> find() {
-        return uuid != null ? service.findUser(uuid) : service.findUser(identifier);
+        return uuid != null ? service.lookupUser(uuid) : service.lookupUser(identifier);
     }
 
     UserWorldContext inWorld(String world) {

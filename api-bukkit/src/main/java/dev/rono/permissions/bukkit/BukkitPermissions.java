@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
  * {@code ServicesManager} automatically — hook plugins do not pass the service explicitly.</p>
  *
  * <pre>{@code
- * BukkitPermissions.on(player).has("my.node");
+ * BukkitPermissions.on(player).hasPermission("my.node");
  * BukkitPermissions.on(player).context().inGroup("vip");
  * }</pre>
  */

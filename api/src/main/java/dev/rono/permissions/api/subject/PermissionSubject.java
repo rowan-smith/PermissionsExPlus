@@ -54,15 +54,23 @@ public interface PermissionSubject {
      * Checks whether this subject effectively holds the given permission in the global namespace.
      *
      * <p>Delegates to {@link #has(String, String)} with {@link Worlds#GLOBAL}. Performs full effective
-     * resolution (inheritance, negation, timed grants). This is the subject-level permission grant check;
-     * platform APIs often expose the same concept as {@code hasPermission}. Use {@link #hasTimedPermission(String)}
-     * only to test for a direct timed assignment.</p>
+     * resolution (inheritance, negation, timed grants).</p>
+     *
+     * @param permission permission node to check
+     * @return {@code true} if the permission is granted, {@code false} otherwise
+     */
+    default boolean hasPermission(String permission) {
+        return has(permission, Worlds.GLOBAL);
+    }
+
+    /**
+     * Alias for {@link #hasPermission(String)}.
      *
      * @param permission permission node to check
      * @return {@code true} if the permission is granted, {@code false} otherwise
      */
     default boolean has(String permission) {
-        return has(permission, Worlds.GLOBAL);
+        return hasPermission(permission);
     }
 
     /**
@@ -308,6 +316,17 @@ public interface PermissionSubject {
      * @return {@code true} if the permission is granted, {@code false} otherwise
      */
     boolean has(String permission, String world);
+
+    /**
+     * Alias for {@link #has(String, String)}.
+     *
+     * @param permission permission node to check
+     * @param world      world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @return {@code true} if the permission is granted, {@code false} otherwise
+     */
+    default boolean hasPermission(String permission, String world) {
+        return has(permission, world);
+    }
 
     /**
      * Returns direct permission assignments in the given world (not inherited).

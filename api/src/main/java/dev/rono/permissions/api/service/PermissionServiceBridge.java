@@ -17,18 +17,19 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Runtime operations backing {@link PermissionService#query()}.
+ * Runtime operations backing {@link PermissionService}.
  *
  * <p>Implemented by the core manager; not intended for direct use in plugins. Prefer the fluent
- * {@link dev.rono.permissions.api.query.PermissionQuery} API, which wraps this bridge.</p>
+ * {@link PermissionService} flat entry points, which wrap this bridge.</p>
  *
  * <h2>Resolve vs find</h2>
  * <ul>
  *   <li><strong>Resolve</strong> ({@link #user(String)}, {@link #user(UUID)}, {@link #group(String)}):
  *       returns a live subject handle, creating or materializing a record when none exists yet.</li>
- *   <li><strong>Find</strong> ({@link #findUser(String)}, {@link #findUser(UUID)},
- *       {@link #findGroup(String)}): returns {@link Optional#empty()} when the subject is not
- *       persisted in the active backend.</li>
+ *   <li><strong>Find</strong> ({@link PermissionService#findUser(String)},
+ *       {@link PermissionService#findUser(UUID)}, {@link PermissionService#findGroup(String)} via
+ *       {@link #lookupUser(String)}, {@link #lookupUser(UUID)}, {@link #lookupGroup(String)}):
+ *       returns {@link Optional#empty()} when the subject is not persisted in the active backend.</li>
  * </ul>
  */
 public interface PermissionServiceBridge {
@@ -52,7 +53,7 @@ public interface PermissionServiceBridge {
      *
      * @return active backend metadata
      */
-    BackendInfo backend();
+    BackendInfo activeBackend();
 
     /**
      * Switches the active backend to the configured alias.
@@ -108,7 +109,7 @@ public interface PermissionServiceBridge {
      *
      * @return immutable view of known world names
      */
-    Collection<String> worlds();
+    Collection<String> registeredWorlds();
 
     /**
      * Reports whether PermissionsEx debug logging is enabled.
@@ -162,7 +163,7 @@ public interface PermissionServiceBridge {
      * @param identifier user name or UUID string
      * @return the user when present in the backend, otherwise empty
      */
-    Optional<User> findUser(String identifier);
+    Optional<User> lookupUser(String identifier);
 
     /**
      * Looks up a persisted user by UUID without materializing a new record.
@@ -170,7 +171,7 @@ public interface PermissionServiceBridge {
      * @param uuid player UUID
      * @return the user when present in the backend, otherwise empty
      */
-    Optional<User> findUser(UUID uuid);
+    Optional<User> lookupUser(UUID uuid);
 
     /**
      * Resolves a user by string identifier, materializing a record when none exists yet.
@@ -208,7 +209,7 @@ public interface PermissionServiceBridge {
      * @param name group name
      * @return the group when present in the backend, otherwise empty
      */
-    Optional<Group> findGroup(String name);
+    Optional<Group> lookupGroup(String name);
 
     /**
      * Resolves a group by name, materializing a record when none exists yet.

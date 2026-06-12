@@ -11,10 +11,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * Sample plugin compiling only against {@code permissionsex-api} (+ {@code spigot-api}): modern
- * {@link PermissionService} on Bukkit {@code ServicesManager}.
- */
+/** Sample plugin using the modern {@link PermissionService} API. */
 public class ExamplePlugin extends JavaPlugin implements Listener {
 
     private PermissionService permissions;
@@ -32,11 +29,12 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
 
         permissions = registration.getProvider();
         getLogger().info(String.format(Locale.ROOT,
-                "PEX backend: %s (%s), users=%d groups=%d",
-                permissions.query().backend().type(),
-                permissions.query().backend().simpleName(),
-                permissions.query().users().count(),
-                permissions.query().groups().count()));
+                "PEX backend: %s (%s), users=%d groups=%d worlds=%d",
+                permissions.backend().type(),
+                permissions.backend().simpleName(),
+                permissions.users().count(),
+                permissions.groups().count(),
+                permissions.worlds().count()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -46,7 +44,7 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
         }
 
         Player player = event.getPlayer();
-        boolean allowed = BukkitPermissions.on(player).has("my.node");
+        boolean allowed = BukkitPermissions.on(player).hasPermission("my.node");
         var worldContext = BukkitPermissions.on(player).context();
         String displayName = worldContext.option("name");
         if (displayName == null) {

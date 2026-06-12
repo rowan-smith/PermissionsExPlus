@@ -21,7 +21,7 @@ final class GroupRef {
     }
 
     Optional<Group> find() {
-        return service.findGroup(name);
+        return service.lookupGroup(name);
     }
 
     GroupWorldContext inWorld(String world) {

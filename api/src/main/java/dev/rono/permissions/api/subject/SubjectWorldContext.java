@@ -31,13 +31,23 @@ public interface SubjectWorldContext {
      * Checks whether the subject effectively holds the given permission in this context's world.
      *
      * <p>Equivalent to {@link PermissionSubject#has(String, String)} with {@link #world()}. Performs
-     * full effective resolution; platform APIs often expose the same concept as {@code hasPermission}.
-     * Unlike {@link #hasTimedPermission(String)}, this does not test only direct timed assignments.</p>
+     * full effective resolution. Unlike {@link #hasTimedPermission(String)}, this does not test only
+     * direct timed assignments.</p>
      *
      * @param permission permission node to check
      * @return {@code true} if the permission is granted, {@code false} otherwise
      */
-    boolean has(String permission);
+    boolean hasPermission(String permission);
+
+    /**
+     * Alias for {@link #hasPermission(String)}.
+     *
+     * @param permission permission node to check
+     * @return {@code true} if the permission is granted, {@code false} otherwise
+     */
+    default boolean has(String permission) {
+        return hasPermission(permission);
+    }
 
     /**
      * Returns direct permission assignments in this context's world (not inherited).

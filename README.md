@@ -185,9 +185,9 @@ RegisteredServiceProvider<PermissionService> reg =
         getServer().getServicesManager().getRegistration(PermissionService.class);
 if (reg != null) {
     PermissionService pex = reg.getProvider();
-    getLogger().info("PEX backend: " + pex.query().backend().simpleName());
-    getLogger().info("Users: " + pex.query().users().count()
-            + ", groups: " + pex.query().groups().count());
+    getLogger().info("PEX backend: " + pex.backend().simpleName());
+    getLogger().info("Users: " + pex.users().count()
+            + ", groups: " + pex.groups().count());
 }
 ```
 
@@ -211,16 +211,19 @@ Summary below; see the linked docs for complete method lists and examples.
 
 #### `PermissionService` (`permissionsex-api`)
 
-Primary entry: **`query()`**. Lookup: `ServicesManager.getRegistration(PermissionService.class)`.
+Primary entry: flat methods on **`PermissionService`**. Lookup: `ServicesManager.getRegistration(PermissionService.class)`.
 
 | Method | Description |
 |--------|-------------|
-| **`query()`** | Single fluent entry — see [Query API](docs/api/MODERN_API.md#query-api-canonical-entry) |
-| `query().users().count()` / `query().groups().count()` | Registered subject counts |
-| `query().backend().info()` / `activate(alias)` | Backend snapshot and administration |
-| `query().world(w).user(uuid).inGroup("vip")` | World-bound permission checks |
-| `query().events()` / `reload()` / `editSession()` | Events, reload, batch edits |
-| `user(uuid)` / `group(name)` | Direct subject access via runtime bridge (advanced) |
+| **`user(uuid)`** / **`user(name)`** | Materialize user; `hasPermission("node")` checks global namespace |
+| **`findUser(uuid\|name)`** | Optional persisted lookup via `FoundUser` |
+| **`world(w).user(uuid)`** | Per-world permission checks |
+| **`users().count()`** / **`groups().count()`** / **`worlds().count()`** | Registry counts |
+| **`backend().getActive()`** / **`activate(alias)`** | Backend snapshot and administration |
+| **`events()`** / **`reload()`** / **`session().start()`** | Events, reload, batch edits |
+| **`group(name)`** | Direct group access |
+
+See [Flat API](docs/api/MODERN_API.md#flat-api-canonical-entry) for the full reference.
 
 Source: `api/src/main/java/dev/rono/permissions/api/service/PermissionService.java`
 
@@ -231,7 +234,7 @@ Subject operations are accessed through `User` and `Group` instances from `Permi
 | `PermissionSubject` | Description |
 |---------------------|-------------|
 | `type()`, `identifier()`, `name()`, `virtual()` | Subject metadata |
-| `has(permission, world)` | Effective check on this subject only |
+| `has(permission, world)` / `hasPermission(permission)` | Effective check (global when world omitted) |
 | `permissions(world)` | Direct assignments (not inherited) |
 | `effectivePermissions(world)` | Merged permissions after inheritance |
 | `addPermission` / `removePermission` / `setPermissions` | Direct permission CRUD |
@@ -347,14 +350,14 @@ public void onEnable() {
         return;
     }
     PermissionService pex = reg.getProvider();
-    getLogger().info("PEX " + pex.query().backend().simpleName()
-            + " — " + pex.query().groups().count() + " groups");
+    getLogger().info("PEX " + pex.backend().simpleName()
+            + " — " + pex.groups().count() + " groups");
 }
 
 public void onJoin(PlayerJoinEvent event, PermissionService pex) {
     Player player = event.getPlayer();
-    if (BukkitPermissions.on(player).has("my.permission")) {
-        pex.query().world(player.getWorld().getName())
+    if (BukkitPermissions.on(player).hasPermission("my.permission")) {
+        pex.world(player.getWorld().getName())
                 .user(player.getUniqueId())
                 .addPermission("joined.today");
         pex.user(player.getUniqueId()).save();

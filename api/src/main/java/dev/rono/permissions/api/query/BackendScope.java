@@ -7,19 +7,19 @@ import dev.rono.permissions.api.data.ImportMode;
 import dev.rono.permissions.api.service.PermissionServiceBridge;
 
 /**
- * Backend administration — obtain via {@link PermissionQuery#backend()}.
+ * Backend administration — obtain via {@link dev.rono.permissions.api.service.PermissionService#backend()}.
  *
  * <pre>{@code
- * pex.query().backend().info();
- * pex.query().backend().activate("sql");
- * pex.query().backend().exportData();
+ * pex.backend().getActive();
+ * pex.backend().activate("sql");
+ * pex.backend().exportData();
  * }</pre>
  */
 public final class BackendScope {
 
     private final PermissionServiceBridge service;
 
-    BackendScope(PermissionServiceBridge service) {
+    public BackendScope(PermissionServiceBridge service) {
         this.service = service;
     }
 
@@ -28,8 +28,27 @@ public final class BackendScope {
      *
      * @return active backend metadata
      */
-    public BackendInfo info() {
-        return service.backend();
+    public BackendInfo getActive() {
+        return service.activeBackend();
+    }
+
+    /**
+     * Reports whether a backend is currently active.
+     *
+     * @return {@code true} when an active backend is configured
+     */
+    public boolean isActive() {
+        return service.activeBackend() != null;
+    }
+
+    /**
+     * Reports whether the given alias matches the active backend type.
+     *
+     * @param alias configured backend alias to compare
+     * @return {@code true} when {@code alias} equals the active backend type
+     */
+    public boolean isActive(String alias) {
+        return alias != null && alias.equals(getActive().type());
     }
 
     /**
@@ -38,7 +57,7 @@ public final class BackendScope {
      * @return backend type string from {@link BackendInfo#type()}
      */
     public String type() {
-        return info().type();
+        return getActive().type();
     }
 
     /**
@@ -47,7 +66,7 @@ public final class BackendScope {
      * @return runtime implementation simple name from {@link BackendInfo#simpleName()}
      */
     public String simpleName() {
-        return info().simpleName();
+        return getActive().simpleName();
     }
 
     /**
@@ -56,7 +75,7 @@ public final class BackendScope {
      * @return diagnostic label from {@link BackendInfo#diagnosticLabel()}
      */
     public String diagnosticLabel() {
-        return info().diagnosticLabel();
+        return getActive().diagnosticLabel();
     }
 
     /**

@@ -3,8 +3,7 @@ package dev.rono.permissions.api.event;
 /**
  * Subscribe to permission-domain notifications from PermissionsEx.
  *
- * <p>Obtain via {@link dev.rono.permissions.api.query.PermissionQuery#events()} or
- * {@link dev.rono.permissions.api.service.PermissionServiceBridge#events()}.</p>
+ * <p>Obtain via {@link dev.rono.permissions.api.service.PermissionService#events()}.</p>
  *
  * <p>On Spigot/Paper, dispatches are also translated into legacy {@code ru.tehkode.permissions.events.*}
  * when the platform adapter publishes them.</p>
