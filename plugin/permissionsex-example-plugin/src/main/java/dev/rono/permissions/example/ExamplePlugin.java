@@ -42,13 +42,15 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
             return;
         }
 
-        Player player = event.getPlayer();
-        boolean allowed = PexBukkitPermissions.on(player).hasPermission("my.node");
+        var player = event.getPlayer();
+        var allowed = PexBukkitPermissions.on(player).hasPermission("my.node");
         var worldContext = PexBukkitPermissions.on(player).context();
-        String displayName = worldContext.option("name");
+        var displayName = worldContext.option("name");
+
         if (displayName == null) {
             displayName = player.getName();
         }
+
         final String resolvedName = displayName;
 
         getLogger().fine(() -> String.format(Locale.ROOT,

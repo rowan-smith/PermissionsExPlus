@@ -43,13 +43,13 @@ public final class PermissionsExPlus {
      * @return {@code true} if the plugin and its modern service provider are available
      */
     public static boolean isAvailable() {
-        Plugin plugin = getPlugin();
+        var plugin = getPlugin();
         if (plugin == null || !plugin.isEnabled()) {
             return false;
         }
-        RegisteredServiceProvider<PexPermissionService> reg =
-                Bukkit.getServer().getServicesManager().getRegistration(PexPermissionService.class);
-        return reg != null && reg.getProvider() != null;
+
+        var registration = Bukkit.getServer().getServicesManager().getRegistration(PexPermissionService.class);
+        return registration != null && registration.getProvider() != null;
     }
 
     /**
@@ -60,44 +60,10 @@ public final class PermissionsExPlus {
      */
     public static PexPermissionService getPermissionService() {
         if (!isAvailable()) {
-            throw new IllegalStateException(
-                    "PexPermissionService is not registered — is PermissionsEx loaded and enabled?");
+            throw new IllegalStateException("PexPermissionService is not registered — is PermissionsEx loaded and enabled?");
         }
-        RegisteredServiceProvider<PexPermissionService> reg =
-                Bukkit.getServer().getServicesManager().getRegistration(PexPermissionService.class);
-        return reg.getProvider();
-    }
 
-    /**
-     * Returns the permission user associated with an online player.
-     *
-     * @param player online player; must not be {@code null}
-     * @return modern user handle; never {@code null} when PermissionsEx is available
-     * @throws IllegalStateException if PermissionsEx is not loaded or the service is not registered
-     */
-    public static PexUser getUser(Player player) {
-        return getPermissionService().user(player.getUniqueId());
-    }
-
-    /**
-     * Returns the permission user identified by name.
-     *
-     * @param name player or user name
-     * @return modern user handle; never {@code null} when PermissionsEx is available
-     * @throws IllegalStateException if PermissionsEx is not loaded or the service is not registered
-     */
-    public static PexUser getUser(String name) {
-        return getPermissionService().user(name);
-    }
-
-    /**
-     * Returns the permission user identified by UUID.
-     *
-     * @param uuid player UUID
-     * @return modern user handle; never {@code null} when PermissionsEx is available
-     * @throws IllegalStateException if PermissionsEx is not loaded or the service is not registered
-     */
-    public static PexUser getUser(UUID uuid) {
-        return getPermissionService().user(uuid);
+        var registration = Bukkit.getServer().getServicesManager().getRegistration(PexPermissionService.class);
+        return registration.getProvider();
     }
 }
