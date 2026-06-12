@@ -28,8 +28,8 @@ public class ExampleLegacyPlugin extends JavaPlugin implements Listener {
         }
 
         try {
-            PermissionManager mgr = PermissionsEx.getPermissionManager();
-            getLogger().info("PEX backend: " + mgr.getBackend().getClass().getSimpleName());
+            var permissionManager = PermissionsEx.getPermissionManager();
+            getLogger().info("PEX backend: " + permissionManager.getBackend().getClass().getSimpleName());
 
         } catch (Throwable t) {
             getLogger().severe("PEX is enabled but PermissionManager is not available yet.");
