@@ -27,7 +27,7 @@ class PromotionDemotionCommandServiceTest extends PEXTestBase {
         user.setParents(List.of(mod));
 
         CoreCommandService service = new CoreCommandService(manager);
-        assertEquals("User Rono promoted to admin group", service.promote("Rono", null, "default"));
+        assertEquals("PexUser Rono promoted to admin group", service.promote("Rono", null, "default"));
         assertTrue(user.inGroup("admin"));
     }
 
@@ -45,7 +45,7 @@ class PromotionDemotionCommandServiceTest extends PEXTestBase {
         user.setParents(List.of(admin));
 
         CoreCommandService service = new CoreCommandService(manager);
-        assertEquals("User Rono demoted to mod group", service.demote("Rono", null, "default"));
+        assertEquals("PexUser Rono demoted to mod group", service.demote("Rono", null, "default"));
         assertTrue(user.inGroup("mod"));
     }
 
@@ -89,9 +89,9 @@ class PromotionDemotionCommandServiceTest extends PEXTestBase {
         user.setParents(List.of(mod));
 
         CoreCommandService service = new CoreCommandService(manager);
-        assertEquals("User Rono promoted to admin group", service.promote("Rono", null, "default"));
+        assertEquals("PexUser Rono promoted to admin group", service.promote("Rono", null, "default"));
         assertTrue(manager.getUser("Rono").inGroup("admin"));
-        assertEquals("User Rono demoted to mod group", service.demote("Rono", null, "default"));
+        assertEquals("PexUser Rono demoted to mod group", service.demote("Rono", null, "default"));
         assertTrue(manager.getUser("Rono").inGroup("mod"));
     }
 
@@ -109,9 +109,9 @@ class PromotionDemotionCommandServiceTest extends PEXTestBase {
         user.setParents(List.of(admin));
 
         CoreCommandService service = new CoreCommandService(manager);
-        assertEquals("User Rono demoted to mod group", service.demote("Rono", null, "default"));
+        assertEquals("PexUser Rono demoted to mod group", service.demote("Rono", null, "default"));
         assertTrue(manager.getUser("Rono").inGroup("mod"));
-        assertEquals("User Rono promoted to admin group", service.promote("Rono", null, "default"));
+        assertEquals("PexUser Rono promoted to admin group", service.promote("Rono", null, "default"));
         assertTrue(manager.getUser("Rono").inGroup("admin"));
     }
 }

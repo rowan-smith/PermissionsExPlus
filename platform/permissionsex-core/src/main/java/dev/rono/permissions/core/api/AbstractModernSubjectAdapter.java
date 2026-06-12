@@ -1,15 +1,15 @@
 package dev.rono.permissions.core.api;
 
-import dev.rono.permissions.api.subject.PermissionSubject;
-import dev.rono.permissions.api.subject.SubjectType;
-import dev.rono.permissions.api.subject.TimedPermissionEntry;
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.subject.PexPermissionSubject;
+import dev.rono.permissions.api.subject.PexSubjectType;
+import dev.rono.permissions.api.subject.PexTimedPermissionEntry;
+import dev.rono.permissions.api.world.PexWorlds;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import ru.tehkode.permissions.PermissionEntity;
 
 import java.util.*;
 
-abstract class AbstractModernSubjectAdapter implements PermissionSubject {
+abstract class AbstractModernSubjectAdapter implements PexPermissionSubject {
     protected final PermissionEntity delegate;
     protected final DefaultPermissionManager manager;
 
@@ -19,7 +19,7 @@ abstract class AbstractModernSubjectAdapter implements PermissionSubject {
     }
 
     @Override
-    public abstract SubjectType type();
+    public abstract PexSubjectType type();
 
     @Override
     public String identifier() {
@@ -120,7 +120,7 @@ abstract class AbstractModernSubjectAdapter implements PermissionSubject {
     public Set<String> configuredWorlds() {
         LinkedHashSet<String> worlds = new LinkedHashSet<>();
         for (String world : delegate.getWorlds()) {
-            worlds.add(Worlds.fromMapKey(world));
+            worlds.add(PexWorlds.fromMapKey(world));
         }
         return Set.copyOf(worlds);
     }
@@ -129,7 +129,7 @@ abstract class AbstractModernSubjectAdapter implements PermissionSubject {
     public Map<String, List<String>> permissionsByWorld() {
         LinkedHashMap<String, List<String>> mapped = new LinkedHashMap<>();
         for (Map.Entry<String, List<String>> entry : delegate.getAllPermissions().entrySet()) {
-            mapped.put(Worlds.fromMapKey(entry.getKey()), List.copyOf(entry.getValue()));
+            mapped.put(PexWorlds.fromMapKey(entry.getKey()), List.copyOf(entry.getValue()));
         }
         return Map.copyOf(mapped);
     }
@@ -137,7 +137,7 @@ abstract class AbstractModernSubjectAdapter implements PermissionSubject {
     @Override
     public Map<String, List<String>> effectivePermissionsByWorld() {
         LinkedHashSet<String> worlds = new LinkedHashSet<>();
-        worlds.add(Worlds.GLOBAL);
+        worlds.add(PexWorlds.GLOBAL);
         worlds.addAll(configuredWorlds());
         LinkedHashMap<String, List<String>> mapped = new LinkedHashMap<>();
         for (String world : worlds) {
@@ -147,12 +147,12 @@ abstract class AbstractModernSubjectAdapter implements PermissionSubject {
     }
 
     @Override
-    public List<TimedPermissionEntry> timedPermissionEntries(String world) {
+    public List<PexTimedPermissionEntry> timedPermissionEntries(String world) {
         String legacyWorld = ModernWorlds.toLegacy(world);
-        String apiWorld = Worlds.normalize(world);
-        List<TimedPermissionEntry> entries = new ArrayList<>();
+        String apiWorld = PexWorlds.normalize(world);
+        List<PexTimedPermissionEntry> entries = new ArrayList<>();
         for (String permission : delegate.getTimedPermissions(legacyWorld)) {
-            entries.add(new TimedPermissionEntry(
+            entries.add(new PexTimedPermissionEntry(
                     permission, apiWorld, delegate.getTimedPermissionLifetime(permission, legacyWorld)));
         }
         return List.copyOf(entries);

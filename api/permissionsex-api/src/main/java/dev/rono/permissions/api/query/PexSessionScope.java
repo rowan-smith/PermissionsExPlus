@@ -4,11 +4,11 @@ import dev.rono.permissions.api.service.PermissionServiceBridge;
 import dev.rono.permissions.api.session.PermissionEditSession;
 
 /** Batch edit sessions — obtain via {@link dev.rono.permissions.api.service.PermissionService#session()}. */
-public final class SessionScope {
+public final class PexSessionScope {
 
     private final PermissionServiceBridge service;
 
-    public SessionScope(PermissionServiceBridge service) {
+    public PexSessionScope(PermissionServiceBridge service) {
         this.service = service;
     }
 

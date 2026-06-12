@@ -1,8 +1,8 @@
 package dev.rono.permissions.bukkit;
 
 import dev.rono.permissions.api.service.PermissionService;
-import dev.rono.permissions.api.subject.User;
-import dev.rono.permissions.api.subject.UserWorldContext;
+import dev.rono.permissions.api.subject.PexUser;
+import dev.rono.permissions.api.subject.PexUserWorldContext;
 import org.bukkit.entity.Player;
 
 /**
@@ -10,14 +10,14 @@ import org.bukkit.entity.Player;
  *
  * <p>Checks default to the player's <strong>current world</strong>. Use
  * {@link #hasPermissionGlobal(String)} for the global namespace
- * ({@link dev.rono.permissions.api.world.Worlds#GLOBAL}).</p>
+ * ({@link dev.rono.permissions.api.world.PexWorlds#GLOBAL}).</p>
  *
  * <pre>{@code
  * if (BukkitPermissions.on(player).hasPermission("my.node")) { ... }
  * BukkitPermissions.on(player).context().inGroup("vip");
  * }</pre>
  */
-public final class PlayerScope {
+public final class PexPlayerScope {
 
     private final PermissionService service;
     private final Player player;
@@ -26,7 +26,7 @@ public final class PlayerScope {
      * @param service registered permission service
      * @param player  bound player
      */
-    PlayerScope(PermissionService service, Player player) {
+    PexPlayerScope(PermissionService service, Player player) {
         this.service = service;
         this.player = player;
     }
@@ -68,18 +68,18 @@ public final class PlayerScope {
     /**
      * World-scoped view using the player's current world.
      *
-     * @return {@link UserWorldContext} for edits and checks in the active world
+     * @return {@link PexUserWorldContext} for edits and checks in the active world
      */
-    public UserWorldContext context() {
+    public PexUserWorldContext context() {
         return service.world(player.getWorld().getName()).user(player.getUniqueId());
     }
 
     /**
      * Materialized user subject (creates a virtual record if absent).
      *
-     * @return {@link User} for global or multi-world operations
+     * @return {@link PexUser} for global or multi-world operations
      */
-    public User user() {
+    public PexUser user() {
         return service.user(player.getUniqueId());
     }
 }

@@ -4,17 +4,17 @@ import dev.rono.permissions.api.service.PermissionServiceBridge;
 import java.util.Set;
 
 /**
- * User registry — obtain via {@link dev.rono.permissions.api.service.PermissionService#users()}.
+ * PexUser registry — obtain via {@link dev.rono.permissions.api.service.PermissionService#users()}.
  *
  * <p>For subject lookup, use top-level {@link dev.rono.permissions.api.service.PermissionService#user(String)}
  * (resolve/materialize) or {@link dev.rono.permissions.api.service.PermissionService#findUser(String)}
  * (persisted only).</p>
  */
-public final class UsersScope {
+public final class PexUsersScope {
 
     private final PermissionServiceBridge service;
 
-    public UsersScope(PermissionServiceBridge service) {
+    public PexUsersScope(PermissionServiceBridge service) {
         this.service = service;
     }
 

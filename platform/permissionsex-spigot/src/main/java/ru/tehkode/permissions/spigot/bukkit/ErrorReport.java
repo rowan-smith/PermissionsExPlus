@@ -76,7 +76,7 @@ public class ErrorReport {
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 			connection.setDoOutput(true);
 			connection.setRequestMethod("POST");
-			connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+			connection.setRequestProperty("PexUser-Agent", "Mozilla/5.0");
 
 			String urlParameters = "url=" + URLEncoder.encode(longUrl, UTF8_ENCODING);
 

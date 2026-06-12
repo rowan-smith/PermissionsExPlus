@@ -5,18 +5,18 @@ import dev.rono.permissions.api.PermissionsExException;
 /**
  * Non-active backend instance for inspection and data transfer.
  *
- * <p>Created via {@link dev.rono.permissions.api.query.BackendScope#createHandle(String)} or
+ * <p>Created via {@link dev.rono.permissions.api.query.PexBackendScope#createHandle(String)} or
  * {@link dev.rono.permissions.api.service.PermissionServiceBridge#createBackendHandle(String)}.
  * The handle targets a configured backend without making it active.</p>
  */
-public interface BackendHandle {
+public interface PexBackendHandle {
 
     /**
      * Returns metadata describing this backend instance.
      *
      * @return backend type, implementation name, and diagnostic label
      */
-    BackendInfo info();
+    PexBackendInfo info();
 
     /**
      * Copies all users, groups, and world inheritance from the active backend into this backend.

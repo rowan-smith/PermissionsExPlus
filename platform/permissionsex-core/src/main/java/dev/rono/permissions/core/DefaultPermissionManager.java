@@ -19,21 +19,21 @@
 package dev.rono.permissions.core;
 
 import dev.rono.permissions.api.PermissionsExException;
-import dev.rono.permissions.api.backend.BackendHandle;
-import dev.rono.permissions.api.backend.BackendInfo;
+import dev.rono.permissions.api.backend.PexBackendHandle;
+import dev.rono.permissions.api.backend.PexBackendInfo;
 import dev.rono.permissions.api.bus.EntityDispatch;
 import dev.rono.permissions.api.bus.EntityMutation;
 import dev.rono.permissions.api.bus.SystemDispatch;
 import dev.rono.permissions.api.bus.SystemMutation;
-import dev.rono.permissions.api.data.ImportMode;
+import dev.rono.permissions.api.data.PexImportMode;
 import dev.rono.permissions.api.event.PermissionEventBus;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
 import dev.rono.permissions.api.service.PermissionService;
 import dev.rono.permissions.api.service.PermissionServiceBridge;
 import dev.rono.permissions.api.session.PermissionEditSession;
-import dev.rono.permissions.api.subject.Group;
-import dev.rono.permissions.api.subject.User;
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.subject.PexGroup;
+import dev.rono.permissions.api.subject.PexUser;
+import dev.rono.permissions.api.world.PexWorlds;
 import dev.rono.permissions.core.api.*;
 import dev.rono.permissions.core.backends.CorePermissionBackendRegistrar;
 import org.bukkit.entity.Player;
@@ -252,7 +252,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 						data.setOption("name", fallbackName, null);
 						resetUser(fallbackName); // In case somebody requested the old user but conversion was previously unsuccessful
 					} else {
-						throw new IllegalStateException("User already exists with new id " + identifier + " (converting from " + fallbackName + ")");
+						throw new IllegalStateException("PexUser already exists with new id " + identifier + " (converting from " + fallbackName + ")");
 					}
 				}
 			}
@@ -265,7 +265,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 				}
 			}
 		} else {
-			throw new IllegalStateException("User " + identifier + " is null");
+			throw new IllegalStateException("PexUser " + identifier + " is null");
 		}
 
 		return user;
@@ -438,7 +438,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 					throw new IllegalStateException("Error initializing group " + groupname, e);
 				}
 			} else {
-				throw new IllegalStateException("Group " + groupname + " is null");
+				throw new IllegalStateException("PexGroup " + groupname + " is null");
 			}
 		}
 
@@ -624,11 +624,11 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public BackendInfo activeBackend() {
+	public PexBackendInfo activeBackend() {
 		String type = config.getDefaultBackend();
 		PermissionBackend active = this.backend;
 		String simpleName = active != null ? active.getClass().getSimpleName() : "?";
-		return new BackendInfo(type, simpleName, type + " (" + simpleName + ")");
+		return new PexBackendInfo(type, simpleName, type + " (" + simpleName + ")");
 	}
 
 	@Override
@@ -652,7 +652,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public Optional<User> lookupUser(String identifier) {
+	public Optional<PexUser> lookupUser(String identifier) {
 		if (identifier == null || identifier.isEmpty()) {
 			return Optional.empty();
 		}
@@ -670,7 +670,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public Optional<User> lookupUser(UUID uuid) {
+	public Optional<PexUser> lookupUser(UUID uuid) {
 		if (uuid == null || !backend.hasUser(uuid.toString())) {
 			return Optional.empty();
 		}
@@ -678,12 +678,12 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public User user(String identifier) {
+	public PexUser user(String identifier) {
 		return wrapUser(getUser(identifier));
 	}
 
 	@Override
-	public User user(UUID uuid) {
+	public PexUser user(UUID uuid) {
 		return wrapUser(getUser(uuid));
 	}
 
@@ -700,7 +700,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public Optional<Group> lookupGroup(String name) {
+	public Optional<PexGroup> lookupGroup(String name) {
 		if (name == null || name.isEmpty() || !backend.hasGroup(name)) {
 			return Optional.empty();
 		}
@@ -708,9 +708,9 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public Group group(String name) {
+	public PexGroup group(String name) {
 		if (name == null || name.isEmpty()) {
-			throw new IllegalArgumentException("Group name must not be empty");
+			throw new IllegalArgumentException("PexGroup name must not be empty");
 		}
 		return wrapGroup(getGroup(name));
 	}
@@ -730,30 +730,30 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 
 	@Override
 	public List<String> worldInheritance(String world) {
-		return List.copyOf(getWorldInheritance(Worlds.normalize(world)));
+		return List.copyOf(getWorldInheritance(PexWorlds.normalize(world)));
 	}
 
 	@Override
 	public Map<String, List<String>> worldInheritanceMap() {
 		LinkedHashMap<String, List<String>> mapped = new LinkedHashMap<>();
 		for (Map.Entry<String, List<String>> entry : backend.getAllWorldInheritance().entrySet()) {
-			mapped.put(Worlds.fromMapKey(entry.getKey()), List.copyOf(entry.getValue()));
+			mapped.put(PexWorlds.fromMapKey(entry.getKey()), List.copyOf(entry.getValue()));
 		}
 		return Map.copyOf(mapped);
 	}
 
 	@Override
-	public List<Group> defaultGroups(String world) {
-		List<Group> defaults = new ArrayList<>();
-		for (PermissionGroup group : getDefaultGroups(Worlds.normalize(world))) {
+	public List<PexGroup> defaultGroups(String world) {
+		List<PexGroup> defaults = new ArrayList<>();
+		for (PermissionGroup group : getDefaultGroups(PexWorlds.normalize(world))) {
 			defaults.add(wrapGroup(group));
 		}
 		return List.copyOf(defaults);
 	}
 
 	@Override
-	public Map<Integer, Group> rankLadder(String ladderName) {
-		Map<Integer, Group> ladder = new LinkedHashMap<>();
+	public Map<Integer, PexGroup> rankLadder(String ladderName) {
+		Map<Integer, PexGroup> ladder = new LinkedHashMap<>();
 		for (Map.Entry<Integer, PermissionGroup> entry : getRankLadder(ladderName).entrySet()) {
 			ladder.put(entry.getKey(), wrapGroup(entry.getValue()));
 		}
@@ -770,7 +770,7 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public BackendHandle createBackendHandle(String alias) throws PermissionsExException {
+	public PexBackendHandle createBackendHandle(String alias) throws PermissionsExException {
 		try {
 			PermissionBackend created = createBackend(alias);
 			return new ModernBackendHandle(created, alias, this);
@@ -797,9 +797,9 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 	}
 
 	@Override
-	public void importData(String document, ImportMode mode) throws PermissionsExException {
+	public void importData(String document, PexImportMode mode) throws PermissionsExException {
 		PermissionBackend snapshot = BackendSnapshotSupport.snapshotFromYaml(this, document);
-        if (mode == ImportMode.REPLACE) {
+        if (mode == PexImportMode.REPLACE) {
             clearCache();
         }
         backend.loadFrom(snapshot);
@@ -845,11 +845,11 @@ public class DefaultPermissionManager implements PermissionManager, PermissionSe
 		publishSystem(SystemMutation.RELOADED);
 	}
 
-	private User wrapUser(PermissionUser user) {
+	private PexUser wrapUser(PermissionUser user) {
 		return new ModernUserAdapter(user, this);
 	}
 
-	private Group wrapGroup(PermissionGroup group) {
+	private PexGroup wrapGroup(PermissionGroup group) {
 		return new ModernGroupAdapter(group, this);
 	}
 

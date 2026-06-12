@@ -1,8 +1,8 @@
 package dev.rono.permissions.core.api;
 
 import dev.rono.permissions.api.session.PermissionEditSession;
-import dev.rono.permissions.api.subject.Group;
-import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.api.subject.PexGroup;
+import dev.rono.permissions.api.subject.PexUser;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -19,21 +19,21 @@ public final class PermissionEditSessionImpl implements PermissionEditSession {
     }
 
     @Override
-    public User user(String identifier) {
+    public PexUser user(String identifier) {
         ensureOpen();
         userIds.add(identifier);
         return manager.user(identifier);
     }
 
     @Override
-    public User user(UUID uuid) {
+    public PexUser user(UUID uuid) {
         ensureOpen();
         userIds.add(uuid.toString());
         return manager.user(uuid);
     }
 
     @Override
-    public Group group(String name) {
+    public PexGroup group(String name) {
         ensureOpen();
         groupNames.add(name);
         return manager.group(name);

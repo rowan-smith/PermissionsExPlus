@@ -6,7 +6,7 @@ import ru.tehkode.permissions.PermissionsUserData;
 import java.util.*;
 
 /**
- * User/group subtree stored in YAML-compatible nested maps (Spigot FileBackend-compatible layout).
+ * PexUser/group subtree stored in YAML-compatible nested maps (Spigot FileBackend-compatible layout).
  */
 public final class YamlEntityData implements PermissionsGroupData, PermissionsUserData {
 
@@ -21,7 +21,7 @@ public final class YamlEntityData implements PermissionsGroupData, PermissionsUs
     /** True until this node's map is inserted into {@link #entitiesRoot} (parity with legacy FileData). */
     private boolean virtual;
 
-    /** User entries use {@code group}; groups use {@code inheritance}. */
+    /** PexUser entries use {@code group}; groups use {@code inheritance}. */
     private final String parentListKey;
 
     private YamlEntityData(YamlFileBackend backend, Map<String, Object> entitiesRoot, String lookupName,

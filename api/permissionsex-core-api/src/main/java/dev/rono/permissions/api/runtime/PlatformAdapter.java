@@ -17,7 +17,7 @@ public interface PlatformAdapter {
     UUID serverId();
 
     /**
-     * Worlds on game servers; backend server ids on proxies.
+     * PexWorlds on game servers; backend server ids on proxies.
      */
     Collection<String> realmNames();
 

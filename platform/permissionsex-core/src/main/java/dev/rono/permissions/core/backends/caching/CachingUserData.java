@@ -5,7 +5,7 @@ import ru.tehkode.permissions.PermissionsUserData;
 import java.util.concurrent.Executor;
 
 /**
- * User data using a cache.
+ * PexUser data using a cache.
  */
 public class CachingUserData extends CachingData implements PermissionsUserData {
 	private final PermissionsUserData userData;

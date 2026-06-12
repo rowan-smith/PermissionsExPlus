@@ -11,7 +11,7 @@ public class PermissionGroupTest extends PEXTestBase {
         PermissionGroup group = manager.getGroup("TestGroup");
         group.addPermission("test.permission");
         
-        assertTrue(group.has("test.permission"), "Group should have test.permission");
+        assertTrue(group.has("test.permission"), "PexGroup should have test.permission");
     }
 
     @Test
@@ -49,7 +49,7 @@ public class PermissionGroupTest extends PEXTestBase {
         // Promotion logic
         user.promote(null, "default");
         
-        assertTrue(user.inGroup(group2), "User should be promoted to Group2");
-        assertFalse(user.inGroup(group1), "User should no longer be in Group1");
+        assertTrue(user.inGroup(group2), "PexUser should be promoted to Group2");
+        assertFalse(user.inGroup(group1), "PexUser should no longer be in Group1");
     }
 }

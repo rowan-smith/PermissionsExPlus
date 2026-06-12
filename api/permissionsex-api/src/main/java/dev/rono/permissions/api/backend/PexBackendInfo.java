@@ -7,4 +7,4 @@ package dev.rono.permissions.api.backend;
  * @param simpleName      runtime implementation simple class name
  * @param diagnosticLabel human-readable label for logs
  */
-public record BackendInfo(String type, String simpleName, String diagnosticLabel) {}
+public record PexBackendInfo(String type, String simpleName, String diagnosticLabel) {}

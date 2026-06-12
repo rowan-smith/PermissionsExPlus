@@ -20,7 +20,7 @@ public final class UserScopedCommand<C> extends AbstractPexCloudCommand<C> {
     @CommandMethod("pex user <user>")
     public void userInfo(C sender, @Argument(value = "user", suggestions = "pex-user") String user) {
         var view = ctx.commandService().userView(user);
-        reply(sender, "User " + view.identifier() + "/" + view.name());
+        reply(sender, "PexUser " + view.identifier() + "/" + view.name());
         reply(sender, "Groups: " + view.groups());
         reply(sender, "Permissions: " + view.permissions());
     }

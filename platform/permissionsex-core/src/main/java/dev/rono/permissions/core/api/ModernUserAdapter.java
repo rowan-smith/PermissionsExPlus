@@ -1,17 +1,17 @@
 package dev.rono.permissions.core.api;
 
-import dev.rono.permissions.api.RankingException;
-import dev.rono.permissions.api.subject.Group;
-import dev.rono.permissions.api.subject.SubjectType;
-import dev.rono.permissions.api.subject.TimedGroupMembership;
-import dev.rono.permissions.api.subject.User;
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.PexRankingException;
+import dev.rono.permissions.api.subject.PexGroup;
+import dev.rono.permissions.api.subject.PexSubjectType;
+import dev.rono.permissions.api.subject.PexTimedGroupMembership;
+import dev.rono.permissions.api.subject.PexUser;
+import dev.rono.permissions.api.world.PexWorlds;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import ru.tehkode.permissions.PermissionUser;
 
 import java.util.*;
 
-public final class ModernUserAdapter extends AbstractModernSubjectAdapter implements User {
+public final class ModernUserAdapter extends AbstractModernSubjectAdapter implements PexUser {
     private final PermissionUser user;
 
     public ModernUserAdapter(PermissionUser user, DefaultPermissionManager manager) {
@@ -24,8 +24,8 @@ public final class ModernUserAdapter extends AbstractModernSubjectAdapter implem
     }
 
     @Override
-    public SubjectType type() {
-        return SubjectType.USER;
+    public PexSubjectType type() {
+        return PexSubjectType.USER;
     }
 
     @Override
@@ -64,16 +64,16 @@ public final class ModernUserAdapter extends AbstractModernSubjectAdapter implem
     }
 
     @Override
-    public List<TimedGroupMembership> timedGroupMemberships(String world) {
+    public List<PexTimedGroupMembership> timedGroupMemberships(String world) {
         String legacyWorld = ModernWorlds.toLegacy(world);
-        String apiWorld = Worlds.normalize(world);
-        List<TimedGroupMembership> memberships = new ArrayList<>();
+        String apiWorld = PexWorlds.normalize(world);
+        List<PexTimedGroupMembership> memberships = new ArrayList<>();
         for (Map.Entry<String, String> entry : user.getOptions(legacyWorld).entrySet()) {
             String groupName = parseTimedGroupOption(entry.getKey());
             if (groupName == null) {
                 continue;
             }
-            memberships.add(new TimedGroupMembership(
+            memberships.add(new PexTimedGroupMembership(
                     groupName, apiWorld, groupMembershipRemainingSeconds(groupName, world)));
         }
         return List.copyOf(memberships);
@@ -101,12 +101,12 @@ public final class ModernUserAdapter extends AbstractModernSubjectAdapter implem
     }
 
     @Override
-    public Group promote(String ladderName) throws RankingException {
+    public PexGroup promote(String ladderName) throws PexRankingException {
         return promote(null, ladderName);
     }
 
     @Override
-    public Group promote(User promoter, String ladderName) throws RankingException {
+    public PexGroup promote(PexUser promoter, String ladderName) throws PexRankingException {
         try {
             return ModernSubjects.wrapGroup(user.promote(ModernSubjects.optionalUser(promoter), ladderName), manager);
         } catch (ru.tehkode.permissions.exceptions.RankingException ex) {
@@ -115,12 +115,12 @@ public final class ModernUserAdapter extends AbstractModernSubjectAdapter implem
     }
 
     @Override
-    public Group demote(String ladderName) throws RankingException {
+    public PexGroup demote(String ladderName) throws PexRankingException {
         return demote(null, ladderName);
     }
 
     @Override
-    public Group demote(User demoter, String ladderName) throws RankingException {
+    public PexGroup demote(PexUser demoter, String ladderName) throws PexRankingException {
         try {
             return ModernSubjects.wrapGroup(user.demote(ModernSubjects.optionalUser(demoter), ladderName), manager);
         } catch (ru.tehkode.permissions.exceptions.RankingException ex) {

@@ -1,22 +1,22 @@
 package dev.rono.permissions.api.subject;
 
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.world.PexWorlds;
 import java.util.List;
 import java.util.Map;
 
 /**
- * World-scoped view of a {@link PermissionSubject}.
+ * World-scoped view of a {@link PexPermissionSubject}.
  *
- * <p>Obtained via {@link PermissionSubject#inWorld(String)}. Every method on this context applies to
+ * <p>Obtained via {@link PexPermissionSubject#inWorld(String)}. Every method on this context applies to
  * the bound world returned by {@link #world()} — callers do not pass a world argument again.
- * {@link Worlds#GLOBAL} selects the global namespace.</p>
+ * {@link PexWorlds#GLOBAL} selects the global namespace.</p>
  */
-public interface SubjectWorldContext {
+public interface PexSubjectWorldContext {
 
     /**
      * Returns the world this context is bound to.
      *
-     * @return {@link Worlds#GLOBAL} or a specific world name
+     * @return {@link PexWorlds#GLOBAL} or a specific world name
      */
     String world();
 
@@ -25,12 +25,12 @@ public interface SubjectWorldContext {
      *
      * @return the subject this context wraps
      */
-    PermissionSubject subject();
+    PexPermissionSubject subject();
 
     /**
      * Checks whether the subject effectively holds the given permission in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#has(String, String)} with {@link #world()}. Performs
+     * <p>Equivalent to {@link PexPermissionSubject#has(String, String)} with {@link #world()}. Performs
      * full effective resolution. Unlike {@link #hasTimedPermission(String)}, this does not test only
      * direct timed assignments.</p>
      *
@@ -52,7 +52,7 @@ public interface SubjectWorldContext {
     /**
      * Returns direct permission assignments in this context's world (not inherited).
      *
-     * <p>Equivalent to {@link PermissionSubject#permissions(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#permissions(String)} with {@link #world()}.</p>
      *
      * @return unmodifiable list of own permission expressions
      */
@@ -61,7 +61,7 @@ public interface SubjectWorldContext {
     /**
      * Returns effective permissions after inheritance in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#effectivePermissions(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#effectivePermissions(String)} with {@link #world()}.</p>
      *
      * @return unmodifiable list of effective permission expressions
      */
@@ -70,7 +70,7 @@ public interface SubjectWorldContext {
     /**
      * Adds a direct permission assignment in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#addPermission(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#addPermission(String, String)} with {@link #world()}.</p>
      *
      * @param permission permission node to add
      */
@@ -79,7 +79,7 @@ public interface SubjectWorldContext {
     /**
      * Removes a direct permission assignment in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#removePermission(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#removePermission(String, String)} with {@link #world()}.</p>
      *
      * @param permission permission node to remove
      */
@@ -88,7 +88,7 @@ public interface SubjectWorldContext {
     /**
      * Replaces direct permission assignments in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#setPermissions(List, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#setPermissions(List, String)} with {@link #world()}.</p>
      *
      * @param permissions new permission expressions
      */
@@ -97,7 +97,7 @@ public interface SubjectWorldContext {
     /**
      * Adds a timed permission grant in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#addTimedPermission(String, String, int)} with
+     * <p>Equivalent to {@link PexPermissionSubject#addTimedPermission(String, String, int)} with
      * {@link #world()}.</p>
      *
      * @param permission       permission node to grant temporarily
@@ -108,7 +108,7 @@ public interface SubjectWorldContext {
     /**
      * Removes a timed permission grant in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#removeTimedPermission(String, String)} with
+     * <p>Equivalent to {@link PexPermissionSubject#removeTimedPermission(String, String)} with
      * {@link #world()}.</p>
      *
      * @param permission permission node to remove from timed grants
@@ -118,7 +118,7 @@ public interface SubjectWorldContext {
     /**
      * Returns permission nodes with active timed grants in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#timedPermissions(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#timedPermissions(String)} with {@link #world()}.</p>
      *
      * @return list of timed permission nodes
      */
@@ -127,16 +127,16 @@ public interface SubjectWorldContext {
     /**
      * Returns timed permission entries with remaining lifetime metadata in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#timedPermissionEntries(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#timedPermissionEntries(String)} with {@link #world()}.</p>
      *
      * @return list of timed permission entries
      */
-    List<TimedPermissionEntry> timedPermissionEntries();
+    List<PexTimedPermissionEntry> timedPermissionEntries();
 
     /**
      * Returns seconds remaining on a timed permission grant in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#timedPermissionRemainingSeconds(String, String)} with
+     * <p>Equivalent to {@link PexPermissionSubject#timedPermissionRemainingSeconds(String, String)} with
      * {@link #world()}.</p>
      *
      * @param permission timed permission node
@@ -147,7 +147,7 @@ public interface SubjectWorldContext {
     /**
      * Returns whether the permission is directly assigned as a timed grant in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#hasTimedPermission(String, String)} with {@link #world()}.
+     * <p>Equivalent to {@link PexPermissionSubject#hasTimedPermission(String, String)} with {@link #world()}.
      * Unlike {@link #has(String)}, this checks only the timed-permission list.</p>
      *
      * @param permission permission node to look up
@@ -158,7 +158,7 @@ public interface SubjectWorldContext {
     /**
      * Returns the effective chat prefix in this context's world, including inheritance.
      *
-     * <p>Equivalent to {@link PermissionSubject#prefix(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#prefix(String)} with {@link #world()}.</p>
      *
      * @return resolved prefix, or empty string when none is defined
      */
@@ -167,7 +167,7 @@ public interface SubjectWorldContext {
     /**
      * Returns the effective chat suffix in this context's world, including inheritance.
      *
-     * <p>Equivalent to {@link PermissionSubject#suffix(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#suffix(String)} with {@link #world()}.</p>
      *
      * @return resolved suffix, or empty string when none is defined
      */
@@ -176,7 +176,7 @@ public interface SubjectWorldContext {
     /**
      * Sets the chat prefix stored directly on the subject in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#setPrefix(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#setPrefix(String, String)} with {@link #world()}.</p>
      *
      * @param prefix new prefix value
      */
@@ -185,7 +185,7 @@ public interface SubjectWorldContext {
     /**
      * Sets the chat suffix stored directly on the subject in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#setSuffix(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#setSuffix(String, String)} with {@link #world()}.</p>
      *
      * @param suffix new suffix value
      */
@@ -194,7 +194,7 @@ public interface SubjectWorldContext {
     /**
      * Returns an effective option value in this context's world, including inheritance.
      *
-     * <p>Equivalent to {@link PermissionSubject#option(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#option(String, String)} with {@link #world()}.</p>
      *
      * @param key option key
      * @return option value, or {@code null} if unset
@@ -204,7 +204,7 @@ public interface SubjectWorldContext {
     /**
      * Sets an option stored directly on the subject in this context's world.
      *
-     * <p>Equivalent to {@link PermissionSubject#setOption(String, String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#setOption(String, String, String)} with {@link #world()}.</p>
      *
      * @param key   option key
      * @param value option value; {@code null} or empty removes the option
@@ -214,7 +214,7 @@ public interface SubjectWorldContext {
     /**
      * Returns effective options in this context's world, including inheritance.
      *
-     * <p>Equivalent to {@link PermissionSubject#options(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexPermissionSubject#options(String)} with {@link #world()}.</p>
      *
      * @return map of option keys to resolved values
      */

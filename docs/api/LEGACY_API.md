@@ -119,7 +119,7 @@ Registered on Bukkit `ServicesManager` as `PermissionManager.class` on game serv
 | `resetGroup(name)` | Drop in-memory group |
 | `getGroupNames()` | **Deprecated** — use backend via manager patterns |
 
-### Worlds & ladders
+### PexWorlds & ladders
 
 | Method | Description |
 |--------|-------------|
@@ -159,7 +159,7 @@ Base type for users and groups (`PermissionUser`, `PermissionGroup`).
 | `getType()` | `USER` or `GROUP` |
 | `isVirtual()` | Not yet persisted |
 | `getPermissionManager()` | Owning manager |
-| `getWorlds()` | Worlds with data |
+| `getWorlds()` | PexWorlds with data |
 
 ### Permissions
 

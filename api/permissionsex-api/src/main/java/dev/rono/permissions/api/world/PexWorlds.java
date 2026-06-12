@@ -6,8 +6,8 @@ package dev.rono.permissions.api.world;
  * <p>Classic PEX uses {@code null} for the global (all-worlds) namespace. Empty strings are treated
  * as global when passed into API methods.</p>
  */
-public final class Worlds {
-    private Worlds() {}
+public final class PexWorlds {
+    private PexWorlds() {}
 
     /** {@code null} — permissions/options/inheritance that apply across all worlds unless overridden. */
     public static final String GLOBAL = null;

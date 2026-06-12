@@ -11,10 +11,10 @@ Policy: **legacy `ru.tehkode.*` stays frozen**. New capabilities belong under `d
 | Modern event bus | `pex.events()` → `PermissionEventBus` |
 | Player checks (Bukkit) | `BukkitPermissions.on(player).hasPermission(...)` |
 | Global permission checks | `pex.user(id).hasPermission("node")` |
-| Promote / demote | `User.promote` / `User.demote` (+ `RankingException`) |
+| Promote / demote | `PexUser.promote` / `PexUser.demote` (+ `PexRankingException`) |
 | Backend admin | `pex.backend().activate`, `createHandle`, `importFrom` |
-| Import / export | `pex.backend().exportData`, `importData(document, ImportMode)` |
-| Hierarchy helpers | `Group.children` / `Group.descendants`, `Group.members(world, inherit)` |
+| Import / export | `pex.backend().exportData`, `importData(document, PexImportMode)` |
+| Hierarchy helpers | `PexGroup.children` / `PexGroup.descendants`, `PexGroup.members(world, inherit)` |
 | Flat API | `pex.user()`, `pex.world()`, `pex.users()`, `pex.groups()`, `pex.backend()` |
 | Batch edits | `pex.session().start()` → `PermissionEditSession` |
 | Async reload | `pex.reloadAsync()` → `CompletableFuture<Void>` |
@@ -28,7 +28,7 @@ Policy: **legacy `ru.tehkode.*` stays frozen**. New capabilities belong under `d
 
 Legacy: `getMatchingExpression`, `explainExpression`.
 
-**Proposed:** `PermissionCheckResult` record on `PermissionSubject` or `PermissionService`.
+**Proposed:** `PermissionCheckResult` record on `PexPermissionSubject` or `PermissionService`.
 
 ### Configuration read surface
 
@@ -42,7 +42,7 @@ Legacy: `getPermissionMatcher()`.
 
 **Proposed:** read-only `PermissionService.matcher()`.
 
-### User cache control
+### PexUser cache control
 
 Legacy: `resetUser`, `clearUserCache`, `cacheUser`.
 

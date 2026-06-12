@@ -21,7 +21,7 @@ PermissionsExPlus exposes **two compile surfaces** for companion plugins. Both t
 
 | Document | Contents |
 |----------|----------|
-| [MODERN_API.md](MODERN_API.md) | `PermissionService`, `User`, `Group`, world contexts, timed permissions, Maven setup, examples |
+| [MODERN_API.md](MODERN_API.md) | `PermissionService`, `PexUser`, `PexGroup`, world contexts, timed permissions, Maven setup, examples |
 | [LEGACY_API.md](LEGACY_API.md) | `PermissionManager`, `PermissionUser`, `PermissionGroup`, `PermissionsEx` stub, events, utils |
 | [FUTURE.md](FUTURE.md) | Recommended additions and known gaps |
 

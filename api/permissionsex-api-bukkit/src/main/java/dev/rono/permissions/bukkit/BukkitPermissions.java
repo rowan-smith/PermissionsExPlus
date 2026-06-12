@@ -24,7 +24,7 @@ public final class BukkitPermissions {
      * @return fluent scope bound to the player
      * @throws IllegalStateException if {@code PermissionService} is not registered
      */
-    public static PlayerScope on(Player player) {
-        return new PlayerScope(PexServices.require(), player);
+    public static PexPlayerScope on(Player player) {
+        return new PexPlayerScope(PexServices.require(), player);
     }
 }

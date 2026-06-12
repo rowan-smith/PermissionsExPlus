@@ -1,15 +1,15 @@
 package dev.rono.permissions.core.api;
 
-import dev.rono.permissions.api.subject.Group;
-import dev.rono.permissions.api.subject.SubjectType;
-import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.api.subject.PexGroup;
+import dev.rono.permissions.api.subject.PexSubjectType;
+import dev.rono.permissions.api.subject.PexUser;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
 
 import java.util.*;
 
-public final class ModernGroupAdapter extends AbstractModernSubjectAdapter implements Group {
+public final class ModernGroupAdapter extends AbstractModernSubjectAdapter implements PexGroup {
     private final PermissionGroup group;
 
     public ModernGroupAdapter(PermissionGroup group, DefaultPermissionManager manager) {
@@ -18,8 +18,8 @@ public final class ModernGroupAdapter extends AbstractModernSubjectAdapter imple
     }
 
     @Override
-    public SubjectType type() {
-        return SubjectType.GROUP;
+    public PexSubjectType type() {
+        return PexSubjectType.GROUP;
     }
 
     @Override
@@ -110,10 +110,10 @@ public final class ModernGroupAdapter extends AbstractModernSubjectAdapter imple
     }
 
     @Override
-    public List<User> members(String world, boolean inherit) {
+    public List<PexUser> members(String world, boolean inherit) {
         String legacyWorld = ModernWorlds.toLegacy(world);
         LinkedHashSet<String> seen = new LinkedHashSet<>();
-        List<User> members = new ArrayList<>();
+        List<PexUser> members = new ArrayList<>();
         collectMembers(seen, members, manager.getUsers(group.getIdentifier(), legacyWorld, false));
         if (inherit) {
             collectMembers(seen, members, manager.getUsers(group.getIdentifier(), legacyWorld, true));
@@ -121,7 +121,7 @@ public final class ModernGroupAdapter extends AbstractModernSubjectAdapter imple
         return List.copyOf(members);
     }
 
-    private void collectMembers(LinkedHashSet<String> seen, List<User> members, Set<PermissionUser> source) {
+    private void collectMembers(LinkedHashSet<String> seen, List<PexUser> members, Set<PermissionUser> source) {
         for (PermissionUser member : source) {
             if (seen.add(member.getIdentifier())) {
                 members.add(new ModernUserAdapter(member, manager));
@@ -130,13 +130,13 @@ public final class ModernGroupAdapter extends AbstractModernSubjectAdapter imple
     }
 
     @Override
-    public List<User> members(String world) {
+    public List<PexUser> members(String world) {
         return members(world, false);
     }
 
     @Override
-    public List<Group> children(String world, boolean inherit) {
-        List<Group> children = new ArrayList<>();
+    public List<PexGroup> children(String world, boolean inherit) {
+        List<PexGroup> children = new ArrayList<>();
         for (PermissionGroup child : manager.getGroups(group.getIdentifier(), ModernWorlds.toLegacy(world), inherit)) {
             children.add(new ModernGroupAdapter(child, manager));
         }
@@ -144,13 +144,13 @@ public final class ModernGroupAdapter extends AbstractModernSubjectAdapter imple
     }
 
     @Override
-    public List<User> activeMembers() {
+    public List<PexUser> activeMembers() {
         return activeMembers(false);
     }
 
     @Override
-    public List<User> activeMembers(boolean inherit) {
-        List<User> members = new ArrayList<>();
+    public List<PexUser> activeMembers(boolean inherit) {
+        List<PexUser> members = new ArrayList<>();
         for (PermissionUser member : group.getActiveUsers(inherit)) {
             members.add(new ModernUserAdapter(member, manager));
         }

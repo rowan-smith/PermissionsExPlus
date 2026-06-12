@@ -1,7 +1,7 @@
 package dev.rono.permissions.api.session;
 
-import dev.rono.permissions.api.subject.Group;
-import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.api.subject.PexGroup;
+import dev.rono.permissions.api.subject.PexUser;
 
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -20,9 +20,9 @@ public interface PermissionEditSession extends AutoCloseable {
      * <p>Materializes a backend record when none exists yet (resolve semantics).</p>
      *
      * @param identifier user name or UUID string
-     * @return a live {@link User} handle tracked by this session
+     * @return a live {@link PexUser} handle tracked by this session
      */
-    User user(String identifier);
+    PexUser user(String identifier);
 
     /**
      * Resolves a user by UUID and registers the subject for batch persistence.
@@ -30,9 +30,9 @@ public interface PermissionEditSession extends AutoCloseable {
      * <p>Materializes a backend record when none exists yet (resolve semantics).</p>
      *
      * @param uuid player UUID
-     * @return a live {@link User} handle tracked by this session
+     * @return a live {@link PexUser} handle tracked by this session
      */
-    User user(UUID uuid);
+    PexUser user(UUID uuid);
 
     /**
      * Resolves a group by name and registers the subject for batch persistence.
@@ -40,19 +40,19 @@ public interface PermissionEditSession extends AutoCloseable {
      * <p>Materializes a backend record when none exists yet (resolve semantics).</p>
      *
      * @param name group name
-     * @return a live {@link Group} handle tracked by this session
+     * @return a live {@link PexGroup} handle tracked by this session
      */
-    Group group(String name);
+    PexGroup group(String name);
 
     /**
      * Resolves a user, applies edits, and registers the subject for batch persistence.
      *
      * @param identifier user name or UUID string
      * @param edits callback invoked with the resolved user before save
-     * @return the same {@link User} instance passed to {@code edits}
+     * @return the same {@link PexUser} instance passed to {@code edits}
      */
-    default User editUser(String identifier, Consumer<User> edits) {
-        User user = user(identifier);
+    default PexUser editUser(String identifier, Consumer<PexUser> edits) {
+        PexUser user = user(identifier);
         edits.accept(user);
         return user;
     }
@@ -62,10 +62,10 @@ public interface PermissionEditSession extends AutoCloseable {
      *
      * @param name group name
      * @param edits callback invoked with the resolved group before save
-     * @return the same {@link Group} instance passed to {@code edits}
+     * @return the same {@link PexGroup} instance passed to {@code edits}
      */
-    default Group editGroup(String name, Consumer<Group> edits) {
-        Group group = group(name);
+    default PexGroup editGroup(String name, Consumer<PexGroup> edits) {
+        PexGroup group = group(name);
         edits.accept(group);
         return group;
     }

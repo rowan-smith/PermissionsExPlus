@@ -1,6 +1,6 @@
 package dev.rono.permissions.api.subject;
 
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.world.PexWorlds;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -8,16 +8,16 @@ import java.util.Set;
 final class SubjectWorldContexts {
     private SubjectWorldContexts() {}
 
-    static SubjectWorldContext subject(PermissionSubject subject, String world) {
-        String normalized = Worlds.normalize(world);
-        return new SubjectWorldContext() {
+    static PexSubjectWorldContext subject(PexPermissionSubject subject, String world) {
+        String normalized = PexWorlds.normalize(world);
+        return new PexSubjectWorldContext() {
             @Override
             public String world() {
                 return normalized;
             }
 
             @Override
-            public PermissionSubject subject() {
+            public PexPermissionSubject subject() {
                 return subject;
             }
 
@@ -72,7 +72,7 @@ final class SubjectWorldContexts {
             }
 
             @Override
-            public List<TimedPermissionEntry> timedPermissionEntries() {
+            public List<PexTimedPermissionEntry> timedPermissionEntries() {
                 return subject.timedPermissionEntries(normalized);
             }
 
@@ -123,17 +123,17 @@ final class SubjectWorldContexts {
         };
     }
 
-    static UserWorldContext user(User user, String world) {
-        String normalized = Worlds.normalize(world);
-        SubjectWorldContext base = subject(user, normalized);
-        return new UserWorldContext() {
+    static PexUserWorldContext user(PexUser user, String world) {
+        String normalized = PexWorlds.normalize(world);
+        PexSubjectWorldContext base = subject(user, normalized);
+        return new PexUserWorldContext() {
             @Override
             public String world() {
                 return base.world();
             }
 
             @Override
-            public User subject() {
+            public PexUser subject() {
                 return user;
             }
 
@@ -188,7 +188,7 @@ final class SubjectWorldContexts {
             }
 
             @Override
-            public List<TimedPermissionEntry> timedPermissionEntries() {
+            public List<PexTimedPermissionEntry> timedPermissionEntries() {
                 return base.timedPermissionEntries();
             }
 
@@ -263,7 +263,7 @@ final class SubjectWorldContexts {
             }
 
             @Override
-            public List<TimedGroupMembership> timedGroupMemberships() {
+            public List<PexTimedGroupMembership> timedGroupMemberships() {
                 return user.timedGroupMemberships(normalized);
             }
 
@@ -274,17 +274,17 @@ final class SubjectWorldContexts {
         };
     }
 
-    static GroupWorldContext group(Group group, String world) {
-        String normalized = Worlds.normalize(world);
-        SubjectWorldContext base = subject(group, normalized);
-        return new GroupWorldContext() {
+    static PexGroupWorldContext group(PexGroup group, String world) {
+        String normalized = PexWorlds.normalize(world);
+        PexSubjectWorldContext base = subject(group, normalized);
+        return new PexGroupWorldContext() {
             @Override
             public String world() {
                 return base.world();
             }
 
             @Override
-            public Group subject() {
+            public PexGroup subject() {
                 return group;
             }
 
@@ -339,7 +339,7 @@ final class SubjectWorldContexts {
             }
 
             @Override
-            public List<TimedPermissionEntry> timedPermissionEntries() {
+            public List<PexTimedPermissionEntry> timedPermissionEntries() {
                 return base.timedPermissionEntries();
             }
 
@@ -434,37 +434,37 @@ final class SubjectWorldContexts {
             }
 
             @Override
-            public List<User> members() {
+            public List<PexUser> members() {
                 return group.members(normalized);
             }
 
             @Override
-            public List<User> members(boolean inherit) {
+            public List<PexUser> members(boolean inherit) {
                 return group.members(normalized, inherit);
             }
 
             @Override
-            public List<Group> children() {
+            public List<PexGroup> children() {
                 return group.children(normalized);
             }
 
             @Override
-            public List<Group> children(boolean inherit) {
+            public List<PexGroup> children(boolean inherit) {
                 return group.children(normalized, inherit);
             }
 
             @Override
-            public List<Group> descendants() {
+            public List<PexGroup> descendants() {
                 return group.descendants(normalized);
             }
 
             @Override
-            public List<User> activeMembers() {
+            public List<PexUser> activeMembers() {
                 return group.activeMembers(false);
             }
 
             @Override
-            public List<User> activeMembers(boolean inherit) {
+            public List<PexUser> activeMembers(boolean inherit) {
                 return group.activeMembers(inherit);
             }
         };

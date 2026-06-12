@@ -1,13 +1,13 @@
 package dev.rono.permissions.api.service;
 
 import dev.rono.permissions.api.PermissionsExException;
-import dev.rono.permissions.api.backend.BackendHandle;
-import dev.rono.permissions.api.backend.BackendInfo;
-import dev.rono.permissions.api.data.ImportMode;
+import dev.rono.permissions.api.backend.PexBackendHandle;
+import dev.rono.permissions.api.backend.PexBackendInfo;
+import dev.rono.permissions.api.data.PexImportMode;
 import dev.rono.permissions.api.event.PermissionEventBus;
 import dev.rono.permissions.api.session.PermissionEditSession;
-import dev.rono.permissions.api.subject.Group;
-import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.api.subject.PexGroup;
+import dev.rono.permissions.api.subject.PexUser;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -49,7 +49,7 @@ public interface PermissionServiceBridge {
      *
      * @return active backend metadata
      */
-    BackendInfo activeBackend();
+    PexBackendInfo activeBackend();
 
     /**
      * Switches the active backend to the configured alias.
@@ -63,10 +63,10 @@ public interface PermissionServiceBridge {
      * Opens a handle to a non-active backend for inspection or data transfer.
      *
      * @param alias configured backend alias
-     * @return a {@link BackendHandle} for the requested backend
+     * @return a {@link PexBackendHandle} for the requested backend
      * @throws PermissionsExException if the alias is unknown or the handle cannot be created
      */
-    BackendHandle createBackendHandle(String alias) throws PermissionsExException;
+    PexBackendHandle createBackendHandle(String alias) throws PermissionsExException;
 
     /**
      * Replaces active-backend data with the contents of another configured backend.
@@ -88,10 +88,10 @@ public interface PermissionServiceBridge {
      * Merges or replaces active-backend data from a serialized document.
      *
      * @param document serialized permission data
-     * @param mode merge strategy ({@link ImportMode#MERGE} or {@link ImportMode#REPLACE})
+     * @param mode merge strategy ({@link PexImportMode#MERGE} or {@link PexImportMode#REPLACE})
      * @throws PermissionsExException if the document is invalid or import fails
      */
-    void importData(String document, ImportMode mode) throws PermissionsExException;
+    void importData(String document, PexImportMode mode) throws PermissionsExException;
 
     /**
      * Returns the permission-domain event bus for subscribing to entity and system dispatches.
@@ -143,7 +143,7 @@ public interface PermissionServiceBridge {
      * @param world world name, or {@code null} for the global namespace
      * @return default groups for the world
      */
-    List<Group> defaultGroups(String world);
+    List<PexGroup> defaultGroups(String world);
 
     /**
      * Returns the rank ladder mapping for a named ladder.
@@ -151,7 +151,7 @@ public interface PermissionServiceBridge {
      * @param ladderName ladder identifier
      * @return map from rank index to group at that rank
      */
-    Map<Integer, Group> rankLadder(String ladderName);
+    Map<Integer, PexGroup> rankLadder(String ladderName);
 
     /**
      * Looks up a persisted user by string identifier without materializing a new record.
@@ -159,7 +159,7 @@ public interface PermissionServiceBridge {
      * @param identifier user name or UUID string
      * @return the user when present in the backend, otherwise empty
      */
-    Optional<User> lookupUser(String identifier);
+    Optional<PexUser> lookupUser(String identifier);
 
     /**
      * Looks up a persisted user by UUID without materializing a new record.
@@ -167,23 +167,23 @@ public interface PermissionServiceBridge {
      * @param uuid player UUID
      * @return the user when present in the backend, otherwise empty
      */
-    Optional<User> lookupUser(UUID uuid);
+    Optional<PexUser> lookupUser(UUID uuid);
 
     /**
      * Resolves a user by string identifier, materializing a record when none exists yet.
      *
      * @param identifier user name or UUID string
-     * @return a live {@link User} handle (never {@code null})
+     * @return a live {@link PexUser} handle (never {@code null})
      */
-    User user(String identifier);
+    PexUser user(String identifier);
 
     /**
      * Resolves a user by UUID, materializing a record when none exists yet.
      *
      * @param uuid player UUID
-     * @return a live {@link User} handle (never {@code null})
+     * @return a live {@link PexUser} handle (never {@code null})
      */
-    User user(UUID uuid);
+    PexUser user(UUID uuid);
 
     /**
      * Returns every user identifier known to the active backend.
@@ -205,15 +205,15 @@ public interface PermissionServiceBridge {
      * @param name group name
      * @return the group when present in the backend, otherwise empty
      */
-    Optional<Group> lookupGroup(String name);
+    Optional<PexGroup> lookupGroup(String name);
 
     /**
      * Resolves a group by name, materializing a record when none exists yet.
      *
      * @param name group name
-     * @return a live {@link Group} handle (never {@code null})
+     * @return a live {@link PexGroup} handle (never {@code null})
      */
-    Group group(String name);
+    PexGroup group(String name);
 
     /**
      * Returns every group name known to the active backend.

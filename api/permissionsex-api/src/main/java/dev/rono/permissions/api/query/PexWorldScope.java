@@ -1,10 +1,10 @@
 package dev.rono.permissions.api.query;
 
 import dev.rono.permissions.api.service.PermissionServiceBridge;
-import dev.rono.permissions.api.subject.Group;
-import dev.rono.permissions.api.subject.GroupWorldContext;
-import dev.rono.permissions.api.subject.UserWorldContext;
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.subject.PexGroup;
+import dev.rono.permissions.api.subject.PexGroupWorldContext;
+import dev.rono.permissions.api.subject.PexUserWorldContext;
+import dev.rono.permissions.api.world.PexWorlds;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,20 +28,20 @@ import java.util.UUID;
  * pex.world(world).findUser(uuid).map(u -> u.hasPermission("node")).orElse(false);
  * }</pre>
  */
-public final class WorldScope {
+public final class PexWorldScope {
 
     private final PermissionServiceBridge service;
     private final String world;
 
-    public WorldScope(PermissionServiceBridge service, String world) {
+    public PexWorldScope(PermissionServiceBridge service, String world) {
         this.service = service;
-        this.world = Worlds.normalize(world);
+        this.world = PexWorlds.normalize(world);
     }
 
     /**
      * Returns the normalized world name for this scope.
      *
-     * @return {@link Worlds#GLOBAL} ({@code null}) or a specific trimmed world name
+     * @return {@link PexWorlds#GLOBAL} ({@code null}) or a specific trimmed world name
      */
     public String name() {
         return world;
@@ -53,7 +53,7 @@ public final class WorldScope {
      * @return {@code true} when {@link #name()} is global
      */
     public boolean isGlobal() {
-        return Worlds.isGlobal(world);
+        return PexWorlds.isGlobal(world);
     }
 
     /**
@@ -79,7 +79,7 @@ public final class WorldScope {
      *
      * @return default groups for this scope's world
      */
-    public List<Group> defaultGroups() {
+    public List<PexGroup> defaultGroups() {
         return service.defaultGroups(world);
     }
 
@@ -89,7 +89,7 @@ public final class WorldScope {
      * @param ladderName ladder identifier
      * @return map from rank index to group at that rank
      */
-    public Map<Integer, Group> rankLadder(String ladderName) {
+    public Map<Integer, PexGroup> rankLadder(String ladderName) {
         return service.rankLadder(ladderName);
     }
 
@@ -97,9 +97,9 @@ public final class WorldScope {
      * Resolves a user in this world, materializing a backend record when none exists yet.
      *
      * @param uuid player UUID
-     * @return a {@link UserWorldContext} preset to {@link #name()}
+     * @return a {@link PexUserWorldContext} preset to {@link #name()}
      */
-    public UserWorldContext user(UUID uuid) {
+    public PexUserWorldContext user(UUID uuid) {
         return SubjectRefs.user(service, uuid, null).inPresetWorld(world);
     }
 
@@ -107,9 +107,9 @@ public final class WorldScope {
      * Resolves a user in this world, materializing a backend record when none exists yet.
      *
      * @param identifier user name or UUID string
-     * @return a {@link UserWorldContext} preset to {@link #name()}
+     * @return a {@link PexUserWorldContext} preset to {@link #name()}
      */
-    public UserWorldContext user(String identifier) {
+    public PexUserWorldContext user(String identifier) {
         return SubjectRefs.user(service, null, identifier).inPresetWorld(world);
     }
 
@@ -119,7 +119,7 @@ public final class WorldScope {
      * @param uuid player UUID
      * @return a world-bound context when the user exists in the backend, otherwise empty
      */
-    public Optional<UserWorldContext> findUser(UUID uuid) {
+    public Optional<PexUserWorldContext> findUser(UUID uuid) {
         return SubjectRefs.user(service, uuid, null).findInPresetWorld(world);
     }
 
@@ -129,7 +129,7 @@ public final class WorldScope {
      * @param identifier user name or UUID string
      * @return a world-bound context when the user exists in the backend, otherwise empty
      */
-    public Optional<UserWorldContext> findUser(String identifier) {
+    public Optional<PexUserWorldContext> findUser(String identifier) {
         return SubjectRefs.user(service, null, identifier).findInPresetWorld(world);
     }
 
@@ -137,9 +137,9 @@ public final class WorldScope {
      * Resolves a group in this world, materializing a backend record when none exists yet.
      *
      * @param name group name
-     * @return a {@link GroupWorldContext} preset to {@link #name()}
+     * @return a {@link PexGroupWorldContext} preset to {@link #name()}
      */
-    public GroupWorldContext group(String name) {
+    public PexGroupWorldContext group(String name) {
         return SubjectRefs.group(service, name).inPresetWorld(world);
     }
 
@@ -149,7 +149,7 @@ public final class WorldScope {
      * @param name group name
      * @return a world-bound context when the group exists in the backend, otherwise empty
      */
-    public Optional<GroupWorldContext> findGroup(String name) {
+    public Optional<PexGroupWorldContext> findGroup(String name) {
         return SubjectRefs.group(service, name).findInPresetWorld(world);
     }
 }

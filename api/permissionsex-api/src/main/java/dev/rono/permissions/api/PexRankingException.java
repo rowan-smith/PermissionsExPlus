@@ -6,14 +6,14 @@ package dev.rono.permissions.api;
  * <p>Thrown when a rank change cannot be applied (for example, already at the top or bottom of
  * a ladder, or the ladder configuration is invalid).</p>
  */
-public class RankingException extends PermissionsExException {
+public class PexRankingException extends PermissionsExException {
 
     /**
      * Creates an exception with the given message.
      *
      * @param message human-readable description of the ranking failure
      */
-    public RankingException(String message) {
+    public PexRankingException(String message) {
         super(message);
     }
 
@@ -23,7 +23,7 @@ public class RankingException extends PermissionsExException {
      * @param message human-readable description of the ranking failure
      * @param cause the underlying throwable that triggered this failure
      */
-    public RankingException(String message, Throwable cause) {
+    public PexRankingException(String message, Throwable cause) {
         super(message, cause);
     }
 }

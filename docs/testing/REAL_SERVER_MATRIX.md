@@ -22,7 +22,7 @@ Use this checklist before tagging a release.
 1. Clean start — default `file` backend creates `permissions.yml`
 2. `/pex reload` — no duplicate attachments; permissions still resolve
 3. `/pex user <player> check <node>` — matches superperms bridge
-4. Group prefix/suffix visible to Vault/chat if installed
+4. PexGroup prefix/suffix visible to Vault/chat if installed
 5. Join/quit — user cache reset without errors
 
 ## Legacy range spot checks

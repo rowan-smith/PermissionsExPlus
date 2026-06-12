@@ -59,8 +59,8 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 	}
 
 	/**
-	 * Return name of permission entity (User or Group)
-	 * User should be equal to Player's name on the server
+	 * Return name of permission entity (PexUser or PexGroup)
+	 * PexUser should be equal to Player's name on the server
 	 *
 	 * @return name
 	 */
@@ -201,7 +201,7 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 		String expression = getMatchingExpression(permission, world);
 
 		if (this.isDebug()) {
-			manager.getLogger().info("User " + this.getIdentifier() + " checked for \"" + permission + "\", " + (expression == null ? "no permission found" : "\"" + expression + "\" found"));
+			manager.getLogger().info("PexUser " + this.getIdentifier() + " checked for \"" + permission + "\", " + (expression == null ? "no permission found" : "\"" + expression + "\" found"));
 		}
 
 		return explainExpression(expression);

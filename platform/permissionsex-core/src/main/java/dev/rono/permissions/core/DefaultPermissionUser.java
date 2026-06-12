@@ -65,7 +65,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 		updateTimedGroups();
 
 		if (this.isDebug()) {
-			manager.getLogger().info("User " + this.getIdentifier() + " initialized");
+			manager.getLogger().info("PexUser " + this.getIdentifier() + " initialized");
 		}
 	}
 

@@ -46,7 +46,7 @@ public class DefaultPermissionGroup extends AbstractPermissionEntity implements 
 		super.initialize();
 
 		if (this.isDebug()) {
-			manager.getLogger().info("Group " + this.getIdentifier() + " initialized");
+			manager.getLogger().info("PexGroup " + this.getIdentifier() + " initialized");
 		}
 	}
 

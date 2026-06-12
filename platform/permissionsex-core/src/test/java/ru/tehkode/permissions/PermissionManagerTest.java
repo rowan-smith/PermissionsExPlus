@@ -15,7 +15,7 @@ public class PermissionManagerTest extends PEXTestBase {
         assertEquals(uuid, user.getIdentifier());
         
         PermissionUser sameUser = manager.getUser(uuid);
-        assertSame(user, sameUser, "User objects should be cached and returned as same instance");
+        assertSame(user, sameUser, "PexUser objects should be cached and returned as same instance");
     }
 
     @Test
@@ -25,7 +25,7 @@ public class PermissionManagerTest extends PEXTestBase {
         assertEquals("NewGroup", group.getIdentifier());
         
         PermissionGroup sameGroup = manager.getGroup("NewGroup");
-        assertSame(group, sameGroup, "Group objects should be cached and returned as same instance");
+        assertSame(group, sameGroup, "PexGroup objects should be cached and returned as same instance");
     }
 
     @Test

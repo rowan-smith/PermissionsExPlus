@@ -131,7 +131,7 @@ final class GroupMembershipIndex {
             try {
                 users.add(manager.getUser(id));
             } catch (RuntimeException ignored) {
-                // User removed between index read and load
+                // PexUser removed between index read and load
             }
         }
         return Collections.unmodifiableSet(users);

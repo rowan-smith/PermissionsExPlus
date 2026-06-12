@@ -1,7 +1,7 @@
 package dev.rono.permissions.api.subject;
 
-import dev.rono.permissions.api.RankingException;
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.PexRankingException;
+import dev.rono.permissions.api.world.PexWorlds;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -9,19 +9,19 @@ import java.util.UUID;
 /**
  * Modern view of a permission user.
  *
- * <p>Extends {@link PermissionSubject} with group membership, rank-ladder promotion/demotion, and
+ * <p>Extends {@link PexPermissionSubject} with group membership, rank-ladder promotion/demotion, and
  * timed group assignment.</p>
  */
-public interface User extends PermissionSubject {
+public interface PexUser extends PexPermissionSubject {
 
     /**
-     * Returns {@link SubjectType#USER}.
+     * Returns {@link PexSubjectType#USER}.
      *
-     * @return {@link SubjectType#USER}
+     * @return {@link PexSubjectType#USER}
      */
     @Override
-    default SubjectType type() {
-        return SubjectType.USER;
+    default PexSubjectType type() {
+        return PexSubjectType.USER;
     }
 
     /**
@@ -36,24 +36,24 @@ public interface User extends PermissionSubject {
      *
      * <p>Methods on the returned context apply to {@code world} without repeating the world argument.</p>
      *
-     * @param world world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world world name, or {@link PexWorlds#GLOBAL} for the global namespace
      * @return world-bound user context
      */
     @Override
-    default UserWorldContext inWorld(String world) {
+    default PexUserWorldContext inWorld(String world) {
         return SubjectWorldContexts.user(this, world);
     }
 
     /**
      * Returns a view of this user bound to the global namespace.
      *
-     * <p>Equivalent to {@link #inWorld(String)} with {@link Worlds#GLOBAL}.</p>
+     * <p>Equivalent to {@link #inWorld(String)} with {@link PexWorlds#GLOBAL}.</p>
      *
      * @return global world context for this user
      */
     @Override
-    default UserWorldContext global() {
-        return inWorld(Worlds.GLOBAL);
+    default PexUserWorldContext global() {
+        return inWorld(PexWorlds.GLOBAL);
     }
 
     /**
@@ -62,7 +62,7 @@ public interface User extends PermissionSubject {
      * <p>When {@code inherit} is {@code true}, includes parents of parents; when {@code false}, returns
      * only direct group assignments.</p>
      *
-     * @param world   world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world   world name, or {@link PexWorlds#GLOBAL} for the global namespace
      * @param inherit when {@code true}, expand transitive group inheritance
      * @return list of group identifiers
      */
@@ -73,7 +73,7 @@ public interface User extends PermissionSubject {
      *
      * <p>Delegates to {@link #groups(String, boolean)} with {@code inherit = true}.</p>
      *
-     * @param world world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world world name, or {@link PexWorlds#GLOBAL} for the global namespace
      * @return list of group identifiers
      */
     default List<String> groups(String world) {
@@ -83,19 +83,19 @@ public interface User extends PermissionSubject {
     /**
      * Returns group identifiers the user inherits in the global namespace, including transitive inheritance.
      *
-     * <p>Delegates to {@link #groups(String, boolean)} with {@link Worlds#GLOBAL} and {@code inherit = true}.</p>
+     * <p>Delegates to {@link #groups(String, boolean)} with {@link PexWorlds#GLOBAL} and {@code inherit = true}.</p>
      *
      * @return list of group identifiers
      */
     default List<String> groups() {
-        return groups(Worlds.GLOBAL, true);
+        return groups(PexWorlds.GLOBAL, true);
     }
 
     /**
      * Returns whether this user belongs to the named group in the given world.
      *
      * @param groupName group identifier to test
-     * @param world     world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world     world name, or {@link PexWorlds#GLOBAL} for the global namespace
      * @param inherit   when {@code true}, match transitive group membership
      * @return {@code true} if the user is in the group, {@code false} otherwise
      */
@@ -107,7 +107,7 @@ public interface User extends PermissionSubject {
      * <p>Delegates to {@link #inGroup(String, String, boolean)} with {@code inherit = true}.</p>
      *
      * @param groupName group identifier to test
-     * @param world     world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world     world name, or {@link PexWorlds#GLOBAL} for the global namespace
      * @return {@code true} if the user is in the group, {@code false} otherwise
      */
     default boolean inGroup(String groupName, String world) {
@@ -117,21 +117,21 @@ public interface User extends PermissionSubject {
     /**
      * Returns whether this user belongs to the named group in the global namespace, including transitive membership.
      *
-     * <p>Delegates to {@link #inGroup(String, String, boolean)} with {@link Worlds#GLOBAL} and
+     * <p>Delegates to {@link #inGroup(String, String, boolean)} with {@link PexWorlds#GLOBAL} and
      * {@code inherit = true}.</p>
      *
      * @param groupName group identifier to test
      * @return {@code true} if the user is in the group, {@code false} otherwise
      */
     default boolean inGroup(String groupName) {
-        return inGroup(groupName, Worlds.GLOBAL, true);
+        return inGroup(groupName, PexWorlds.GLOBAL, true);
     }
 
     /**
      * Adds this user to a group in the given world.
      *
      * @param groupName group identifier to join
-     * @param world     world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world     world name, or {@link PexWorlds#GLOBAL} for the global namespace
      */
     void addGroup(String groupName, String world);
 
@@ -139,7 +139,7 @@ public interface User extends PermissionSubject {
      * Adds this user to a group in the given world with a timed membership.
      *
      * @param groupName        group identifier to join
-     * @param world            world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world            world name, or {@link PexWorlds#GLOBAL} for the global namespace
      * @param lifetimeSeconds  seconds until membership expires; {@code 0} for transient (in-memory only)
      */
     void addGroup(String groupName, String world, int lifetimeSeconds);
@@ -147,61 +147,61 @@ public interface User extends PermissionSubject {
     /**
      * Adds this user to a group in the global namespace.
      *
-     * <p>Delegates to {@link #addGroup(String, String)} with {@link Worlds#GLOBAL}.</p>
+     * <p>Delegates to {@link #addGroup(String, String)} with {@link PexWorlds#GLOBAL}.</p>
      *
      * @param groupName group identifier to join
      */
     default void addGroup(String groupName) {
-        addGroup(groupName, Worlds.GLOBAL);
+        addGroup(groupName, PexWorlds.GLOBAL);
     }
 
     /**
      * Adds this user to a group in the global namespace with a timed membership.
      *
-     * <p>Delegates to {@link #addGroup(String, String, int)} with {@link Worlds#GLOBAL}.</p>
+     * <p>Delegates to {@link #addGroup(String, String, int)} with {@link PexWorlds#GLOBAL}.</p>
      *
      * @param groupName       group identifier to join
      * @param lifetimeSeconds seconds until membership expires; {@code 0} for transient (in-memory only)
      */
     default void addGroup(String groupName, int lifetimeSeconds) {
-        addGroup(groupName, Worlds.GLOBAL, lifetimeSeconds);
+        addGroup(groupName, PexWorlds.GLOBAL, lifetimeSeconds);
     }
 
     /**
      * Removes this user from a group in the given world.
      *
      * @param groupName group identifier to leave
-     * @param world     world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world     world name, or {@link PexWorlds#GLOBAL} for the global namespace
      */
     void removeGroup(String groupName, String world);
 
     /**
      * Removes this user from a group in the global namespace.
      *
-     * <p>Delegates to {@link #removeGroup(String, String)} with {@link Worlds#GLOBAL}.</p>
+     * <p>Delegates to {@link #removeGroup(String, String)} with {@link PexWorlds#GLOBAL}.</p>
      *
      * @param groupName group identifier to leave
      */
     default void removeGroup(String groupName) {
-        removeGroup(groupName, Worlds.GLOBAL);
+        removeGroup(groupName, PexWorlds.GLOBAL);
     }
 
     /**
      * Returns timed group memberships in the given world.
      *
-     * @param world world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world world name, or {@link PexWorlds#GLOBAL} for the global namespace
      * @return list of timed group membership entries
      */
-    List<TimedGroupMembership> timedGroupMemberships(String world);
+    List<PexTimedGroupMembership> timedGroupMemberships(String world);
 
     /**
      * Returns timed group memberships across every configured world, including global.
      *
      * @return aggregated timed group memberships from all worlds with data
      */
-    default List<TimedGroupMembership> allTimedGroupMemberships() {
+    default List<PexTimedGroupMembership> allTimedGroupMemberships() {
         java.util.LinkedHashSet<String> worlds = new java.util.LinkedHashSet<>();
-        worlds.add(Worlds.GLOBAL);
+        worlds.add(PexWorlds.GLOBAL);
         worlds.addAll(configuredWorlds());
         return worlds.stream().flatMap(world -> timedGroupMemberships(world).stream()).toList();
     }
@@ -210,7 +210,7 @@ public interface User extends PermissionSubject {
      * Returns seconds until a timed group membership expires in the given world.
      *
      * @param groupName group identifier
-     * @param world     world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param world     world name, or {@link PexWorlds#GLOBAL} for the global namespace
      * @return seconds until expiry; {@code 0} if membership is not timed
      */
     int groupMembershipRemainingSeconds(String groupName, String world);
@@ -218,25 +218,25 @@ public interface User extends PermissionSubject {
     /**
      * Returns seconds until a timed group membership expires in the global namespace.
      *
-     * <p>Delegates to {@link #groupMembershipRemainingSeconds(String, String)} with {@link Worlds#GLOBAL}.</p>
+     * <p>Delegates to {@link #groupMembershipRemainingSeconds(String, String)} with {@link PexWorlds#GLOBAL}.</p>
      *
      * @param groupName group identifier
      * @return seconds until expiry; {@code 0} if membership is not timed
      */
     default int groupMembershipRemainingSeconds(String groupName) {
-        return groupMembershipRemainingSeconds(groupName, Worlds.GLOBAL);
+        return groupMembershipRemainingSeconds(groupName, PexWorlds.GLOBAL);
     }
 
     /**
      * Promotes this user one step up on the specified rank ladder without rank restrictions.
      *
-     * <p>Equivalent to {@link #promote(User, String)} with a {@code null} promoter (console/plugin).</p>
+     * <p>Equivalent to {@link #promote(PexUser, String)} with a {@code null} promoter (console/plugin).</p>
      *
      * @param ladderName rank ladder name; implementations typically default empty values to {@code "default"}
      * @return the group this user was promoted into
-     * @throws RankingException if this user is not on the ladder or no higher group exists
+     * @throws PexRankingException if this user is not on the ladder or no higher group exists
      */
-    Group promote(String ladderName) throws RankingException;
+    PexGroup promote(String ladderName) throws PexRankingException;
 
     /**
      * Promotes this user one step up on the specified rank ladder.
@@ -249,21 +249,21 @@ public interface User extends PermissionSubject {
      * @param promoter   user authorizing the promotion, or {@code null} for unrestricted promotion
      * @param ladderName rank ladder name; implementations typically default empty values to {@code "default"}
      * @return the group this user was promoted into
-     * @throws RankingException if this user is not on the ladder, the promoter lacks sufficient rank,
+     * @throws PexRankingException if this user is not on the ladder, the promoter lacks sufficient rank,
      *                          or no higher group exists on the ladder
      */
-    Group promote(User promoter, String ladderName) throws RankingException;
+    PexGroup promote(PexUser promoter, String ladderName) throws PexRankingException;
 
     /**
      * Demotes this user one step down on the specified rank ladder without rank restrictions.
      *
-     * <p>Equivalent to {@link #demote(User, String)} with a {@code null} demoter (console/plugin).</p>
+     * <p>Equivalent to {@link #demote(PexUser, String)} with a {@code null} demoter (console/plugin).</p>
      *
      * @param ladderName rank ladder name; implementations typically default empty values to {@code "default"}
      * @return the group this user was demoted into
-     * @throws RankingException if this user is not on the ladder or no lower group exists
+     * @throws PexRankingException if this user is not on the ladder or no lower group exists
      */
-    Group demote(String ladderName) throws RankingException;
+    PexGroup demote(String ladderName) throws PexRankingException;
 
     /**
      * Demotes this user one step down on the specified rank ladder.
@@ -276,10 +276,10 @@ public interface User extends PermissionSubject {
      * @param demoter    user authorizing the demotion, or {@code null} for unrestricted demotion
      * @param ladderName rank ladder name; implementations typically default empty values to {@code "default"}
      * @return the group this user was demoted into
-     * @throws RankingException if this user is not on the ladder, the demoter lacks sufficient rank,
+     * @throws PexRankingException if this user is not on the ladder, the demoter lacks sufficient rank,
      *                          or no lower group exists on the ladder
      */
-    Group demote(User demoter, String ladderName) throws RankingException;
+    PexGroup demote(PexUser demoter, String ladderName) throws PexRankingException;
 
     /**
      * Returns whether this user holds a ranked group on the given ladder.

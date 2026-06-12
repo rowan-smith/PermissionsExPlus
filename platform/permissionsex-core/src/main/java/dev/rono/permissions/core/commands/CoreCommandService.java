@@ -106,7 +106,7 @@ public class CoreCommandService {
 
     public List<String> worldsTreeLines() {
         List<String> out = new java.util.ArrayList<>();
-        out.add("Worlds on server: ");
+        out.add("PexWorlds on server: ");
         for (String world : worldNames()) {
             List<String> parents = manager.getWorldInheritance(world);
             String line = "  " + world;
@@ -187,7 +187,7 @@ public class CoreCommandService {
     public String userAddGroup(String userIdentifier, String group, String world) {
         PermissionUser user = manager.getUser(userIdentifier);
         user.addGroup(group, world);
-        return "User \"" + user.getName() + "\" added to group \"" + group + "\"!";
+        return "PexUser \"" + user.getName() + "\" added to group \"" + group + "\"!";
     }
 
     public String userAddGroup(String userIdentifier, String group, String world, String lifetime) {
@@ -198,13 +198,13 @@ public class CoreCommandService {
         } else {
             user.addGroup(group, world);
         }
-        return "User \"" + user.getName() + "\" added to group \"" + group + "\"!";
+        return "PexUser \"" + user.getName() + "\" added to group \"" + group + "\"!";
     }
 
     public String userRemoveGroup(String userIdentifier, String group, String world) {
         PermissionUser user = manager.getUser(userIdentifier);
         user.removeGroup(group, world);
-        return "User \"" + user.getName() + "\" removed from group \"" + group + "\"!";
+        return "PexUser \"" + user.getName() + "\" removed from group \"" + group + "\"!";
     }
 
     public String userSetOption(String userIdentifier, String key, String value, String world) {
@@ -264,7 +264,7 @@ public class CoreCommandService {
         PermissionUser user = manager.getUser(userIdentifier);
         user.remove();
         manager.resetUser(user.getIdentifier());
-        return "User \"" + user.getName() + "\" removed!";
+        return "PexUser \"" + user.getName() + "\" removed!";
     }
 
     public String userAddTimedPermission(String userIdentifier, String permission, String lifetime, String world) {
@@ -302,13 +302,13 @@ public class CoreCommandService {
             return "No groups set!";
         }
         user.setParents(groups, world);
-        return "User groups set!";
+        return "PexUser groups set!";
     }
 
     public List<String> userGroupListLines(String userIdentifier, String world) {
         PermissionUser user = manager.getUser(userIdentifier);
         List<String> lines = new ArrayList<>();
-        lines.add("User \"" + user.getName() + "\" @" + world + " currently in:");
+        lines.add("PexUser \"" + user.getName() + "\" @" + world + " currently in:");
         for (PermissionGroup group : user.getParents(world)) {
             lines.add("  " + group.getIdentifier());
         }
@@ -317,11 +317,11 @@ public class CoreCommandService {
 
     public GroupView groupView(String groupIdentifier) {
         if (groupIdentifier == null || groupIdentifier.isBlank()) {
-            throw new IllegalArgumentException("Group name is required");
+            throw new IllegalArgumentException("PexGroup name is required");
         }
         PermissionGroup group = manager.getGroup(groupIdentifier);
         if (group == null) {
-            throw new IllegalArgumentException("Group \"" + groupIdentifier + "\" not found");
+            throw new IllegalArgumentException("PexGroup \"" + groupIdentifier + "\" not found");
         }
         return new GroupView(group.getIdentifier(), group.getPermissions(null));
     }
@@ -329,7 +329,7 @@ public class CoreCommandService {
     public List<String> groupPermissionsLines(String groupIdentifier, String world) {
         PermissionGroup group = manager.getGroup(groupIdentifier);
         List<String> lines = new ArrayList<>();
-        lines.add("Group \"" + group.getIdentifier() + "\"'s permissions:");
+        lines.add("PexGroup \"" + group.getIdentifier() + "\"'s permissions:");
         for (String permission : group.getPermissions(world)) {
             lines.add("  " + permission);
         }
@@ -381,10 +381,10 @@ public class CoreCommandService {
         PermissionGroup group = manager.getGroup(groupIdentifier);
         List<String> parentNames = group.getParentIdentifiers(world);
         if (parentNames.isEmpty()) {
-            return List.of("Group \"" + group.getIdentifier() + "\" has no parents.");
+            return List.of("PexGroup \"" + group.getIdentifier() + "\" has no parents.");
         }
         List<String> lines = new ArrayList<>();
-        lines.add("Group " + group.getIdentifier() + " parents:");
+        lines.add("PexGroup " + group.getIdentifier() + " parents:");
         for (String parent : parentNames) {
             lines.add("  " + parent);
         }
@@ -395,7 +395,7 @@ public class CoreCommandService {
         PermissionGroup group = manager.getGroup(groupIdentifier);
         group.setParents(parseGroups(parentsCsv), world);
         group.save();
-        return "Group " + group.getIdentifier() + " inheritance updated!";
+        return "PexGroup " + group.getIdentifier() + " inheritance updated!";
     }
 
     public String groupAddParents(String groupIdentifier, String parentsCsv, String world) {
@@ -408,7 +408,7 @@ public class CoreCommandService {
         }
         group.setParents(groups, world);
         group.save();
-        return "Group " + group.getIdentifier() + " inheritance updated!";
+        return "PexGroup " + group.getIdentifier() + " inheritance updated!";
     }
 
     public String groupRemoveParents(String groupIdentifier, String parentsCsv, String world) {
@@ -417,7 +417,7 @@ public class CoreCommandService {
         groups.removeAll(parseGroups(parentsCsv));
         group.setParents(groups, world);
         group.save();
-        return "Group \"" + group.getIdentifier() + "\" inheritance updated!";
+        return "PexGroup \"" + group.getIdentifier() + "\" inheritance updated!";
     }
 
     public String groupRank(String groupIdentifier, String rankValue, String ladder) {
@@ -430,9 +430,9 @@ public class CoreCommandService {
         }
         int rank = group.getRank();
         if (rank > 0) {
-            return "Group " + group.getIdentifier() + " rank is " + rank + " (ladder = " + group.getRankLadder() + ")";
+            return "PexGroup " + group.getIdentifier() + " rank is " + rank + " (ladder = " + group.getRankLadder() + ")";
         }
-        return "Group " + group.getIdentifier() + " is unranked";
+        return "PexGroup " + group.getIdentifier() + " is unranked";
     }
 
     public String groupWeight(String groupIdentifier, String weight) {
@@ -440,7 +440,7 @@ public class CoreCommandService {
         if (weight != null) {
             group.setWeight(Integer.parseInt(weight));
         }
-        return "Group \"" + group.getIdentifier() + "\" has " + group.getWeight() + " calories.";
+        return "PexGroup \"" + group.getIdentifier() + "\" has " + group.getWeight() + " calories.";
     }
 
     public String groupToggleDebug(String groupIdentifier) {
@@ -474,13 +474,13 @@ public class CoreCommandService {
     public String groupCreate(String groupIdentifier, String parentsCsv) {
         PermissionGroup group = manager.getGroup(groupIdentifier);
         if (!group.isVirtual()) {
-            return "Group \"" + groupIdentifier + "\" already exists.";
+            return "PexGroup \"" + groupIdentifier + "\" already exists.";
         }
         if (parentsCsv != null && !parentsCsv.isBlank()) {
             group.setParents(parseGroups(parentsCsv), null);
         }
         group.save();
-        return "Group \"" + group.getIdentifier() + "\" created!";
+        return "PexGroup \"" + group.getIdentifier() + "\" created!";
     }
 
     public String groupDelete(String groupIdentifier) {
@@ -488,16 +488,16 @@ public class CoreCommandService {
         String id = group.getIdentifier();
         group.remove();
         manager.resetGroup(id);
-        return "Group \"" + id + "\" removed!";
+        return "PexGroup \"" + id + "\" removed!";
     }
 
     public List<String> groupUsersLines(String groupIdentifier) {
         java.util.Set<PermissionUser> users = manager.getUsers(groupIdentifier);
         if (users.isEmpty()) {
-            return List.of("Group \"" + groupIdentifier + "\" has no users.");
+            return List.of("PexGroup \"" + groupIdentifier + "\" has no users.");
         }
         List<String> lines = new ArrayList<>();
-        lines.add("Group \"" + groupIdentifier + "\" users (" + users.size() + "):");
+        lines.add("PexGroup \"" + groupIdentifier + "\" users (" + users.size() + "):");
         for (PermissionUser user : users) {
             lines.add("   " + user.getName());
         }
@@ -536,7 +536,7 @@ public class CoreCommandService {
                 .toList();
 
         List<String> lines = new ArrayList<>();
-        lines.add("User/Group inheritance hierarchy:");
+        lines.add("PexUser/PexGroup inheritance hierarchy:");
         for (PermissionGroup root : roots) {
             appendHierarchy(lines, children, root, 0);
         }
@@ -562,7 +562,7 @@ public class CoreCommandService {
     public String setDefaultGroup(String groupIdentifier, boolean value, String world) {
         PermissionGroup group = manager.getGroup(groupIdentifier);
         group.setDefault(value, world);
-        return "Group \"" + groupIdentifier + "\" is " + (value ? "now" : "no longer") + " default in world \"" + world + "\"";
+        return "PexGroup \"" + groupIdentifier + "\" is " + (value ? "now" : "no longer") + " default in world \"" + world + "\"";
     }
 
     public String importDataFromBackend(String backendName) throws PermissionBackendException {
@@ -580,13 +580,13 @@ public class CoreCommandService {
     public String promote(String userIdentifier, PermissionUser actor, String ladder) throws RankingException {
         PermissionUser target = manager.getUser(userIdentifier);
         PermissionGroup result = target.promote(actor, ladder);
-        return "User " + target.getName() + " promoted to " + result.getName() + " group";
+        return "PexUser " + target.getName() + " promoted to " + result.getName() + " group";
     }
 
     public String demote(String userIdentifier, PermissionUser actor, String ladder) throws RankingException {
         PermissionUser target = manager.getUser(userIdentifier);
         PermissionGroup result = target.demote(actor, ladder);
-        return "User " + target.getName() + " demoted to " + result.getName() + " group";
+        return "PexUser " + target.getName() + " demoted to " + result.getName() + " group";
     }
 
     public String version(String version) {

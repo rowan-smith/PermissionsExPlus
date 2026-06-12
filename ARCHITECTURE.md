@@ -75,9 +75,9 @@ YAML file I/O is unified in `dev.rono.permissions.core.backends.file` (SnakeYAML
 
 ## Performance
 
-- **Group membership index**: `GroupMembershipIndex` backs `getUsers(group)` without scanning every user.
+- **PexGroup membership index**: `GroupMembershipIndex` backs `getUsers(group)` without scanning every user.
 - **SQL name caches**: entity identifiers and display names cached with `AtomicReference<ImmutableSet>`.
-- **User entity caches**: per-user permission / option / prefix caches in `DefaultPermissionUser`.
+- **PexUser entity caches**: per-user permission / option / prefix caches in `DefaultPermissionUser`.
 - **Selective superperms updates**: permission/metadata changes clear `PermissiblePEX` regex cache without full permissible rebuild when injected.
 
 ## Commands

@@ -1,9 +1,9 @@
 package dev.rono.permissions.api.subject;
 
 /**
- * Kind of permission subject represented by a {@link PermissionSubject}.
+ * Kind of permission subject represented by a {@link PexPermissionSubject}.
  */
-public enum SubjectType {
+public enum PexSubjectType {
 
     /** An online player or offline user record. */
     USER,

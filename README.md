@@ -216,7 +216,7 @@ Primary entry: flat methods on **`PermissionService`**. Lookup: `ServicesManager
 | Method | Description |
 |--------|-------------|
 | **`user(uuid)`** / **`user(name)`** | Materialize user; `hasPermission("node")` checks global namespace |
-| **`findUser(uuid\|name)`** | Optional persisted lookup via `FoundUser` |
+| **`findUser(uuid\|name)`** | Optional persisted lookup via `PexFoundUser` |
 | **`world(w).user(uuid)`** | Per-world permission checks |
 | **`users().count()`** / **`groups().count()`** / **`worlds().count()`** | Registry counts |
 | **`backend().getActive()`** / **`activate(alias)`** | Backend snapshot and administration |
@@ -227,11 +227,11 @@ See [Flat API](docs/api/MODERN_API.md#flat-api-canonical-entry) for the full ref
 
 Source: `api/src/main/java/dev/rono/permissions/api/service/PermissionService.java`
 
-#### `PermissionSubject`, `User`, `Group` (`permissionsex-api`)
+#### `PexPermissionSubject`, `PexUser`, `PexGroup` (`permissionsex-api`)
 
-Subject operations are accessed through `User` and `Group` instances from `PermissionService`. Both extend `PermissionSubject`.
+Subject operations are accessed through `PexUser` and `PexGroup` instances from `PermissionService`. Both extend `PexPermissionSubject`.
 
-| `PermissionSubject` | Description |
+| `PexPermissionSubject` | Description |
 |---------------------|-------------|
 | `type()`, `identifier()`, `name()`, `virtual()` | Subject metadata |
 | `has(permission, world)` / `hasPermission(permission)` | Effective check (global when world omitted) |
@@ -241,24 +241,24 @@ Subject operations are accessed through `User` and `Group` instances from `Permi
 | `addTimedPermission` / `removeTimedPermission` / `timedPermissions` | Timed permission nodes |
 | `timedPermissionEntries(world)` / `allTimedPermissionEntries()` | Timed nodes with remaining seconds |
 | `timedPermissionRemainingSeconds(permission, world)` | Seconds until a timed permission expires |
-| `configuredWorlds()` | Worlds where this subject has data |
+| `configuredWorlds()` | PexWorlds where this subject has data |
 | `permissionsByWorld()` / `effectivePermissionsByWorld()` | Per-world permission maps |
-| `inWorld(world)` / `global()` | World-scoped view (`SubjectWorldContext`) |
+| `inWorld(world)` / `global()` | World-scoped view (`PexSubjectWorldContext`) |
 | `prefix` / `suffix` / `setPrefix` / `setSuffix` | Chat meta |
 | `option` / `setOption` / `options` | Arbitrary options map |
 | `save()` / `delete()` | Persist or remove the subject |
 
-| `User` (additional) | Description |
+| `PexUser` (additional) | Description |
 |---------------------|-------------|
 | `uniqueId()` | Parsed UUID when identifier is UUID-shaped |
-| `groups(world)` / `groups(world, inherit)` | Group membership |
+| `groups(world)` / `groups(world, inherit)` | PexGroup membership |
 | `inGroup(name, world, inherit)` | Membership test |
-| `addGroup` / `removeGroup` | Group membership CRUD (supports timed membership) |
+| `addGroup` / `removeGroup` | PexGroup membership CRUD (supports timed membership) |
 | `timedGroupMemberships(world)` / `allTimedGroupMemberships()` | Timed group memberships with remaining seconds |
 | `groupMembershipRemainingSeconds(group, world)` | Seconds until timed membership expires |
-| `inWorld(world)` / `global()` | World-scoped view (`UserWorldContext`) |
+| `inWorld(world)` / `global()` | World-scoped view (`PexUserWorldContext`) |
 
-| `Group` (additional) | Description |
+| `PexGroup` (additional) | Description |
 |----------------------|-------------|
 | `weight()` / `setWeight()` | Sort weight |
 | `isDefault(world)` / `setDefault(value, world)` | Default group flag |
@@ -269,18 +269,18 @@ Subject operations are accessed through `User` and `Group` instances from `Permi
 | `rank()` / `rankLadder()` / `setRank(rank, ladder)` | Rank ladder metadata |
 | `memberIdentifiers(world)` / `members(world)` | Users in this group |
 | `activeMembers()` / `activeMembers(inherit)` | Online members |
-| `inWorld(world)` / `global()` | World-scoped view (`GroupWorldContext`) |
+| `inWorld(world)` / `global()` | World-scoped view (`PexGroupWorldContext`) |
 
 #### World helpers & timed records
 
 | Type | Description |
 |------|-------------|
-| `Worlds.GLOBAL` | Global namespace (`null`); empty strings normalize to global |
-| `TimedPermissionEntry` | Record: permission, world, remainingSeconds |
-| `TimedGroupMembership` | Record: groupName, world, remainingSeconds |
-| `SubjectWorldContext` | World-scoped permission/meta view for any subject |
-| `UserWorldContext` | Adds group membership operations |
-| `GroupWorldContext` | Adds inheritance/default operations |
+| `PexWorlds.GLOBAL` | Global namespace (`null`); empty strings normalize to global |
+| `PexTimedPermissionEntry` | Record: permission, world, remainingSeconds |
+| `PexTimedGroupMembership` | Record: groupName, world, remainingSeconds |
+| `PexSubjectWorldContext` | World-scoped permission/meta view for any subject |
+| `PexUserWorldContext` | Adds group membership operations |
+| `PexGroupWorldContext` | Adds inheritance/default operations |
 
 `world` is `null` or empty for the global context (classic PEX `null` world). Prefer `user.inWorld("world_nether").addPermission("node")` for world-specific edits.
 
@@ -337,7 +337,7 @@ Modern-only integration via `PermissionService`:
 
 ```java
 import dev.rono.permissions.api.service.PermissionService;
-import dev.rono.permissions.api.subject.User;
+import dev.rono.permissions.api.subject.PexUser;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -392,8 +392,8 @@ For a full modern sample, see [`plugin/permissionsex-example-plugin/`](plugin/pe
 
 ## Features
 
-- User and group permission management
-- Group inheritance and hierarchy support
+- PexUser and group permission management
+- PexGroup inheritance and hierarchy support
 - Prefix and suffix management
 - Timed permissions and timed group membership
 - Multi-world permission handling
@@ -505,7 +505,7 @@ Keep only **`PermissionsExPlus-{version}.jar`** on that installation when using 
 /pex help [page] [count] - Show command help
 ```
 
-### User commands
+### PexUser commands
 
 ```text
 /pex users list
@@ -531,7 +531,7 @@ Keep only **`PermissionsExPlus-{version}.jar`** on that installation when using 
 /pex users cleanup <group> [threshold]
 ```
 
-### Group commands
+### PexGroup commands
 
 ```text
 /pex groups list [world]

@@ -1,9 +1,9 @@
 package dev.rono.permissions.api.query;
 
 import dev.rono.permissions.api.service.PermissionServiceBridge;
-import dev.rono.permissions.api.subject.User;
-import dev.rono.permissions.api.subject.UserWorldContext;
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.subject.PexUser;
+import dev.rono.permissions.api.subject.PexUserWorldContext;
+import dev.rono.permissions.api.world.PexWorlds;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,27 +19,27 @@ final class UserRef {
         this.identifier = identifier;
     }
 
-    User resolve() {
+    PexUser resolve() {
         return uuid != null ? service.user(uuid) : service.user(identifier);
     }
 
-    Optional<User> find() {
+    Optional<PexUser> find() {
         return uuid != null ? service.lookupUser(uuid) : service.lookupUser(identifier);
     }
 
-    UserWorldContext inWorld(String world) {
+    PexUserWorldContext inWorld(String world) {
         return resolve().inWorld(world);
     }
 
-    Optional<UserWorldContext> findInWorld(String world) {
+    Optional<PexUserWorldContext> findInWorld(String world) {
         return find().map(user -> user.inWorld(world));
     }
 
-    UserWorldContext inPresetWorld(String presetWorld) {
-        return inWorld(presetWorld != null ? presetWorld : Worlds.GLOBAL);
+    PexUserWorldContext inPresetWorld(String presetWorld) {
+        return inWorld(presetWorld != null ? presetWorld : PexWorlds.GLOBAL);
     }
 
-    Optional<UserWorldContext> findInPresetWorld(String presetWorld) {
-        return findInWorld(presetWorld != null ? presetWorld : Worlds.GLOBAL);
+    Optional<PexUserWorldContext> findInPresetWorld(String presetWorld) {
+        return findInWorld(presetWorld != null ? presetWorld : PexWorlds.GLOBAL);
     }
 }

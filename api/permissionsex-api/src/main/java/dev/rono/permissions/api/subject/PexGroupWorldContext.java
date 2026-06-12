@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * World-scoped view of a {@link Group}.
+ * World-scoped view of a {@link PexGroup}.
  *
- * <p>Every method applies to the bound world from {@link #world()} (see {@link SubjectWorldContext}).</p>
+ * <p>Every method applies to the bound world from {@link #world()} (see {@link PexSubjectWorldContext}).</p>
  */
-public interface GroupWorldContext extends SubjectWorldContext {
+public interface PexGroupWorldContext extends PexSubjectWorldContext {
 
     /**
      * Returns the underlying group.
@@ -16,12 +16,12 @@ public interface GroupWorldContext extends SubjectWorldContext {
      * @return the group this context wraps
      */
     @Override
-    Group subject();
+    PexGroup subject();
 
     /**
      * Returns whether the group is marked as the default group in this context's world.
      *
-     * <p>Equivalent to {@link Group#isDefault(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#isDefault(String)} with {@link #world()}.</p>
      *
      * @return {@code true} if the group is a default group for new users in this context
      */
@@ -30,7 +30,7 @@ public interface GroupWorldContext extends SubjectWorldContext {
     /**
      * Marks or clears the group as the default group in this context's world.
      *
-     * <p>Equivalent to {@link Group#setDefault(boolean, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#setDefault(boolean, String)} with {@link #world()}.</p>
      *
      * @param value {@code true} to mark as default; {@code false} to clear
      */
@@ -39,7 +39,7 @@ public interface GroupWorldContext extends SubjectWorldContext {
     /**
      * Returns direct parent group identifiers in this context's world.
      *
-     * <p>Equivalent to {@link Group#parents(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#parents(String)} with {@link #world()}.</p>
      *
      * @return list of own parent group identifiers
      */
@@ -48,7 +48,7 @@ public interface GroupWorldContext extends SubjectWorldContext {
     /**
      * Returns effective parent group identifiers in this context's world (inheritance expanded).
      *
-     * <p>Equivalent to {@link Group#parentTree(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#parentTree(String)} with {@link #world()}.</p>
      *
      * @return list of parent group identifiers including transitive parents
      */
@@ -57,7 +57,7 @@ public interface GroupWorldContext extends SubjectWorldContext {
     /**
      * Adds a direct parent group in this context's world.
      *
-     * <p>Equivalent to {@link Group#addParent(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#addParent(String, String)} with {@link #world()}.</p>
      *
      * @param parentName parent group identifier to add
      */
@@ -66,7 +66,7 @@ public interface GroupWorldContext extends SubjectWorldContext {
     /**
      * Removes a direct parent group in this context's world.
      *
-     * <p>Equivalent to {@link Group#removeParent(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#removeParent(String, String)} with {@link #world()}.</p>
      *
      * @param parentName parent group identifier to remove
      */
@@ -75,7 +75,7 @@ public interface GroupWorldContext extends SubjectWorldContext {
     /**
      * Replaces direct parent groups in this context's world.
      *
-     * <p>Equivalent to {@link Group#setParents(List, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#setParents(List, String)} with {@link #world()}.</p>
      *
      * @param parentNames new parent group identifiers
      */
@@ -84,7 +84,7 @@ public interface GroupWorldContext extends SubjectWorldContext {
     /**
      * Returns whether the group is a child of the named group in this context's world.
      *
-     * <p>Equivalent to {@link Group#isChildOf(String, String, boolean)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#isChildOf(String, String, boolean)} with {@link #world()}.</p>
      *
      * @param groupName group identifier to test as a potential ancestor
      * @param inherit   when {@code true}, match transitive parent relationships
@@ -107,7 +107,7 @@ public interface GroupWorldContext extends SubjectWorldContext {
     /**
      * Returns user identifiers with direct membership in this group for this context's world.
      *
-     * <p>Equivalent to {@link Group#memberIdentifiers(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#memberIdentifiers(String)} with {@link #world()}.</p>
      *
      * @return set of user identifiers with direct membership
      */
@@ -116,66 +116,66 @@ public interface GroupWorldContext extends SubjectWorldContext {
     /**
      * Returns users with direct membership in this group for this context's world.
      *
-     * <p>Equivalent to {@link Group#members(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#members(String)} with {@link #world()}.</p>
      *
      * @return list of users with direct membership
      */
-    List<User> members();
+    List<PexUser> members();
 
     /**
      * Returns users belonging to this group in this context's world.
      *
-     * <p>Equivalent to {@link Group#members(String, boolean)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#members(String, boolean)} with {@link #world()}.</p>
      *
      * @param inherit when {@code true}, includes users in descendant groups
      * @return list of users in this group
      */
-    List<User> members(boolean inherit);
+    List<PexUser> members(boolean inherit);
 
     /**
      * Returns direct child groups of this group in this context's world.
      *
-     * <p>Equivalent to {@link Group#children(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#children(String)} with {@link #world()}.</p>
      *
      * @return list of direct child groups
      */
-    List<Group> children();
+    List<PexGroup> children();
 
     /**
      * Returns child groups of this group in this context's world.
      *
-     * <p>Equivalent to {@link Group#children(String, boolean)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#children(String, boolean)} with {@link #world()}.</p>
      *
      * @param inherit when {@code true}, includes all descendant groups
      * @return list of child groups
      */
-    List<Group> children(boolean inherit);
+    List<PexGroup> children(boolean inherit);
 
     /**
      * Returns all descendant groups of this group in this context's world.
      *
-     * <p>Equivalent to {@link Group#descendants(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexGroup#descendants(String)} with {@link #world()}.</p>
      *
      * @return list of all descendant groups
      */
-    List<Group> descendants();
+    List<PexGroup> descendants();
 
     /**
      * Returns currently online users with direct membership in this group.
      *
-     * <p>Equivalent to {@link Group#activeMembers()}.</p>
+     * <p>Equivalent to {@link PexGroup#activeMembers()}.</p>
      *
      * @return list of online users with direct membership
      */
-    List<User> activeMembers();
+    List<PexUser> activeMembers();
 
     /**
      * Returns currently online users in this group.
      *
-     * <p>Equivalent to {@link Group#activeMembers(boolean)}.</p>
+     * <p>Equivalent to {@link PexGroup#activeMembers(boolean)}.</p>
      *
      * @param inherit when {@code true}, includes online users in descendant groups
      * @return list of online users in this group
      */
-    List<User> activeMembers(boolean inherit);
+    List<PexUser> activeMembers(boolean inherit);
 }

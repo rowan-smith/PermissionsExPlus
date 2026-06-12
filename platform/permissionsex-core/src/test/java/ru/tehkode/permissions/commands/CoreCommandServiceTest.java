@@ -55,10 +55,10 @@ class CoreCommandServiceTest extends PEXTestBase {
         CoreCommandService service = new CoreCommandService(manager);
         manager.getGroup("admin");
 
-        assertEquals("User \"Rono\" added to group \"admin\"!", service.userAddGroup("Rono", "admin", null));
+        assertEquals("PexUser \"Rono\" added to group \"admin\"!", service.userAddGroup("Rono", "admin", null));
         assertTrue(manager.getUser("Rono").inGroup("admin"));
 
-        assertEquals("User \"Rono\" removed from group \"admin\"!", service.userRemoveGroup("Rono", "admin", null));
+        assertEquals("PexUser \"Rono\" removed from group \"admin\"!", service.userRemoveGroup("Rono", "admin", null));
         assertFalse(manager.getUser("Rono").inGroup("admin"));
     }
 
@@ -76,15 +76,15 @@ class CoreCommandServiceTest extends PEXTestBase {
         service.userAddPermission("Rono", "two", null);
         assertEquals("Permissions swapped!", service.userSwapPermission("Rono", "one", "two", null));
 
-        assertEquals("User groups set!", service.userSetGroups("Rono", "admin,mod", null));
-        assertEquals("User \"Rono\" @null currently in:", service.userGroupListLines("Rono", null).getFirst());
+        assertEquals("PexUser groups set!", service.userSetGroups("Rono", "admin,mod", null));
+        assertEquals("PexUser \"Rono\" @null currently in:", service.userGroupListLines("Rono", null).getFirst());
 
         assertEquals("Timed permission added!", service.groupAddTimedPermission("default", "g.perm", "30", null));
         assertEquals("Timed permission \"g.perm\" removed!", service.groupRemoveTimedPermission("default", "g.perm", null));
-        assertEquals("Group default is unranked", service.groupRank("default", null, null));
-        assertEquals("Group default inheritance updated!", service.groupSetParents("default", "admin", null));
-        assertEquals("Group default inheritance updated!", service.groupAddParents("default", "mod", null));
-        assertEquals("Group \"default\" inheritance updated!", service.groupRemoveParents("default", "admin", null));
+        assertEquals("PexGroup default is unranked", service.groupRank("default", null, null));
+        assertEquals("PexGroup default inheritance updated!", service.groupSetParents("default", "admin", null));
+        assertEquals("PexGroup default inheritance updated!", service.groupAddParents("default", "mod", null));
+        assertEquals("PexGroup \"default\" inheritance updated!", service.groupRemoveParents("default", "admin", null));
     }
 
     @Test
@@ -104,7 +104,7 @@ class CoreCommandServiceTest extends PEXTestBase {
     void groupViewRejectsMissingGroupIdentifier() {
         CoreCommandService service = new CoreCommandService(manager);
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.groupView(null));
-        assertEquals("Group name is required", ex.getMessage());
+        assertEquals("PexGroup name is required", ex.getMessage());
     }
 
     @Test
@@ -121,7 +121,7 @@ class CoreCommandServiceTest extends PEXTestBase {
         user.setParents(List.of(mod));
 
         CoreCommandService service = new CoreCommandService(manager);
-        assertEquals("User Rono promoted to admin group", service.promote("Rono", null, "default"));
+        assertEquals("PexUser Rono promoted to admin group", service.promote("Rono", null, "default"));
     }
 
     @Test
@@ -138,7 +138,7 @@ class CoreCommandServiceTest extends PEXTestBase {
         user.setParents(List.of(admin));
 
         CoreCommandService service = new CoreCommandService(manager);
-        assertEquals("User Rono demoted to mod group", service.demote("Rono", null, "default"));
+        assertEquals("PexUser Rono demoted to mod group", service.demote("Rono", null, "default"));
     }
 
     @Test
@@ -176,7 +176,7 @@ class CoreCommandServiceTest extends PEXTestBase {
     void worldInheritanceAndDebugAndVersion() throws PermissionBackendException {
         CoreCommandService service = new CoreCommandService(manager);
         assertTrue(service.worldNames().contains("world"));
-        assertEquals("Worlds on server: ", service.worldsTreeLines().getFirst());
+        assertEquals("PexWorlds on server: ", service.worldsTreeLines().getFirst());
 
         String inheritanceResult = service.setWorldInheritance("world", List.of("lobby", "survival"));
         assertTrue(inheritanceResult.contains("inherits"));

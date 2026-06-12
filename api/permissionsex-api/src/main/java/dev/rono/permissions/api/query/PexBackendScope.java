@@ -1,9 +1,9 @@
 package dev.rono.permissions.api.query;
 
 import dev.rono.permissions.api.PermissionsExException;
-import dev.rono.permissions.api.backend.BackendHandle;
-import dev.rono.permissions.api.backend.BackendInfo;
-import dev.rono.permissions.api.data.ImportMode;
+import dev.rono.permissions.api.backend.PexBackendHandle;
+import dev.rono.permissions.api.backend.PexBackendInfo;
+import dev.rono.permissions.api.data.PexImportMode;
 import dev.rono.permissions.api.service.PermissionServiceBridge;
 
 /**
@@ -15,11 +15,11 @@ import dev.rono.permissions.api.service.PermissionServiceBridge;
  * pex.backend().exportData();
  * }</pre>
  */
-public final class BackendScope {
+public final class PexBackendScope {
 
     private final PermissionServiceBridge service;
 
-    public BackendScope(PermissionServiceBridge service) {
+    public PexBackendScope(PermissionServiceBridge service) {
         this.service = service;
     }
 
@@ -28,7 +28,7 @@ public final class BackendScope {
      *
      * @return active backend metadata
      */
-    public BackendInfo getActive() {
+    public PexBackendInfo getActive() {
         return service.activeBackend();
     }
 
@@ -54,7 +54,7 @@ public final class BackendScope {
     /**
      * Returns the configured backend type identifier (alias) of the active backend.
      *
-     * @return backend type string from {@link BackendInfo#type()}
+     * @return backend type string from {@link PexBackendInfo#type()}
      */
     public String type() {
         return getActive().type();
@@ -63,7 +63,7 @@ public final class BackendScope {
     /**
      * Returns the simple class name of the active backend implementation.
      *
-     * @return runtime implementation simple name from {@link BackendInfo#simpleName()}
+     * @return runtime implementation simple name from {@link PexBackendInfo#simpleName()}
      */
     public String simpleName() {
         return getActive().simpleName();
@@ -72,7 +72,7 @@ public final class BackendScope {
     /**
      * Returns a human-readable label suitable for logs and diagnostics.
      *
-     * @return diagnostic label from {@link BackendInfo#diagnosticLabel()}
+     * @return diagnostic label from {@link PexBackendInfo#diagnosticLabel()}
      */
     public String diagnosticLabel() {
         return getActive().diagnosticLabel();
@@ -92,10 +92,10 @@ public final class BackendScope {
      * Opens a handle to a non-active backend for inspection or data transfer.
      *
      * @param alias configured backend alias
-     * @return a {@link BackendHandle} for the requested backend
+     * @return a {@link PexBackendHandle} for the requested backend
      * @throws PermissionsExException if the alias is unknown or the handle cannot be created
      */
-    public BackendHandle createHandle(String alias) throws PermissionsExException {
+    public PexBackendHandle createHandle(String alias) throws PermissionsExException {
         return service.createBackendHandle(alias);
     }
 
@@ -123,10 +123,10 @@ public final class BackendScope {
      * Merges or replaces active-backend data from a serialized document.
      *
      * @param document serialized permission data
-     * @param mode merge strategy ({@link ImportMode#MERGE} or {@link ImportMode#REPLACE})
+     * @param mode merge strategy ({@link PexImportMode#MERGE} or {@link PexImportMode#REPLACE})
      * @throws PermissionsExException if the document is invalid or import fails
      */
-    public void importData(String document, ImportMode mode) throws PermissionsExException {
+    public void importData(String document, PexImportMode mode) throws PermissionsExException {
         service.importData(document, mode);
     }
 }

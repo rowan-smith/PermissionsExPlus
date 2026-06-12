@@ -21,7 +21,7 @@ public final class GroupScopedCommand<C> extends AbstractPexCloudCommand<C> {
     public void groupDetail(C sender, @Argument(value = "group", suggestions = "pex-group") String groupIdentifier) {
         try {
             var view = ctx.commandService().groupView(groupIdentifier);
-            reply(sender, "Group " + view.name() + " permissions: " + view.permissions());
+            reply(sender, "PexGroup " + view.name() + " permissions: " + view.permissions());
         } catch (IllegalArgumentException ex) {
             reply(sender, ex.getMessage());
         }

@@ -1,12 +1,12 @@
 package dev.rono.permissions.core.api;
 
 import dev.rono.permissions.api.PermissionsExException;
-import dev.rono.permissions.api.backend.BackendHandle;
-import dev.rono.permissions.api.backend.BackendInfo;
+import dev.rono.permissions.api.backend.PexBackendHandle;
+import dev.rono.permissions.api.backend.PexBackendInfo;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import ru.tehkode.permissions.backends.PermissionBackend;
 
-public final class ModernBackendHandle implements BackendHandle {
+public final class ModernBackendHandle implements PexBackendHandle {
     private final PermissionBackend backend;
     private final String alias;
     private final DefaultPermissionManager manager;
@@ -18,8 +18,8 @@ public final class ModernBackendHandle implements BackendHandle {
     }
 
     @Override
-    public BackendInfo info() {
-        return new BackendInfo(alias, backend.getClass().getSimpleName(), alias + " (" + backend.getClass().getSimpleName() + ")");
+    public PexBackendInfo info() {
+        return new PexBackendInfo(alias, backend.getClass().getSimpleName(), alias + " (" + backend.getClass().getSimpleName() + ")");
     }
 
     @Override

@@ -3,9 +3,9 @@ package dev.rono.permissions.api.service;
 import dev.rono.permissions.api.PermissionsExException;
 import dev.rono.permissions.api.event.PermissionEventBus;
 import dev.rono.permissions.api.query.*;
-import dev.rono.permissions.api.subject.Group;
-import dev.rono.permissions.api.subject.User;
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.subject.PexGroup;
+import dev.rono.permissions.api.subject.PexUser;
+import dev.rono.permissions.api.world.PexWorlds;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -28,21 +28,21 @@ import java.util.concurrent.CompletableFuture;
 public interface PermissionService {
 
     /**
-     * Returns the user registry ({@link UsersScope#count()}, {@link UsersScope#identifiers()}).
+     * Returns the user registry ({@link PexUsersScope#count()}, {@link PexUsersScope#identifiers()}).
      *
      * @return user registry scope
      */
-    default UsersScope users() {
-        return new UsersScope(requireBridge(this));
+    default PexUsersScope users() {
+        return new PexUsersScope(requireBridge(this));
     }
 
     /**
-     * Returns the group registry ({@link GroupsScope#count()}, {@link GroupsScope#names()}).
+     * Returns the group registry ({@link PexGroupsScope#count()}, {@link PexGroupsScope#names()}).
      *
      * @return group registry scope
      */
-    default GroupsScope groups() {
-        return new GroupsScope(requireBridge(this));
+    default PexGroupsScope groups() {
+        return new PexGroupsScope(requireBridge(this));
     }
 
     /**
@@ -50,17 +50,17 @@ public interface PermissionService {
      *
      * @return worlds registry scope
      */
-    default WorldsScope worlds() {
-        return new WorldsScope(requireBridge(this));
+    default PexWorldsScope worlds() {
+        return new PexWorldsScope(requireBridge(this));
     }
 
     /**
      * Resolves a user by UUID, materializing a record when none exists yet.
      *
      * @param uuid player UUID
-     * @return a live {@link User} handle
+     * @return a live {@link PexUser} handle
      */
-    default User user(UUID uuid) {
+    default PexUser user(UUID uuid) {
         return requireBridge(this).user(uuid);
     }
 
@@ -68,9 +68,9 @@ public interface PermissionService {
      * Resolves a user by name or UUID string, materializing a record when none exists yet.
      *
      * @param identifier user name or UUID string
-     * @return a live {@link User} handle
+     * @return a live {@link PexUser} handle
      */
-    default User user(String identifier) {
+    default PexUser user(String identifier) {
         return requireBridge(this).user(identifier);
     }
 
@@ -78,29 +78,29 @@ public interface PermissionService {
      * Looks up a persisted user by UUID without materializing a new record.
      *
      * @param uuid player UUID
-     * @return optional lookup chain; use {@link FoundUser#get()} or {@link FoundUser#optional()}
+     * @return optional lookup chain; use {@link PexFoundUser#get()} or {@link PexFoundUser#optional()}
      */
-    default FoundUser findUser(UUID uuid) {
-        return FoundUser.of(requireBridge(this), uuid, null);
+    default PexFoundUser findUser(UUID uuid) {
+        return PexFoundUser.of(requireBridge(this), uuid, null);
     }
 
     /**
      * Looks up a persisted user by identifier without materializing a new record.
      *
      * @param identifier user name or UUID string
-     * @return optional lookup chain; use {@link FoundUser#get()} or {@link FoundUser#optional()}
+     * @return optional lookup chain; use {@link PexFoundUser#get()} or {@link PexFoundUser#optional()}
      */
-    default FoundUser findUser(String identifier) {
-        return FoundUser.of(requireBridge(this), null, identifier);
+    default PexFoundUser findUser(String identifier) {
+        return PexFoundUser.of(requireBridge(this), null, identifier);
     }
 
     /**
      * Resolves a group by name, materializing a record when none exists yet.
      *
      * @param name group name
-     * @return a live {@link Group} handle
+     * @return a live {@link PexGroup} handle
      */
-    default Group group(String name) {
+    default PexGroup group(String name) {
         return requireBridge(this).group(name);
     }
 
@@ -108,10 +108,10 @@ public interface PermissionService {
      * Looks up a persisted group by name without materializing a new record.
      *
      * @param name group name
-     * @return optional lookup chain; use {@link FoundGroup#get()} or {@link FoundGroup#optional()}
+     * @return optional lookup chain; use {@link PexFoundGroup#get()} or {@link PexFoundGroup#optional()}
      */
-    default FoundGroup findGroup(String name) {
-        return FoundGroup.of(requireBridge(this), name);
+    default PexFoundGroup findGroup(String name) {
+        return PexFoundGroup.of(requireBridge(this), name);
     }
 
     /**
@@ -120,17 +120,17 @@ public interface PermissionService {
      * @param world world name, or {@code null} for global
      * @return world scope preset to the given realm
      */
-    default WorldScope world(String world) {
-        return new WorldScope(requireBridge(this), world);
+    default PexWorldScope world(String world) {
+        return new PexWorldScope(requireBridge(this), world);
     }
 
     /**
-     * Returns a world scope for the global namespace ({@link Worlds#GLOBAL}).
+     * Returns a world scope for the global namespace ({@link PexWorlds#GLOBAL}).
      *
      * @return global world scope
      */
-    default WorldScope global() {
-        return world(Worlds.GLOBAL);
+    default PexWorldScope global() {
+        return world(PexWorlds.GLOBAL);
     }
 
     /**
@@ -139,7 +139,7 @@ public interface PermissionService {
      * @param world world name to look up
      * @return scope when registered, otherwise empty
      */
-    default Optional<WorldScope> findWorld(String world) {
+    default Optional<PexWorldScope> findWorld(String world) {
         return requireBridge(this).registeredWorlds().contains(world) ? Optional.of(world(world)) : Optional.empty();
     }
 
@@ -148,17 +148,17 @@ public interface PermissionService {
      *
      * @return backend scope
      */
-    default BackendScope backend() {
-        return new BackendScope(requireBridge(this));
+    default PexBackendScope backend() {
+        return new PexBackendScope(requireBridge(this));
     }
 
     /**
      * Returns batch edit session helpers.
      *
-     * @return session scope; call {@link SessionScope#start()} to open a session
+     * @return session scope; call {@link PexSessionScope#start()} to open a session
      */
-    default SessionScope session() {
-        return new SessionScope(requireBridge(this));
+    default PexSessionScope session() {
+        return new PexSessionScope(requireBridge(this));
     }
 
     /**

@@ -3,11 +3,11 @@ package dev.rono.permissions.api.subject;
 import java.util.List;
 
 /**
- * World-scoped view of a {@link User}.
+ * World-scoped view of a {@link PexUser}.
  *
- * <p>Every method applies to the bound world from {@link #world()} (see {@link SubjectWorldContext}).</p>
+ * <p>Every method applies to the bound world from {@link #world()} (see {@link PexSubjectWorldContext}).</p>
  */
-public interface UserWorldContext extends SubjectWorldContext {
+public interface PexUserWorldContext extends PexSubjectWorldContext {
 
     /**
      * Returns the underlying user.
@@ -15,12 +15,12 @@ public interface UserWorldContext extends SubjectWorldContext {
      * @return the user this context wraps
      */
     @Override
-    User subject();
+    PexUser subject();
 
     /**
      * Returns group identifiers the user inherits in this context's world.
      *
-     * <p>Equivalent to {@link User#groups(String, boolean)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexUser#groups(String, boolean)} with {@link #world()}.</p>
      *
      * @param inherit when {@code true}, expand transitive group inheritance
      * @return list of group identifiers
@@ -41,7 +41,7 @@ public interface UserWorldContext extends SubjectWorldContext {
     /**
      * Returns whether the user belongs to the named group in this context's world.
      *
-     * <p>Equivalent to {@link User#inGroup(String, String, boolean)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexUser#inGroup(String, String, boolean)} with {@link #world()}.</p>
      *
      * @param groupName group identifier to test
      * @param inherit   when {@code true}, match transitive group membership
@@ -64,7 +64,7 @@ public interface UserWorldContext extends SubjectWorldContext {
     /**
      * Adds the user to a group in this context's world.
      *
-     * <p>Equivalent to {@link User#addGroup(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexUser#addGroup(String, String)} with {@link #world()}.</p>
      *
      * @param groupName group identifier to join
      */
@@ -73,7 +73,7 @@ public interface UserWorldContext extends SubjectWorldContext {
     /**
      * Adds the user to a group in this context's world with a timed membership.
      *
-     * <p>Equivalent to {@link User#addGroup(String, String, int)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexUser#addGroup(String, String, int)} with {@link #world()}.</p>
      *
      * @param groupName       group identifier to join
      * @param lifetimeSeconds seconds until membership expires; {@code 0} for transient (in-memory only)
@@ -83,7 +83,7 @@ public interface UserWorldContext extends SubjectWorldContext {
     /**
      * Removes the user from a group in this context's world.
      *
-     * <p>Equivalent to {@link User#removeGroup(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexUser#removeGroup(String, String)} with {@link #world()}.</p>
      *
      * @param groupName group identifier to leave
      */
@@ -92,16 +92,16 @@ public interface UserWorldContext extends SubjectWorldContext {
     /**
      * Returns timed group memberships in this context's world.
      *
-     * <p>Equivalent to {@link User#timedGroupMemberships(String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexUser#timedGroupMemberships(String)} with {@link #world()}.</p>
      *
      * @return list of timed group membership entries
      */
-    List<TimedGroupMembership> timedGroupMemberships();
+    List<PexTimedGroupMembership> timedGroupMemberships();
 
     /**
      * Returns seconds until a timed group membership expires in this context's world.
      *
-     * <p>Equivalent to {@link User#groupMembershipRemainingSeconds(String, String)} with {@link #world()}.</p>
+     * <p>Equivalent to {@link PexUser#groupMembershipRemainingSeconds(String, String)} with {@link #world()}.</p>
      *
      * @param groupName group identifier
      * @return seconds until expiry; {@code 0} if membership is not timed
