@@ -9,7 +9,7 @@ import java.util.UUID;
  *
  * <p>Platform integrations implement this interface to bridge player identity, online status, and
  * event dispatch to the permission engine. Proxy hosts may implement only
- * {@link dev.rono.permissions.api.runtime.PlatformAdapter} for platform-neutral integration.</p>
+ * platform {@code PlatformAdapter} for platform-neutral integration.</p>
  */
 public interface NativeInterface {
     /**

@@ -8,7 +8,7 @@ import java.util.Optional;
  * Immutable platform-neutral permission scope.
  *
  * <p>Replaces raw {@code Map<String, String>} and Bukkit-centric {@code String world} parameters in the
- * modern API. The engine resolves checks through {@link dev.rono.permissions.api.runtime.ContextResolver}
+ * modern API. The engine resolves checks through platform {@code ContextResolver}
  * inheritance chains; it never assumes a world dimension exists.</p>
  */
 public interface PermissionContext {
