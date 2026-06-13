@@ -26,11 +26,36 @@
 #sidebar {
     float: left;
     width: $sidebar_width;
-    line-height: 56px;
+    line-height: $base-line-height;
+
+    .nav-section {
+        margin-bottom: $spacing-unit / 2;
+    }
+
+    .nav-section-title {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: $grey-color;
+        margin: 0 0 8px;
+    }
+
+    ul {
+        list-style: none;
+        margin: 0 0 0 0;
+        padding: 0;
+    }
 
     li {
         color: $text-color !important;
-        line-height: $base-line-height;
+        line-height: 1.6;
+        margin-bottom: 4px;
+    }
+
+    .page-link.active {
+        color: $brand-color;
+        font-weight: 600;
     }
 }
 

@@ -1,13 +1,23 @@
-<ul>
-        {% for item in site.pages | sort: 'title' %}
-          {% if item.title and item.title != 'Home' %}
-          <li>
-              {% if page.url == item.url %}
-              <span class="page-link">{{ item.title }}</span>
-               {% else %}
-                <a class="page-link" href="{{ item.url | prepend: site.baseurl }}">{{ item.title }}</a>
-               {% endif %}
-          </li>
-          {% endif %}
-        {% endfor %}
-</ul>
+<nav class="sidebar-nav" aria-label="Documentation">
+  {% for group in site.navigation %}
+  <div class="nav-section">
+    <h3 class="nav-section-title">{{ group.section }}</h3>
+    <ul>
+      {% for link in group.links %}
+      <li>
+        {% assign link_url = link.url | prepend: site.baseurl %}
+        {% assign normalized_page_url = page.url | replace: 'index.html', '' %}
+        {% assign normalized_link_url = link.url | replace: 'index.html', '' %}
+        {% if link.external %}
+          <a class="page-link" href="{{ link_url }}" target="_blank" rel="noopener">{{ link.title }}</a>
+        {% elsif normalized_page_url == normalized_link_url %}
+          <span class="page-link active">{{ link.title }}</span>
+        {% else %}
+          <a class="page-link" href="{{ link_url }}">{{ link.title }}</a>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</nav>

@@ -1,11 +1,61 @@
 # Site settings
-title: PermissionsEx
-email: zml@todo
+title: PermissionsExPlus
+email: rowan-smith@users.noreply.github.com
 description: >
-    PermissionsEx is a powerful permissions plugin that can handle anything from the simplest server with friends to the largest server networks running on Bukkit and soon whatever comes after
-baseurl: "/PermissionsEx/" # the subpath of your site, e.g. /blog/
-url: "https://rowan-smith.github.io" # the base hostname & protocol for your site
+  A maintained fork of PermissionsEx for modern Bukkit/Spigot/Paper, Bungee, Velocity, and Sponge servers.
+  Flexible permissions with users, groups, inheritance, prefixes, timed permissions, and multi-world support.
+baseurl: "/PermissionsExPlus"
+url: "https://rowan-smith.github.io"
 github_username: rowan-smith
+repo: rowan-smith/PermissionsExPlus
+version: "1.23.5"
 
 # Build settings
 markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+highlighter: rouge
+permalink: pretty
+
+# Sidebar navigation (order matters)
+navigation:
+  - section: Getting Started
+    links:
+      - title: Home
+        url: /
+      - title: Installation
+        url: /installation/
+      - title: Examples
+        url: /examples/
+      - title: Compatibility
+        url: /compatibility/
+  - section: Usage
+    links:
+      - title: Commands
+        url: /commands/
+      - title: Configuration
+        url: /configuration/
+  - section: Developer
+    links:
+      - title: Integrations
+        url: /integrations/
+      - title: Modern API
+        url: /modern-api/
+      - title: Legacy API
+        url: /legacy-api/
+      - title: API Invariants
+        url: /api-invariants/
+      - title: API Roadmap
+        url: /api-roadmap/
+      - title: Developer Resources
+        url: /developer-resources/
+      - title: Javadoc (1.22.1)
+        url: /apidocs/1.22.1/apidocs/index.html
+        external: true
+  - section: Project
+    links:
+      - title: Architecture
+        url: /architecture/
+      - title: About
+        url: /about/
