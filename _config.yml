@@ -4,10 +4,10 @@ email: rowan-smith@users.noreply.github.com
 description: >
   A maintained fork of PermissionsEx for modern Bukkit/Spigot/Paper, Bungee, Velocity, and Sponge servers.
   Flexible permissions with users, groups, inheritance, prefixes, timed permissions, and multi-world support.
-baseurl: "/permissionsexplus"
+baseurl: "/PermissionsExPlus"
 url: "https://rowan-smith.github.io"
 github_username: rowan-smith
-repo: rowan-smith/permissionsexplus
+repo: rowan-smith/PermissionsExPlus
 version: "1.23.5"
 
 # Build settings
