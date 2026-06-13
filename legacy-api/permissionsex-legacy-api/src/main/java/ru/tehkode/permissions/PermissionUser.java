@@ -216,7 +216,11 @@ public interface PermissionUser extends PermissionEntity {
      * @return the group this user was promoted into
      * @throws RankingException if this user is not on the ladder, the promoter lacks sufficient rank,
      *                          or no higher group exists on the ladder
+     * @deprecated Prefer {@code PermissionsEx.getApi().getLadderManager().promote(user, ladderName)}
+     *             (modern {@code dev.rono.permissions.api.ladder.LadderManager}). This method remains for
+     *             binary compatibility with hook plugins compiled against older releases.
      */
+    @Deprecated(since = "1.23.5")
     PermissionGroup promote(PermissionUser promoter, String ladderName) throws RankingException;
 
     /**
@@ -234,7 +238,11 @@ public interface PermissionUser extends PermissionEntity {
      * @return the group this user was demoted into
      * @throws RankingException if this user is not on the ladder, the demoter lacks sufficient rank,
      *                          or no lower group exists on the ladder
+     * @deprecated Prefer {@code PermissionsEx.getApi().getLadderManager().demote(user, ladderName)}
+     *             (modern {@code dev.rono.permissions.api.ladder.LadderManager}). This method remains for
+     *             binary compatibility with hook plugins compiled against older releases.
      */
+    @Deprecated(since = "1.23.5")
     PermissionGroup demote(PermissionUser demoter, String ladderName) throws RankingException;
 
     /**

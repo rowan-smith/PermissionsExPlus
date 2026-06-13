@@ -319,6 +319,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 * @param ladderName Ladder name
 	 * @throws RankingException
 	 */
+	@Deprecated(since = "1.23.5")
 	public PermissionGroup promote(PermissionUser promoter, String ladderName) throws RankingException {
 		if (ladderName == null || ladderName.isEmpty()) {
 			ladderName = "default";
@@ -369,6 +370,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 * @param ladderName
 	 * @throws RankingException
 	 */
+	@Deprecated(since = "1.23.5")
 	public PermissionGroup demote(PermissionUser demoter, String ladderName) throws RankingException {
 		if (ladderName == null || ladderName.isEmpty()) {
 			ladderName = "default";
