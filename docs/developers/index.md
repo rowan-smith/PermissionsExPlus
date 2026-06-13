@@ -26,17 +26,19 @@ PermissionsExPlus exposes APIs for companion plugins that need to read or modify
 | Layer | What it covers |
 |-------|----------------|
 | **[API Cookbook](/developers/cookbook/)** | Practical recipes — check perms, add groups, events |
+| **[Hook Plugin API](/developers/api/)** | Modern vs legacy API overview and full references |
+| **[Architecture](/developers/architecture/)** | Module stack, dependency rules, namespace map |
 | **[Javadoc](/developers/reference/)** | Full class and method reference for every version |
 | **[Sample plugins](https://github.com/%%site.repo%%/tree/main/plugin)** | Working example jars in the repo |
 
-The website is intentionally thin — detailed API signatures live in Javadoc. The cookbook shows you *how* to do common tasks with links to the relevant classes.
+The website is intentionally thin — detailed API signatures live in Javadoc. The cookbook shows you *how* to do common tasks with links to the relevant classes. Full API references live under [Hook Plugin API](/developers/api/).
 
 ## Two APIs
 
-| API | Package | When |
-|-----|---------|------|
-| **Modern** | `dev.rono.permissions.api.*` | New plugins |
-| **Legacy** | `ru.tehkode.permissions.*` | Existing PEX 1.23.x plugins |
+| API | Package | When | Reference |
+|-----|---------|------|-----------|
+| **Modern** | `dev.rono.permissions.api.*` | New plugins | [Modern API](/developers/api/modern) |
+| **Legacy** | `ru.tehkode.permissions.*` | Existing PEX 1.23.x plugins | [Legacy API](/developers/api/legacy) |
 
 Both talk to the same runtime manager on game servers.
 
@@ -56,5 +58,7 @@ For classic `PermissionsEx.getUser()` static calls, also add:
 ## Next steps
 
 - [API Cookbook](/developers/cookbook/) — copy-paste recipes
+- [Hook Plugin API](/developers/api/) — modern and legacy references
+- [Architecture](/developers/architecture/) — module layout
 - [Javadoc](/developers/reference/) — browse all versions
 - [Contributing](/developers/contributing/) — build from source

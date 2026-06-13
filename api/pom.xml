@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>dev.rono.permissions</groupId>
+        <artifactId>PermissionsExPlus</artifactId>
+        <version>1.23.5</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>api</artifactId>
+    <packaging>pom</packaging>
+    <name>PermissionsEx API (reactor)</name>
+
+    <modules>
+        <module>permissionsex-core-api</module>
+        <module>permissionsex-api</module>
+        <module>permissionsex-api-bungee</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>aggregate-public-api</id>
+                        <goals>
+                            <goal>aggregate</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Bungee helpers depend on provided proxy APIs -->
+                            <excludeArtifactIds>permissionsex-api-bungee</excludeArtifactIds>
+                            <excludePackageNames>dev.rono.permissions.bootstrap:dev.rono.permissions.api.runtime</excludePackageNames>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

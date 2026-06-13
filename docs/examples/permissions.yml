@@ -1,0 +1,31 @@
+# PermissionsExPlus — starter permissions.yml
+
+schema-version: 1
+
+groups:
+  default:
+    default: true
+    permissions:
+      - modifyworld
+  moderator:
+    inheritance:
+      - default
+    prefix: '&7[Mod] '
+    permissions:
+      - essentials.kick
+      - essentials.mute
+  admin:
+    inheritance:
+      - moderator
+    prefix: '&c[Admin] '
+    permissions:
+      - permissions.*
+      - '*'
+
+users:
+  # Example offline record (replace with real UUID on live servers)
+  069a79f4-44e9-4726-a5be-fca90e38aaf5:
+    group:
+      - admin
+    options:
+      name: Admin

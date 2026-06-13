@@ -13,3 +13,16 @@ _site/
 .jekyll-metadata
 *.gem
 .bundle/
+
+# Maven / Java
+/.project
+/.classpath
+/.settings
+target/
+/build.xml
+/build
+/bin
+/dist
+/.idea/
+/PermissionsEx.iml
+.DS_Store
