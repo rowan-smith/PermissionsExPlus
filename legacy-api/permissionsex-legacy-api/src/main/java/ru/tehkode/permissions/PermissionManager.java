@@ -154,6 +154,21 @@ public interface PermissionManager {
     boolean hasPermission(PermissionHolder holder, String permission, Map<String, String> context);
 
     /**
+     * Checks whether the holder effectively holds the permission in {@code context}.
+     *
+     * @param holder     permission target; must not be {@code null}
+     * @param permission permission node to check; must not be {@code null}
+     * @param context    permission scope
+     * @return {@code true} if granted after inheritance, {@code false} otherwise
+     */
+    default boolean hasPermission(PermissionHolder holder, String permission, dev.rono.permissions.api.permission.PermissionContext context) {
+        if (context == null || context.isGlobal()) {
+            return hasPermission(holder, permission, Map.of());
+        }
+        return hasPermission(holder, permission, context.toMap());
+    }
+
+    /**
      * Returns <em>direct</em> permission assignments for the holder in the <em>global</em> scope.
      *
      * <p>Does not include inherited nodes or world-specific assignments. Each entry is a {@link PermissionNode}

@@ -74,4 +74,11 @@ public interface PlatformAdapter {
      * @return {@code true} if op
      */
     boolean isOperator(UUID player);
+
+    /**
+     * Returns the platform-specific permission scope resolver.
+     *
+     * @return context resolver for this host
+     */
+    ContextResolver getContextResolver();
 }

@@ -88,6 +88,7 @@ public class LegacyApiContractTest {
                 "removePermission(PermissionHolder,String)",
                 "hasPermission(PermissionHolder,String)",
                 "hasPermission(PermissionHolder,String,Map)",
+                "hasPermission(PermissionHolder,String,PermissionContext)",
                 "getPermissions(PermissionHolder)",
                 "shouldCreateUserRecords()",
                 "getConfiguration()",

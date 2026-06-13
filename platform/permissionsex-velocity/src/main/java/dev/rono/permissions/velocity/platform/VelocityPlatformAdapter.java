@@ -2,7 +2,9 @@ package dev.rono.permissions.velocity.platform;
 
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import dev.rono.permissions.api.runtime.ContextResolver;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.api.runtime.VelocityContextResolver;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -11,6 +13,7 @@ import java.util.UUID;
 public final class VelocityPlatformAdapter implements PlatformAdapter {
     private static final UUID PROXY_UUID =
             UUID.nameUUIDFromBytes("permissionsexplus-velocity".getBytes(StandardCharsets.UTF_8));
+    private static final ContextResolver CONTEXT_RESOLVER = new VelocityContextResolver();
 
     private final ProxyServer server;
 
@@ -59,5 +62,10 @@ public final class VelocityPlatformAdapter implements PlatformAdapter {
     @Override
     public boolean isOperator(UUID uuid) {
         return server.getPlayer(uuid).map(p -> p.hasPermission("permissionsex.admin")).orElse(false);
+    }
+
+    @Override
+    public ContextResolver getContextResolver() {
+        return CONTEXT_RESOLVER;
     }
 }

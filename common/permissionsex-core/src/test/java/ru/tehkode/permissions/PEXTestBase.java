@@ -3,6 +3,8 @@ package ru.tehkode.permissions;
 import dev.rono.permissions.api.bus.EntityDispatch;
 import dev.rono.permissions.api.bus.PermissionDispatch;
 import dev.rono.permissions.api.bus.SystemDispatch;
+import dev.rono.permissions.api.runtime.BukkitContextResolver;
+import dev.rono.permissions.api.runtime.ContextResolver;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
 import dev.rono.permissions.api.runtime.PlatformEventBus;
 import dev.rono.permissions.api.runtime.PlatformRuntime;
@@ -425,6 +427,11 @@ public abstract class PEXTestBase {
                     @Override
                     public boolean isOperator(UUID uuid) {
                         return false;
+                    }
+
+                    @Override
+                    public ContextResolver getContextResolver() {
+                        return new BukkitContextResolver();
                     }
                 };
 

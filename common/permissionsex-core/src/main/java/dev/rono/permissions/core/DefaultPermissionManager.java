@@ -128,6 +128,11 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 	}
 
 	@Override
+	public boolean hasPermission(PermissionHolder holder, String permission, dev.rono.permissions.api.permission.PermissionContext context) {
+		return holderPermissions.hasPermission(holder, permission, context);
+	}
+
+	@Override
 	public List<PermissionNode> getPermissions(PermissionHolder holder) {
 		return holderPermissions.getPermissions(holder);
 	}

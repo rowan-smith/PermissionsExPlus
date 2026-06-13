@@ -83,8 +83,8 @@ if (manager.hasPermission(
     ...
 }
 
-// Per-world subject operations
-user.inWorld(player.getWorld().getName()).addPermission("my.plugin.temp");
+// Per-realm subject operations
+user.inContext(PermissionContext.world(player.getWorld().getName())).addPermission("my.plugin.temp");
 user.save();
 ```
 
@@ -101,7 +101,7 @@ user.save();
 
 `LadderManager` also exposes `promote(user, ladder)`, `demote(user, ladder)`, `isRanked(user, ladder)`, and `rank(user, ladder)`.
 
-Subject operations (`hasPermission`, groups, meta, timed grants) are on `User` / `Group` returned by managers.
+Subject operations (`has`, groups, meta, timed grants) are on `User` / `Group` returned by managers.
 
 Holder-based checks and edits use `api.getPermissionManager()` (`hasPermission(holder, node, context)`, `addPermission`, etc.).
 
@@ -121,19 +121,18 @@ api.getEventBus().unsubscribe(sub);
 | `Worlds.GLOBAL` | `null` — global namespace |
 | Empty string `""` | Normalized to global |
 
-`user.hasPermission("node")` checks the **global** namespace. Use `user.inWorld(world).hasPermission("node")` or `hasPermission(holder, node, context)` for per-world checks.
+`user.has("node")` checks the **global** namespace. Use `user.inContext(PermissionContext.world(name)).has("node")` or `hasPermission(holder, node, context)` for scoped checks.
 
-### Permission context maps
+### Permission context (platform-neutral)
 
-Structured context for holder checks uses standard keys from `PermissionContext`:
+Structured scope for holder checks and the modern subject API uses {@link dev.rono.permissions.api.permission.PermissionContext}:
 
 | Key | Role |
 |-----|------|
-| `world` | Primary realm/world for resolution |
-| `server` | Fallback realm on proxies when `world` is absent |
-| `region` | Optional; for plugin interpreters |
-| `gamemode` | Optional; for plugin interpreters |
-| `state` | Optional (for example `event` during minigames) |
+| `world` | Loaded world / realm (game servers) |
+| `server` | Backend or logical server id (proxies, Sponge) |
+| `dimension` | Sponge dimension (optional) |
+| `region`, `gamemode`, `state` | Optional plugin metadata |
 
 ```java
 import dev.rono.permissions.api.permission.PermissionContext;
@@ -141,10 +140,12 @@ import dev.rono.permissions.api.permission.PermissionContext;
 var context = PermissionContext.of("survival", "lobby-1", "spawn", "creative");
 manager.hasPermission(holder, "my.node", context);
 
-var eventContext = PermissionContext.withState("arena", "event");
+user.inContext(PermissionContext.server("lobby")).addPermission("proxy.admin");
 ```
 
-Helpers in `dev.rono.permissions.api.world.Worlds`: `normalize`, `isGlobal`, `mapKey`, `fromMapKey`.
+Each platform supplies a {@link dev.rono.permissions.api.runtime.ContextResolver} via {@link dev.rono.permissions.api.runtime.PlatformAdapter#getContextResolver()} for inheritance ordering (for example Bukkit: `world → server → global`; Velocity: `server → global`; Sponge: `dimension → world → server → global`).
+
+All scoped operations on `User` / `Group` take {@link PermissionContext}. Parameterless overloads use {@link PermissionContext#global()}.
 
 ---
 
@@ -177,6 +178,15 @@ PermissionsExApi api = PermissionsEx.getApi();
 
 Maven artifact: `permissionsex-api-bungee` (optional; includes `ProxyPermissionServices` for advanced use).
 
+### Server context on proxies
+
+Backend server names are permission namespaces (stored as `world` keys in the backend). Commands use `pex server` / `pex servers` instead of `pex world` / `pex worlds`. In proxy plugins, scope with `PermissionContext.server(id)`:
+
+```java
+user.inContext(PermissionContext.server("lobby")).addPermission("bungee.command.server");
+if (user.inContext(PermissionContext.server("lobby")).has("proxy.admin")) { ... }
+```
+
 ---
 
 ## `PermissionSubject`
@@ -195,40 +205,41 @@ Shared by `User` and `Group`.
 
 | Method | Description |
 |--------|-------------|
-| `hasPermission(permission)` | Effective check in global namespace |
-| `has(permission[, world])` | Effective check (alias; world defaults to global) |
-| `permissions([world])` | **Direct** assignments (not inherited) |
-| `effectivePermissions([world])` | Merged after inheritance |
+| `has(permission[, context])` | Effective check (context defaults to global) |
+| `permissions([context])` | **Direct** assignments (not inherited) |
+| `effectivePermissions([context])` | Merged after inheritance |
 | `addPermission` / `removePermission` / `setPermissions` | Direct CRUD |
-| `permissionsByWorld()` | Map of world → direct permissions |
-| `effectivePermissionsByWorld()` | Map of world → effective permissions |
-| `configuredWorlds()` | Worlds with any subject data |
+| `permissionsByRealm()` | Map of realm → direct permissions |
+| `effectivePermissionsByRealm()` | Map of realm → effective permissions |
+| `configuredRealms()` | Realms with any subject data |
 
 ### Timed permissions
 
 | Method | Description |
 |--------|-------------|
-| `addTimedPermission(permission, [world,] seconds)` | Temporary grant |
-| `removeTimedPermission(permission[, world])` | Remove timed node |
-| `timedPermissions([world])` | Active timed permission names |
-| `timedPermissionEntries([world])` | `TimedPermissionEntry(permission, world, remainingSeconds)` |
-| `allTimedPermissionEntries()` | Across all configured worlds |
-| `timedPermissionRemainingSeconds(permission[, world])` | Seconds until expiry; `0` if absent |
-| `hasTimedPermission(permission[, world])` | Whether timed node is active |
+| `addTimedPermission(permission, [context,] seconds)` | Temporary grant |
+| `removeTimedPermission(permission[, context])` | Remove timed node |
+| `timedPermissions([context])` | Active timed permission names |
+| `timedPermissionEntries([context])` | `TimedPermissionEntry(permission, context, remainingSeconds)` |
+| `allTimedPermissionEntries()` | Across all configured realms |
+| `timedPermissionRemainingSeconds(permission[, context])` | Seconds until expiry; `0` if absent |
+| `hasTimedPermission(permission[, context])` | Whether timed node is active |
 
 ### Meta (prefix / suffix / options)
 
 | Method | Description |
 |--------|-------------|
-| `prefix` / `suffix` / `setPrefix` / `setSuffix` | Chat meta per world |
-| `option(key[, world])` / `setOption` / `options` | Arbitrary key/value meta |
+| `prefix` / `suffix` / `setPrefix` / `setSuffix` | Chat meta per context |
+| `option(key[, context])` / `setOption` / `options` | Arbitrary key/value meta |
 
-### World views
+### Context views
 
 | Method | Description |
 |--------|-------------|
-| `inWorld(world)` | `SubjectWorldContext` — world-scoped facade |
-| `global()` | Same as `inWorld(Worlds.GLOBAL)` |
+| `inContext(context)` | `SubjectContext` — context-scoped facade |
+| `global()` | Same as `inContext(PermissionContext.global())` |
+
+Player permission checks on the proxy auto-scope to the connected backend via `PlatformAdapter.onlineRealm()`.
 
 ### Persistence
 
@@ -246,15 +257,15 @@ Extends `PermissionSubject`.
 | Method | Description |
 |--------|-------------|
 | `uniqueId()` | `Optional<UUID>` when identifier is UUID-shaped |
-| `groups([world,] inherit)` | Group membership list |
-| `inGroup(name[, world, inherit])` | Membership test |
-| `addGroup(name[, world])` | Add to group |
-| `addGroup(name, [world,] lifetimeSeconds)` | Timed membership |
-| `removeGroup(name[, world])` | Remove from group |
-| `timedGroupMemberships([world])` | `TimedGroupMembership(group, world, remainingSeconds)` |
-| `allTimedGroupMemberships()` | Across all worlds |
-| `groupMembershipRemainingSeconds(group[, world])` | Seconds until timed membership expires |
-| `inWorld(world)` / `global()` | Returns `UserWorldContext` |
+| `groups([context,] inherit)` | Group membership list |
+| `inGroup(name[, context, inherit])` | Membership test |
+| `addGroup(name[, context])` | Add to group |
+| `addGroup(name, [context,] lifetimeSeconds)` | Timed membership |
+| `removeGroup(name[, context])` | Remove from group |
+| `timedGroupMemberships([context])` | `TimedGroupMembership(group, context, remainingSeconds)` |
+| `allTimedGroupMemberships()` | Across all realms |
+| `groupMembershipRemainingSeconds(group[, context])` | Seconds until timed membership expires |
+| `inContext(context)` / `global()` | Returns `UserContext` |
 
 Rank-ladder promotion/demotion is on `LadderManager` (`promote(user, ladder)`, `demote(user, ladder)`, `rank(user, ladder)`).
 
@@ -267,32 +278,32 @@ Extends `PermissionSubject`.
 | Method | Description |
 |--------|-------------|
 | `weight()` / `setWeight(int)` | Sort order |
-| `isDefault([world])` / `setDefault(bool[, world])` | Default group flag |
-| `parents([world])` | Direct parent groups |
-| `parentTree([world])` | Expanded ancestor groups |
+| `isDefault([context])` / `setDefault(bool[, context])` | Default group flag |
+| `parents([context])` | Direct parent groups |
+| `parentTree([context])` | Expanded ancestor groups |
 | `addParent` / `removeParent` / `setParents` | Inheritance CRUD |
-| `isChildOf(name[, world, inherit])` | Hierarchy test |
+| `isChildOf(name[, context, inherit])` | Hierarchy test |
 | `rank()` / `rankLadder()` / `setRank(rank, ladder)` | Promotion ladder |
-| `memberIdentifiers([world])` | User ids with direct membership |
-| `members([world,] inherit)` | `List<User>` in this group (`inherit=true` includes descendant groups) |
-| `children([world,] inherit)` | Direct or all descendant child groups |
-| `descendants([world])` | All descendant groups (`children(world, true)`) |
+| `memberIdentifiers([context])` | User ids with direct membership |
+| `members([context,] inherit)` | `List<User>` in this group (`inherit=true` includes descendant groups) |
+| `children([context,] inherit)` | Direct or all descendant child groups |
+| `descendants([context])` | All descendant groups (`children(context, true)`) |
 | `activeMembers([inherit])` | Online members |
-| `inWorld(world)` / `global()` | Returns `GroupWorldContext` |
+| `inContext(context)` / `global()` | Returns `GroupContext` |
 
 ---
 
-## World context interfaces
+## Context interfaces
 
-Ergonomic world-scoped views (same operations without repeating `world` parameter):
+Ergonomic context-scoped views (same operations without repeating the `PermissionContext` parameter):
 
 | Type | Extends | Extra operations |
 |------|---------|------------------|
-| `SubjectWorldContext` | — | Permissions, timed perms, prefix/suffix, options |
-| `UserWorldContext` | `SubjectWorldContext` | Groups, timed membership |
-| `GroupWorldContext` | `SubjectWorldContext` | Parents, default, hierarchy, members, children, descendants |
+| `SubjectContext` | — | Permissions, timed perms, prefix/suffix, options |
+| `UserContext` | `SubjectContext` | Groups, timed membership |
+| `GroupContext` | `SubjectContext` | Parents, default, hierarchy, members, children, descendants |
 
-Obtain via `subject.inWorld("world_nether")`, `user.global()`, or `pex.world("world_nether").user(uuid)`.
+Obtain via `subject.inContext(PermissionContext.world("world_nether"))`, `user.global()`, or `pex.world("world_nether").user(uuid)`.
 
 ---
 
@@ -301,8 +312,8 @@ Obtain via `subject.inWorld("world_nether")`, `user.global()`, or `pex.world("wo
 | Type | Role |
 |------|------|
 | `BackendInfo` | Record: backend alias, implementation class name, label |
-| `TimedPermissionEntry` | Record: permission, world, remainingSeconds |
-| `TimedGroupMembership` | Record: groupName, world, remainingSeconds |
+| `TimedPermissionEntry` | Record: permission, context, remainingSeconds |
+| `TimedGroupMembership` | Record: groupName, context, remainingSeconds |
 | `PermissionContext` | Standard context map keys and builders |
 | `PermissionsExException` | Checked exception for reload/backend failures |
 | `RankingException` | Promotion/demotion failures |

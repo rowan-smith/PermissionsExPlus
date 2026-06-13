@@ -244,7 +244,7 @@ Primary entry: **`PermissionsEx.getApi()`** → `PermissionsExApi` with managers
 
 | Method | Description |
 |--------|-------------|
-| **`user(uuid)`** / **`user(name)`** | Materialize user; `hasPermission("node")` checks global namespace |
+| **`user(uuid)`** / **`user(name)`** | Materialize user; `has("node")` checks global namespace |
 | **`findUser(uuid\|name)`** | Optional persisted lookup via `FoundUser` |
 | **`world(w).user(uuid)`** | Per-world permission checks |
 | **`users().count()`** / **`groups().count()`** / **`worlds().count()`** | Registry counts |
@@ -263,16 +263,16 @@ Subject operations are accessed through `User` and `Group` instances from `Permi
 | `PermissionSubject` | Description |
 |---------------------|-------------|
 | `type()`, `identifier()`, `name()`, `virtual()` | Subject metadata |
-| `has(permission, world)` / `hasPermission(permission)` | Effective check (global when world omitted) |
-| `permissions(world)` | Direct assignments (not inherited) |
-| `effectivePermissions(world)` | Merged permissions after inheritance |
+| `has(permission[, context])` | Effective check (context defaults to global) |
+| `permissions([context])` | Direct assignments (not inherited) |
+| `effectivePermissions([context])` | Merged permissions after inheritance |
 | `addPermission` / `removePermission` / `setPermissions` | Direct permission CRUD |
 | `addTimedPermission` / `removeTimedPermission` / `timedPermissions` | Timed permission nodes |
-| `timedPermissionEntries(world)` / `allTimedPermissionEntries()` | Timed nodes with remaining seconds |
-| `timedPermissionRemainingSeconds(permission, world)` | Seconds until a timed permission expires |
-| `configuredWorlds()` | Worlds where this subject has data |
-| `permissionsByWorld()` / `effectivePermissionsByWorld()` | Per-world permission maps |
-| `inWorld(world)` / `global()` | World-scoped view (`SubjectWorldContext`) |
+| `timedPermissionEntries([context])` / `allTimedPermissionEntries()` | Timed nodes with remaining seconds |
+| `timedPermissionRemainingSeconds(permission[, context])` | Seconds until a timed permission expires |
+| `configuredRealms()` | Realms where this subject has data |
+| `permissionsByRealm()` / `effectivePermissionsByRealm()` | Per-realm permission maps |
+| `inContext(context)` / `global()` | Context-scoped view (`SubjectContext`) |
 | `prefix` / `suffix` / `setPrefix` / `setSuffix` | Chat meta |
 | `option` / `setOption` / `options` | Arbitrary options map |
 | `save()` / `delete()` | Persist or remove the subject |
@@ -280,38 +280,38 @@ Subject operations are accessed through `User` and `Group` instances from `Permi
 | `User` (additional) | Description |
 |---------------------|-------------|
 | `uniqueId()` | Parsed UUID when identifier is UUID-shaped |
-| `groups(world)` / `groups(world, inherit)` | Group membership |
-| `inGroup(name, world, inherit)` | Membership test |
+| `groups([context,] inherit)` | Group membership |
+| `inGroup(name[, context, inherit])` | Membership test |
 | `addGroup` / `removeGroup` | Group membership CRUD (supports timed membership) |
-| `timedGroupMemberships(world)` / `allTimedGroupMemberships()` | Timed group memberships with remaining seconds |
-| `groupMembershipRemainingSeconds(group, world)` | Seconds until timed membership expires |
-| `inWorld(world)` / `global()` | World-scoped view (`UserWorldContext`) |
+| `timedGroupMemberships([context])` / `allTimedGroupMemberships()` | Timed group memberships with remaining seconds |
+| `groupMembershipRemainingSeconds(group[, context])` | Seconds until timed membership expires |
+| `inContext(context)` / `global()` | Context-scoped view (`UserContext`) |
 
 | `Group` (additional) | Description |
 |----------------------|-------------|
 | `weight()` / `setWeight()` | Sort weight |
-| `isDefault(world)` / `setDefault(value, world)` | Default group flag |
-| `parents(world)` | Direct parent groups |
-| `parentTree(world)` | Expanded ancestor groups |
+| `isDefault([context])` / `setDefault(value[, context])` | Default group flag |
+| `parents([context])` | Direct parent groups |
+| `parentTree([context])` | Expanded ancestor groups |
 | `addParent` / `removeParent` / `setParents` | Inheritance CRUD |
-| `isChildOf(name, world, inherit)` | Hierarchy test |
+| `isChildOf(name[, context, inherit])` | Hierarchy test |
 | `rank()` / `rankLadder()` / `setRank(rank, ladder)` | Rank ladder metadata |
-| `memberIdentifiers(world)` / `members(world)` | Users in this group |
+| `memberIdentifiers([context])` / `members([context])` | Users in this group |
 | `activeMembers()` / `activeMembers(inherit)` | Online members |
-| `inWorld(world)` / `global()` | World-scoped view (`GroupWorldContext`) |
+| `inContext(context)` / `global()` | Context-scoped view (`GroupContext`) |
 
 #### World helpers & timed records
 
 | Type | Description |
 |------|-------------|
-| `Worlds.GLOBAL` | Global namespace (`null`); empty strings normalize to global |
-| `TimedPermissionEntry` | Record: permission, world, remainingSeconds |
-| `TimedGroupMembership` | Record: groupName, world, remainingSeconds |
-| `SubjectWorldContext` | World-scoped permission/meta view for any subject |
-| `UserWorldContext` | Adds group membership operations |
-| `GroupWorldContext` | Adds inheritance/default operations |
+| `PermissionContext` | Platform-neutral scope (`world`, `server`, etc.) |
+| `TimedPermissionEntry` | Record: permission, context, remainingSeconds |
+| `TimedGroupMembership` | Record: groupName, context, remainingSeconds |
+| `SubjectContext` | Context-scoped permission/meta view for any subject |
+| `UserContext` | Adds group membership operations |
+| `GroupContext` | Adds inheritance/default operations |
 
-`world` is `null` or empty for the global context (classic PEX `null` world). Prefer `user.inWorld("world_nether").addPermission("node")` for world-specific edits.
+Use `user.inContext(PermissionContext.world("world_nether")).addPermission("node")` for realm-specific edits.
 
 Sources: `api/src/main/java/dev/rono/permissions/api/subject/`, `api/src/main/java/dev/rono/permissions/api/world/`
 

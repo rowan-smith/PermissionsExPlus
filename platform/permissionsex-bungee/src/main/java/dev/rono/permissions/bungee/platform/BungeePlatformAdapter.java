@@ -1,5 +1,7 @@
 package dev.rono.permissions.bungee.platform;
 
+import dev.rono.permissions.api.runtime.BungeeContextResolver;
+import dev.rono.permissions.api.runtime.ContextResolver;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -14,6 +16,7 @@ import java.util.UUID;
 public final class BungeePlatformAdapter implements PlatformAdapter {
     private static final UUID PROXY_UUID =
             UUID.nameUUIDFromBytes("permissionsexplus-bungee".getBytes(StandardCharsets.UTF_8));
+    private static final ContextResolver CONTEXT_RESOLVER = new BungeeContextResolver();
 
     private final Plugin plugin;
 
@@ -64,5 +67,10 @@ public final class BungeePlatformAdapter implements PlatformAdapter {
     public boolean isOperator(UUID uuid) {
         ProxiedPlayer player = plugin.getProxy().getPlayer(uuid);
         return player != null && player.hasPermission("permissionsex.admin");
+    }
+
+    @Override
+    public ContextResolver getContextResolver() {
+        return CONTEXT_RESOLVER;
     }
 }

@@ -24,7 +24,7 @@ class ModernApiEventBusTest extends ModernApiTestSupport {
         });
 
         var user = api().getUserManager().createUser("bus-entity-user");
-        user.addPermission("bus.test", null);
+        user.addPermission("bus.test");
         user.save();
 
         assertTrue(count.get() > 0);
@@ -43,7 +43,7 @@ class ModernApiEventBusTest extends ModernApiTestSupport {
         api().getEventBus().unsubscribe(sub);
 
         var user = api().getUserManager().createUser("bus-unsub-user");
-        user.addPermission("bus.unsub", null);
+        user.addPermission("bus.unsub");
         user.save();
 
         assertEquals(0, count.get());
@@ -60,7 +60,7 @@ class ModernApiEventBusTest extends ModernApiTestSupport {
         });
 
         var user = api().getUserManager().createUser("bus-mutation-user");
-        user.addPermission("bus.mutation", null);
+        user.addPermission("bus.mutation");
         user.save();
 
         assertNotNull(mutation.get());

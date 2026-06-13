@@ -57,7 +57,7 @@ Modern API integration tests live in `common/permissionsex-core/src/test/java/de
 |-------|----------|
 | `ModernApiManagerLifecycleTest` | find/get/create/exists, exceptions, counts |
 | `ModernApiSubjectPermissionsTest` | permissions, negation, meta, timed grants |
-| `ModernApiWorldContextTest` | `inWorld` facades, global vs world scope |
+| `ModernApiWorldContextTest` | `inContext` facades, global vs realm scope |
 | `ModernApiGroupHierarchyTest` | membership graph, parent trees, identifiers |
 | `ModernApiHolderPermissionTest` | holder checks, `PermissionAddRequest` |
 | `ModernApiEventBusTest` | subscribe/unsubscribe, dispatches |

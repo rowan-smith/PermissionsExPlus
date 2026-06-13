@@ -1,5 +1,7 @@
 package dev.rono.permissions.spigot.platform;
 
+import dev.rono.permissions.api.runtime.BukkitContextResolver;
+import dev.rono.permissions.api.runtime.ContextResolver;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -11,6 +13,7 @@ import java.util.UUID;
  */
 public final class BukkitPlatformAdapter implements PlatformAdapter {
     private final SpigotPlatformBridge bridge;
+    private final ContextResolver contextResolver = new BukkitContextResolver();
 
     public BukkitPlatformAdapter(JavaPlugin plugin) {
         this.bridge = new SpigotPlatformBridge(plugin);
@@ -62,5 +65,10 @@ public final class BukkitPlatformAdapter implements PlatformAdapter {
     @Override
     public boolean isOperator(UUID uuid) {
         return bridge.isOperator(uuid);
+    }
+
+    @Override
+    public ContextResolver getContextResolver() {
+        return contextResolver;
     }
 }

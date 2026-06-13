@@ -1,10 +1,12 @@
 package dev.rono.permissions.core.api.pex;
 
 import dev.rono.permissions.api.permission.PermissionAddRequest;
+import dev.rono.permissions.api.permission.PermissionContext;
 import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.permission.PermissionNode;
 import dev.rono.permissions.api.permission.PermissionSource;
 import dev.rono.permissions.core.DefaultPermissionManager;
+import dev.rono.permissions.core.api.ContextPermissionEvaluator;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +43,7 @@ public final class HolderPermissionService {
 
     public PermissionNode addPermission(PermissionAddRequest request) {
         var entity = resolver.resolve(request.holder());
-        var world = resolver.worldContext(request.context());
+        var world = resolver.storageRealm(request.context());
         var expiresAt = request.expiresAt();
         if (expiresAt != null) {
             var seconds = (int) Math.max(1, expiresAt.getEpochSecond() - Instant.now().getEpochSecond());
@@ -53,7 +55,7 @@ public final class HolderPermissionService {
                 request.holder(),
                 request.permission(),
                 expiresAt,
-                request.context(),
+                request.contextMap(),
                 request.source());
     }
 
@@ -67,9 +69,12 @@ public final class HolderPermissionService {
     }
 
     public boolean hasPermission(PermissionHolder holder, String permission, Map<String, String> context) {
+        return hasPermission(holder, permission, PermissionContext.fromMap(context));
+    }
+
+    public boolean hasPermission(PermissionHolder holder, String permission, PermissionContext context) {
         var entity = resolver.resolve(holder);
-        var world = resolver.worldContext(context);
-        return entity.has(permission, world);
+        return ContextPermissionEvaluator.has(entity, permission, context, manager.getPlatform());
     }
 
     public List<PermissionNode> getPermissions(PermissionHolder holder) {

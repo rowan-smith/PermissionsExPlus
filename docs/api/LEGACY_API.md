@@ -328,7 +328,7 @@ Most hook plugins should **not** depend on backend types — use `PermissionMana
 |--------|--------|
 | `PermissionsEx.getPermissionManager()` | `PermissionsEx.getApi()` |
 | `getUser(...)` | `service.user(...)` |
-| `PermissionUser.addPermission` | `user.addPermission(...)` or `user.inWorld(w).addPermission(...)` |
+| `PermissionUser.addPermission` | `user.addPermission(...)` or `user.inContext(PermissionContext.world(w)).addPermission(...)` |
 | `getWorldInheritance` | `service.worldInheritance(...)` |
 | `PermissionEntityEvent` | Still use legacy events on Spigot until [modern event bus](FUTURE.md) exists |
 

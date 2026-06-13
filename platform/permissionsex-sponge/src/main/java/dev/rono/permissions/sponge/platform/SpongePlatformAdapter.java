@@ -1,6 +1,8 @@
 package dev.rono.permissions.sponge.platform;
 
+import dev.rono.permissions.api.runtime.ContextResolver;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.api.runtime.SpongeContextResolver;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
@@ -12,6 +14,7 @@ import java.util.stream.Collectors;
 public final class SpongePlatformAdapter implements PlatformAdapter {
     private static final UUID SERVER_UUID =
             UUID.nameUUIDFromBytes("permissionsexplus-sponge".getBytes(StandardCharsets.UTF_8));
+    private static final ContextResolver CONTEXT_RESOLVER = new SpongeContextResolver();
 
     private final Server server;
 
@@ -62,5 +65,10 @@ public final class SpongePlatformAdapter implements PlatformAdapter {
     @Override
     public boolean isOperator(UUID uuid) {
         return server.player(uuid).map(p -> p.hasPermission("permissionsex.admin")).orElse(false);
+    }
+
+    @Override
+    public ContextResolver getContextResolver() {
+        return CONTEXT_RESOLVER;
     }
 }

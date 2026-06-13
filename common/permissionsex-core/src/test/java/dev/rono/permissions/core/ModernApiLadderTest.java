@@ -18,7 +18,7 @@ class ModernApiLadderTest extends ModernApiTestSupport {
         admin.save();
 
         var user = api().getUserManager().createUser("ladder-move-user");
-        user.addGroup("ladder-mod", null);
+        user.addGroup("ladder-mod");
         user.save();
 
         var ladders = api().getLadderManager();
@@ -36,7 +36,7 @@ class ModernApiLadderTest extends ModernApiTestSupport {
         top.setRank(1, "top-ladder");
         top.save();
         var user = api().getUserManager().createUser("ladder-top-user");
-        user.addGroup("ladder-top", null);
+        user.addGroup("ladder-top");
         user.save();
 
         assertThrows(RankingException.class, () -> api().getLadderManager().promote(user, "top-ladder"));

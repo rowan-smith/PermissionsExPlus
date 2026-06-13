@@ -9,8 +9,8 @@ Policy: **legacy `ru.tehkode.*` stays frozen**. New capabilities belong under `d
 | Feature | API |
 |---------|-----|
 | Modern event bus | `pex.events()` → `PermissionEventBus` |
-| Player checks (Bukkit) | `getPermissionManager().has(player, "node")` or `User.inWorld()` / holder context |
-| Global permission checks | `pex.user(id).hasPermission("node")` |
+| Player checks (Bukkit) | `getPermissionManager().has(player, "node")` or `User.inContext(...)` / holder context |
+| Global permission checks | `pex.user(id).has("node")` |
 | Promote / demote | `User.promote` / `User.demote` (+ `RankingException`) |
 | Backend admin | `pex.backend().activate`, `createHandle`, `importFrom` |
 | Import / export | `pex.backend().exportData`, `importData(document, ImportMode)` |

@@ -1,6 +1,5 @@
 package dev.rono.permissions.core;
 
-import dev.rono.permissions.api.world.Worlds;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,12 +12,12 @@ class ModernApiSubjectPermissionsTest extends ModernApiTestSupport {
     @Test
     void directAndEffectivePermissions() {
         var group = api().getGroupManager().createGroup("perm-parent");
-        group.addPermission("parent.node", Worlds.GLOBAL);
+        group.addPermission("parent.node");
         group.save();
 
         var user = api().getUserManager().createUser("perm-user");
-        user.addPermission("user.node", Worlds.GLOBAL);
-        user.addGroup(group.getName(), Worlds.GLOBAL);
+        user.addPermission("user.node");
+        user.addGroup(group.getName());
         user.save();
 
         assertTrue(user.permissions().contains("user.node"));
@@ -30,19 +29,19 @@ class ModernApiSubjectPermissionsTest extends ModernApiTestSupport {
     @Test
     void negatedPermissionBlocksGrant() {
         var user = api().getUserManager().createUser("neg-user");
-        user.addPermission("allowed.node", Worlds.GLOBAL);
-        user.addPermission("-allowed.node", Worlds.GLOBAL);
+        user.addPermission("allowed.node");
+        user.addPermission("-allowed.node");
         user.save();
 
-        assertFalse(user.hasPermission("allowed.node"));
+        assertFalse(user.has("allowed.node"));
     }
 
     @Test
     void optionsPrefixSuffix() {
         var user = api().getUserManager().createUser("meta-user");
-        user.setOption("custom", "value", Worlds.GLOBAL);
-        user.setPrefix("[P]", Worlds.GLOBAL);
-        user.setSuffix("[S]", Worlds.GLOBAL);
+        user.setOption("custom", "value");
+        user.setPrefix("[P]");
+        user.setSuffix("[S]");
         user.save();
 
         assertEquals("value", user.option("custom"));
@@ -54,20 +53,20 @@ class ModernApiSubjectPermissionsTest extends ModernApiTestSupport {
     @Test
     void setPermissionsReplacesDirectAssignments() {
         var user = api().getUserManager().createUser("set-perms-user");
-        user.addPermission("a", Worlds.GLOBAL);
-        user.addPermission("b", Worlds.GLOBAL);
-        user.setPermissions(List.of("c"), Worlds.GLOBAL);
+        user.addPermission("a");
+        user.addPermission("b");
+        user.setPermissions(List.of("c"));
         user.save();
 
         assertEquals(List.of("c"), user.permissions());
-        assertTrue(user.hasPermission("c"));
-        assertFalse(user.hasPermission("a"));
+        assertTrue(user.has("c"));
+        assertFalse(user.has("a"));
     }
 
     @Test
     void timedPermissionMetadata() {
         var user = api().getUserManager().createUser("timed-perm-user");
-        user.addTimedPermission("temp.node", Worlds.GLOBAL, 300);
+        user.addTimedPermission("temp.node", 300);
         user.save();
 
         assertTrue(user.hasTimedPermission("temp.node"));
@@ -77,22 +76,22 @@ class ModernApiSubjectPermissionsTest extends ModernApiTestSupport {
     }
 
     @Test
-    void permissionsByWorldMapsAreSnapshots() {
+    void permissionsByRealmMapsAreSnapshots() {
         var user = api().getUserManager().createUser("map-user");
-        user.inWorld("arena").addPermission("arena.node");
+        user.inContext(dev.rono.permissions.api.permission.PermissionContext.world("arena")).addPermission("arena.node");
         user.save();
 
-        var map = user.permissionsByWorld();
+        var map = user.permissionsByRealm();
         assertTrue(map.containsKey("arena"));
         assertThrows(UnsupportedOperationException.class, () -> map.put("x", List.of()));
-        assertTrue(user.permissionsByWorld().containsKey("arena"));
+        assertTrue(user.permissionsByRealm().containsKey("arena"));
     }
 
     @Test
     void subjectIdentityFields() {
         var id = java.util.UUID.randomUUID();
         var user = api().getUserManager().createUser(id);
-        user.setOption("name", "identity-name", Worlds.GLOBAL);
+        user.setOption("name", "identity-name");
         user.save();
 
         assertEquals(id, user.getId());

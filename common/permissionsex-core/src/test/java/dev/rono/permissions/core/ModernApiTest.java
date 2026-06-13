@@ -4,7 +4,6 @@ import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.permission.PermissionAddRequest;
 import dev.rono.permissions.api.permission.PermissionContext;
 import dev.rono.permissions.api.user.User;
-import dev.rono.permissions.api.world.Worlds;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -19,38 +18,38 @@ class ModernApiTest extends ModernApiTestSupport {
   void userAndGroupCrudViaManagers() {
     manager.getGroup("default");
     var defaultGroup = api().getGroupManager().getGroup("default");
-    defaultGroup.addPermission("modern.group", null);
+    defaultGroup.addPermission("modern.group");
 
     var user = api().getUserManager().createUser("modern-api-user");
-    user.addPermission("modern.test", null);
-    user.addGroup("default", null);
+    user.addPermission("modern.test");
+    user.addGroup("default");
     user.save();
 
     assertTrue(api().getUserManager().findUser("modern-api-user").isPresent());
-    assertTrue(user.hasPermission("modern.test"));
-    assertTrue(user.inGroup("default", null, false));
-    assertTrue(defaultGroup.permissions(null).contains("modern.group"));
+    assertTrue(user.has("modern.test"));
+    assertTrue(user.inGroup("default", PermissionContext.global(), false));
+    assertTrue(defaultGroup.permissions().contains("modern.group"));
 
-    user.removePermission("modern.test", null);
-    user.removeGroup("default", null);
+    user.removePermission("modern.test");
+    user.removeGroup("default");
     user.delete();
-    assertTrue(user.permissions(null).isEmpty());
+    assertTrue(user.permissions().isEmpty());
   }
 
   @Test
   void globalVsWorldPermissions() {
     var user = api().getUserManager().createUser("world-perms-user");
 
-    user.inWorld("world").addPermission("world.node");
-    user.inWorld("world").addTimedPermission("world.temp", 120);
+    user.inContext(PermissionContext.world("world")).addPermission("world.node");
+    user.inContext(PermissionContext.world("world")).addTimedPermission("world.temp", 120);
     user.save();
 
-    assertTrue(user.permissionsByWorld().containsKey("world"));
-    assertTrue(user.inWorld("world").hasPermission("world.node"));
-    assertFalse(user.inWorld("other").hasPermission("world.node"));
-    assertFalse(user.hasPermission("world.node"));
+    assertTrue(user.permissionsByRealm().containsKey("world"));
+    assertTrue(user.inContext(PermissionContext.world("world")).has("world.node"));
+    assertFalse(user.inContext(PermissionContext.world("other")).has("world.node"));
+    assertFalse(user.has("world.node"));
 
-    var timed = user.timedPermissionEntries("world");
+    var timed = user.timedPermissionEntries(PermissionContext.world("world"));
     assertEquals(1, timed.size());
     assertEquals("world.temp", timed.get(0).permission());
 
@@ -62,9 +61,9 @@ class ModernApiTest extends ModernApiTestSupport {
   void timedGroupMembershipMetadata() {
     api().getGroupManager().createGroup("timed-group");
     var user = api().getUserManager().createUser("timed-group-user");
-    user.addGroup("timed-group", null, 90);
+    user.addGroup("timed-group", PermissionContext.global(), 90);
 
-    var memberships = user.timedGroupMemberships(null);
+    var memberships = user.timedGroupMemberships();
     assertEquals(1, memberships.size());
     assertEquals("timed-group", memberships.get(0).groupName());
   }
@@ -73,7 +72,7 @@ class ModernApiTest extends ModernApiTestSupport {
   void findUserByUuidWhenPersisted() {
     var id = UUID.randomUUID();
     var user = api().getUserManager().createUser(id);
-    user.setOption("name", "uuid-user", null);
+    user.setOption("name", "uuid-user");
     user.save();
 
     var found = api().getUserManager().findUser(id);
@@ -86,27 +85,27 @@ class ModernApiTest extends ModernApiTestSupport {
   @Test
   void findUserGetHasPermission() {
     var user = api().getUserManager().createUser("find-get-user");
-    user.addPermission("find.get.node", null);
+    user.addPermission("find.get.node");
     user.save();
 
-    assertTrue(api().getUserManager().getUser("find-get-user").hasPermission("find.get.node"));
+    assertTrue(api().getUserManager().getUser("find-get-user").has("find.get.node"));
 
     user.delete();
   }
 
   @Test
-  void permissionContextResolveWorld() {
-    assertNull(PermissionContext.resolveWorld(null));
-    assertNull(PermissionContext.resolveWorld(PermissionContext.global()));
-    assertEquals("survival", PermissionContext.resolveWorld(PermissionContext.of("survival", null, null, null)));
-    assertEquals("proxy-1", PermissionContext.resolveWorld(Map.of(PermissionContext.SERVER, "proxy-1")));
+  void permissionContextStorageRealm() {
+    var resolver = new dev.rono.permissions.api.runtime.BukkitContextResolver();
+    assertTrue(resolver.storageRealm(PermissionContext.global()).isEmpty());
+    assertEquals("survival", resolver.storageRealm(PermissionContext.of("survival", null, null, null)).orElseThrow());
+    assertEquals("proxy-1", resolver.storageRealm(PermissionContext.server("proxy-1")).orElseThrow());
   }
 
   @Test
   void groupMembers() {
     var group = api().getGroupManager().createGroup("member-group");
     var user = api().getUserManager().createUser("member-user");
-    user.addGroup("member-group", Worlds.GLOBAL);
+    user.addGroup("member-group");
     user.save();
 
     assertTrue(group.memberIdentifiers().contains(user.identifier()));
@@ -118,7 +117,7 @@ class ModernApiTest extends ModernApiTestSupport {
   void groupChildIdentifiers() {
     var parent = api().getGroupManager().createGroup("parent-id-group");
     var child = api().getGroupManager().createGroup("child-id-group");
-    child.addParent(parent.getName(), Worlds.GLOBAL);
+    child.addParent(parent.getName());
     child.save();
 
     assertTrue(parent.childIdentifiers().contains(child.getName()));
@@ -136,7 +135,7 @@ class ModernApiTest extends ModernApiTestSupport {
       }
     });
     var user = api().getUserManager().createUser("event-bus-user");
-    user.addPermission("event.test", null);
+    user.addPermission("event.test");
     user.save();
     assertTrue(received.get() > 0);
     api().getEventBus().unsubscribe(subscription);
@@ -146,7 +145,7 @@ class ModernApiTest extends ModernApiTestSupport {
   void groupChildrenAndReload() throws Exception {
     api().getGroupManager().createGroup("parent-group");
     var child = api().getGroupManager().createGroup("child-group");
-    child.addParent("parent-group", null);
+    child.addParent("parent-group");
     child.save();
     var parent = api().getGroupManager().getGroup("parent-group");
     assertFalse(parent.children().isEmpty());
@@ -163,7 +162,7 @@ class ModernApiTest extends ModernApiTestSupport {
     admin.setRank(1, "default");
     admin.save();
     var user = api().getUserManager().createUser("rank-user");
-    user.addGroup("mod", null);
+    user.addGroup("mod");
     user.save();
 
     var ladders = api().getLadderManager();

@@ -45,7 +45,7 @@ public class ExamplePlugin extends JavaPlugin implements Listener {
 
         var context = PermissionContext.of(worldName, getServer().getName(), "spawn", player.getGameMode().name());
         var allowed = permissions.hasPermission(user.asHolder(), "my.node", context);
-        var worldContext = user.inWorld(worldName);
+        var worldContext = user.inContext(PermissionContext.world(worldName));
         var displayName = worldContext.option("name");
 
         if (displayName == null) {
