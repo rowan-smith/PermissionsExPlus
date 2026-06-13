@@ -8,6 +8,7 @@ import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const VARS_PATH = path.join(ROOT, 'site-vars.json');
+const CNAME_PATH = path.join(ROOT, 'static', 'CNAME');
 const PACKAGE_PATH = path.join(ROOT, 'package.json');
 const POM_PATH = path.join(ROOT, 'pom.xml');
 
@@ -60,6 +61,10 @@ const vars = {
 
 fs.writeFileSync(VARS_PATH, `${JSON.stringify(vars, null, 2)}\n`);
 
+const cname = new URL(vars.siteUrl).hostname;
+fs.mkdirSync(path.dirname(CNAME_PATH), {recursive: true});
+fs.writeFileSync(CNAME_PATH, `${cname}\n`);
+
 if (pomVersion) {
   const pkg = JSON.parse(fs.readFileSync(PACKAGE_PATH, 'utf8'));
   if (pkg.version !== pomVersion) {
@@ -68,6 +73,8 @@ if (pomVersion) {
     console.log(`Synced package.json version → ${pomVersion}`);
   }
   console.log(`Synced site-vars.json from pom.xml → ${pomVersion}`);
+  console.log(`Synced static/CNAME → ${cname}`);
 } else {
   console.log(`Synced site-vars.json from package.json → ${version}`);
+  console.log(`Synced static/CNAME → ${cname}`);
 }

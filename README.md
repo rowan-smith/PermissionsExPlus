@@ -2,7 +2,7 @@
 
 PermissionsExPlus is a maintained fork of the original PermissionsEx (PEX) plugin for Bukkit/Spigot servers.
 
-**Documentation website:** [permissionsexplus.github.io](https://permissionsexplus.github.io/) (built from this branch with Docusaurus).
+**Documentation website:** [permissionsexplus.rono.dev](https://permissionsexplus.rono.dev/) (built from this branch with Docusaurus).
 
 ## Documentation site development
 
@@ -60,19 +60,19 @@ Output: `bootstrap/target/PermissionsExPlus-{version}.jar`
 
 ## Project layout
 
-Maven reactor groups: `legacy-api`, `api`, `common`, `platform`, `bootstrap`, `plugin`. See the [Architecture](https://permissionsexplus.github.io/developers/architecture) page for module details.
+Maven reactor groups: `legacy-api`, `api`, `common`, `platform`, `bootstrap`, `plugin`. See the [Architecture](https://permissionsexplus.rono.dev/developers/architecture) page for module details.
 
 ## Hook plugin development
 
 | API | Docs |
 |-----|------|
-| Modern (`dev.rono.permissions.api`) | [Modern API](https://permissionsexplus.github.io/developers/api/modern) |
-| Legacy (`ru.tehkode.permissions`) | [Legacy API](https://permissionsexplus.github.io/developers/api/legacy) |
-| Overview | [Hook Plugin API](https://permissionsexplus.github.io/developers/api) |
+| Modern (`dev.rono.permissions.api`) | [Modern API](https://permissionsexplus.rono.dev/developers/api/modern) |
+| Legacy (`ru.tehkode.permissions`) | [Legacy API](https://permissionsexplus.rono.dev/developers/api/legacy) |
+| Overview | [Hook Plugin API](https://permissionsexplus.rono.dev/developers/api) |
 
 ## Contributing
 
-Contributions are welcome. See [Contributing](https://permissionsexplus.github.io/developers/contributing) on the docs site, or open an issue / pull request on GitHub.
+Contributions are welcome. See [Contributing](https://permissionsexplus.rono.dev/developers/contributing) on the docs site, or open an issue / pull request on GitHub.
 
 ## License
 

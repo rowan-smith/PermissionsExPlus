@@ -1,6 +1,6 @@
 # PermissionsExPlus bootstrap (merged jar)
 
-See the [Universal Bootstrap Jar](https://github.com/%%site.repo%%/blob/gh-pages/docs/developers/bootstrap.md) documentation on the project website.
+See the [Universal Bootstrap Jar](https://permissionsexplus.rono.dev/developers/bootstrap) documentation on the project website.
 
 Build from repo root:
 
