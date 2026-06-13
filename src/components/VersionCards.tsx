@@ -22,9 +22,9 @@ export default function VersionCards({type}: Props): JSX.Element {
       description: 'Staff ranks, VIP, survival — copy-paste recipes',
     },
     {
-      href: '/commands/general',
+      href: '/commands',
       label: 'Command Reference',
-      description: 'Full /pex command documentation',
+      description: 'Search and browse every /pex command',
     },
     {
       href: '/developers/cookbook',

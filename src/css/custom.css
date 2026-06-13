@@ -57,6 +57,26 @@
 .navbar__title {
   font-weight: 700;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.navbar__brand {
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.navbar__items--left {
+  flex-wrap: nowrap;
+  gap: 0.1rem;
+}
+
+.navbar__items--right {
+  flex-shrink: 0;
+  gap: 0.15rem;
+}
+
+.navbar__item {
+  flex-shrink: 0;
 }
 
 .navbar__logo {

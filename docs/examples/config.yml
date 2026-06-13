@@ -1,0 +1,17 @@
+# PermissionsExPlus — starter config.yml (place in plugins/PermissionsEx/config.yml)
+
+permissions:
+  debug: false
+  allowOps: false
+  user-add-groups-last: false
+  log-players: true
+  createUserRecords: true
+  save-default-group: true
+  backend: file
+  basedir: plugins/PermissionsEx
+  informplayers:
+    changes: false
+  backends:
+    file:
+      type: file
+      file: permissions.yml

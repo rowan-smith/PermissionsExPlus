@@ -1,0 +1,8 @@
+name: ExamplePlugin
+main: dev.rono.permissions.example.ExamplePlugin
+version: "${project.version}"
+api-version: '1.21'
+authors: [Rono]
+description: Modern dev.rono.permissions.api usage (PermissionService, User, Group).
+depend:
+  - PermissionsEx

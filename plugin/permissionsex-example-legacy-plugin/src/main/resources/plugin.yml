@@ -1,0 +1,8 @@
+name: ExampleLegacyPlugin
+main: dev.rono.proxychat.exampleLegacyPlugin.ExampleLegacyPlugin
+version: "${project.version}"
+api-version: '1.21'
+authors: [Rono]
+description: Classic ru.tehkode.permissions API usage (PermissionsEx, PermissionUser) and legacy PEX events.
+depend:
+  - PermissionsEx

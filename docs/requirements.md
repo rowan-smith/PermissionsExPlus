@@ -31,7 +31,7 @@ Most modern Paper/Spigot hosts ship with Java 21+. If your host runs an older JV
 
 Target range: **1.8.8 through 1.26.1**.
 
-PEX is tested against current Spigot/Paper APIs. Always verify on your exact server version before going live.
+PEX is tested against current Spigot/Paper APIs. Always verify on your exact server version before going live. See [Platform Compatibility](/developers/compatibility) for JVM, proxy, and legacy hook plugin notes.
 
 ## Disk space
 

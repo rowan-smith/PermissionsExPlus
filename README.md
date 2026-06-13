@@ -1,8 +1,10 @@
-# PermissionsExPlus documentation site
+# PermissionsExPlus
 
-This branch hosts the public documentation for [PermissionsExPlus](https://github.com/rowan-smith/PermissionsExPlus), built with [Docusaurus](https://docusaurus.io/).
+PermissionsExPlus is a maintained fork of the original PermissionsEx (PEX) plugin for Bukkit/Spigot servers.
 
-## Development
+**Documentation website:** [permissionsexplus.rono.dev](https://permissionsexplus.rono.dev/) (built from this branch with Docusaurus).
+
+## Documentation site development
 
 ```bash
 npm install
@@ -17,7 +19,7 @@ Site variables (`version`, `repo`, `siteUrl`) live in `site-vars.json`, generate
 npm run sync-site-vars
 ```
 
-When `pom.xml` is present (after merging into `main`), the script reads `${project.version}` from Maven automatically. Otherwise it falls back to `package.json`.
+When `pom.xml` is present, the script reads `${project.version}` from Maven automatically. Otherwise it falls back to `package.json`.
 
 Docs can use Maven-style placeholders — replaced at build time:
 
@@ -25,25 +27,14 @@ Docs can use Maven-style placeholders — replaced at build time:
 - `%%site.repo%%` — GitHub repo slug
 - `%%site.baseurl%%` — site base URL (usually `/`)
 
-Note: avoid `@site.*` in MDX files — Docusaurus reserves the `@site` alias.
-
-MDX components (`<Version />`, `<Repo />`, `<JarName />`) are also available globally.
-
-Generated data (refreshed on `npm run build:data`):
-
-- `src/data/commands.json` — command search index (from `docs/commands/`)
-- `src/data/releases.json` — changelog entries (from GitHub Releases API)
-
-## Production build
+Production build:
 
 ```bash
 npm run build
 npm run serve
 ```
 
-The static site is written to `build/`.
-
-## Project layout
+The static site is written to `build/`. Pushes to `gh-pages` trigger `.github/workflows/deploy-docs.yml`.
 
 | Path | Purpose |
 |------|---------|
@@ -53,15 +44,36 @@ The static site is written to `build/`.
 | `docusaurus.config.ts` | Site configuration |
 | `sidebars.ts` | Sidebar navigation |
 
-## Deployment
-
-Pushes to `gh-pages` trigger the GitHub Actions workflow in `.github/workflows/deploy-docs.yml`, which builds and deploys to GitHub Pages.
-
-## Javadoc
-
-Versioned API docs live under `static/apidocs/`. Regenerate with:
+## Build from source
 
 ```bash
-mvn -pl api/permissionsex-api,legacy-api/permissionsex-legacy-api javadoc:javadoc -am -Ddoclint=none
-./scripts/build-classic-javadoc.sh STABLE-1.23.4 1.23.4
+mvn clean package
 ```
+
+Universal jar:
+
+```bash
+mvn clean package -pl bootstrap -am
+```
+
+Output: `bootstrap/target/PermissionsExPlus-{version}.jar`
+
+## Project layout
+
+Maven reactor groups: `legacy-api`, `api`, `common`, `platform`, `bootstrap`, `plugin`. See the [Architecture](https://permissionsexplus.rono.dev/developers/architecture) page for module details.
+
+## Hook plugin development
+
+| API | Docs |
+|-----|------|
+| Modern (`dev.rono.permissions.api`) | [Modern API](https://permissionsexplus.rono.dev/developers/api/modern) |
+| Legacy (`ru.tehkode.permissions`) | [Legacy API](https://permissionsexplus.rono.dev/developers/api/legacy) |
+| Overview | [Hook Plugin API](https://permissionsexplus.rono.dev/developers/api) |
+
+## Contributing
+
+Contributions are welcome. See [Contributing](https://permissionsexplus.rono.dev/developers/contributing) on the docs site, or open an issue / pull request on GitHub.
+
+## License
+
+PermissionsExPlus is licensed under the GNU General Public License v2.0 or later. See [LICENSE](LICENSE).

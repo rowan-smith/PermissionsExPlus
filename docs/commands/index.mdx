@@ -1,0 +1,33 @@
+---
+title: Commands
+description: Search and browse every /pex command.
+slug: /commands
+---
+
+import CommandSearch from '@site/src/components/CommandSearch';
+import CommandIndex from '@site/src/components/CommandIndex';
+
+Search or browse every `/pex` command. All commands require `permissions.*` or `*` unless noted otherwise.
+
+<CommandSearch />
+
+## Browse by category {#browse-by-category}
+
+<CommandIndex />
+
+## Standalone shortcuts
+
+These work without the `/pex` prefix:
+
+```text
+/promote <user> [ladder]
+/demote <user> [ladder]
+```
+
+See [Rank commands](/commands/ranks) for ladder details.
+
+## Related
+
+- [Common Setups](/guides/recipes) — copy-paste permission recipes
+- [Configuration](/configuration) — `config.yml` and `permissions.yml`
+- [Troubleshooting](/guides/troubleshooting) — when commands do not behave as expected

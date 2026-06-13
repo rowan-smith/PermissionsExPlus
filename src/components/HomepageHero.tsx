@@ -25,7 +25,7 @@ export default function HomepageHero(): JSX.Element {
             rel="noopener noreferrer">
             Download {siteVars.jarName}
           </a>
-          <Link className={styles.secondary} to="/commands/general">
+          <Link className={styles.secondary} to="/commands">
             Command reference
           </Link>
           <Link className={styles.ghost} to="/developers/cookbook">

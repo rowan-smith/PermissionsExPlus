@@ -94,7 +94,7 @@ const config: Config = {
     ],
     image: 'img/pex-social-card.png',
     navbar: {
-      title: 'PermissionsExPlus',
+      title: 'PEX+',
       logo: {
         alt: 'PermissionsExPlus',
         src: 'img/pex-logo.svg',
@@ -115,19 +115,7 @@ const config: Config = {
             {type: 'doc', docId: 'concepts/meta', label: 'Prefix & Meta'},
           ],
         },
-        {
-          type: 'dropdown',
-          label: 'Commands',
-          position: 'left',
-          items: [
-            {type: 'doc', docId: 'commands/general', label: 'General'},
-            {type: 'doc', docId: 'commands/users', label: 'Users'},
-            {type: 'doc', docId: 'commands/groups', label: 'Groups'},
-            {type: 'doc', docId: 'commands/permissions', label: 'Permissions'},
-            {type: 'doc', docId: 'commands/worlds', label: 'Worlds'},
-            {type: 'doc', docId: 'commands/ranks', label: 'Ranks'},
-          ],
-        },
+        {type: 'doc', docId: 'commands/index', label: 'Commands', position: 'left'},
         {
           type: 'dropdown',
           label: 'Configuration',
@@ -156,6 +144,10 @@ const config: Config = {
           items: [
             {type: 'doc', docId: 'developers/index', label: 'Developer Overview'},
             {type: 'doc', docId: 'developers/cookbook', label: 'API Cookbook'},
+            {type: 'doc', docId: 'developers/api/index', label: 'Hook Plugin API'},
+            {type: 'doc', docId: 'developers/api/modern', label: 'Modern API Reference'},
+            {type: 'doc', docId: 'developers/api/legacy', label: 'Legacy API Reference'},
+            {type: 'doc', docId: 'developers/architecture', label: 'Architecture'},
             {type: 'doc', docId: 'developers/reference', label: 'Javadoc Hub'},
             {type: 'doc', docId: 'developers/contributing', label: 'Contributing'},
             {type: 'html', value: '<hr style="margin:0.35rem 0;border-color:var(--ifm-color-emphasis-200)">'},
@@ -220,9 +212,11 @@ const config: Config = {
         {
           title: 'Reference',
           items: [
-            {label: 'Commands', to: '/commands/general'},
+            {label: 'Commands', to: '/commands'},
             {label: 'Configuration', to: '/configuration'},
             {label: 'API Cookbook', to: '/developers/cookbook'},
+            {label: 'Hook Plugin API', to: '/developers/api'},
+            {label: 'Architecture', to: '/developers/architecture'},
             {label: 'Javadoc', to: '/developers/reference'},
           ],
         },

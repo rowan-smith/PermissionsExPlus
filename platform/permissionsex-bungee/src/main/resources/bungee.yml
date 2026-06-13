@@ -1,0 +1,12 @@
+name: PermissionsEx
+main: dev.rono.permissions.bungee.BungeePermissionsExPlugin
+version: ${project.version}
+author: PermissionsExPlus
+description: PermissionsEx Bungee adapter
+commands:
+  pex:
+    description: PermissionsEx command root
+  promote:
+    description: Promote a user on a ladder
+  demote:
+    description: Demote a user on a ladder

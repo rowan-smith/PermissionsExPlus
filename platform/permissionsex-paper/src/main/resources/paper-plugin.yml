@@ -1,0 +1,7 @@
+name: PermissionsEx
+version: "${project.version}"
+main: dev.rono.permissions.paper.PaperPermissionsExPlugin
+api-version: "1.21"
+author: [t3hk0d3, zml, Rono]
+website: http://dev.bukkit.org/server-mods/permissionsex
+description: PermissionsExPlus - Paper runtime entry (extends generic Spigot adapter).

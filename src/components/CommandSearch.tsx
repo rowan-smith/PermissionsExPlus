@@ -53,10 +53,8 @@ export default function CommandSearch(): JSX.Element {
       <div className={styles.header}>
         <h2 className={styles.title}>Find a command</h2>
         <p className={styles.hint}>
-          Search <code>/pex</code> commands — or press{' '}
-          <kbd className={styles.kbd}>/</kbd> to focus. Use{' '}
-          <kbd className={styles.kbd}>Ctrl</kbd>+<kbd className={styles.kbd}>K</kbd> for full
-          site search.
+          Search <code>/pex</code> commands — press <kbd className={styles.kbd}>/</kbd> to focus
+          this field.
         </p>
       </div>
       <div className={styles.inputRow}>
@@ -87,8 +85,8 @@ export default function CommandSearch(): JSX.Element {
         <ul className={styles.results}>
           {results.length === 0 ? (
             <li className={styles.empty}>
-              No commands matched. Try{' '}
-              <Link to="/commands/general">browse all commands</Link>.
+              No commands matched. Try a different keyword or{' '}
+              <Link to="/commands#browse-by-category">browse by category</Link>.
             </li>
           ) : (
             results.map((entry) => (

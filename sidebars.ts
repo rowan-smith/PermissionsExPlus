@@ -18,14 +18,9 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Configuration',
-      collapsed: false,
-      items: ['configuration', 'storage'],
-    },
-    {
-      type: 'category',
       label: 'Commands',
       collapsed: false,
+      link: {type: 'doc', id: 'commands/index'},
       items: [
         'commands/general',
         'commands/users',
@@ -34,6 +29,12 @@ const sidebars: SidebarsConfig = {
         'commands/worlds',
         'commands/ranks',
       ],
+    },
+    {
+      type: 'category',
+      label: 'Configuration',
+      collapsed: false,
+      items: ['configuration', 'storage'],
     },
     {
       type: 'category',
@@ -55,6 +56,22 @@ const sidebars: SidebarsConfig = {
         'developers/index',
         'developers/cookbook',
         'developers/reference',
+        {
+          type: 'category',
+          label: 'API Reference',
+          collapsed: false,
+          items: [
+            'developers/api/index',
+            'developers/api/modern',
+            'developers/api/legacy',
+            'developers/api/invariants',
+            'developers/api/future',
+          ],
+        },
+        'developers/architecture',
+        'developers/compatibility',
+        'developers/bootstrap',
+        'developers/testing-matrix',
         'developers/contributing',
       ],
     },

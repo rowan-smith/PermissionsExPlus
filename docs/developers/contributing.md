@@ -32,11 +32,15 @@ mvn clean package -pl bootstrap -am
 
 Output: `bootstrap/target/PermissionsExPlus-%%site.version%%.jar`
 
+See [Universal Bootstrap Jar](/developers/bootstrap) for install and routing details.
+
 ## Run tests
 
 ```bash
 mvn test
 ```
+
+Pre-release verification: [Real-Server Test Matrix](/developers/testing-matrix).
 
 ## Submit a pull request
 
