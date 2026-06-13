@@ -23,7 +23,7 @@ abstract class AbstractModernPexCloudCommand<C> {
     }
 
     protected final String realm(C sender, PexCommandFlags flags) {
-        return ModernCommandSupport.storageRealm(ctx, sender, flags);
+        return ModernCommandSupport.storageRealm(ctx, sender, flags == null ? PexCommandFlags.EMPTY : flags);
     }
 
     protected final void replyError(C sender, Exception ex) {
