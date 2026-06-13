@@ -4,20 +4,26 @@ description: Install PermissionsExPlus and set up permissions on your Minecraft 
 slug: /
 ---
 
+import HomepageHero from '@site/src/components/HomepageHero';
+import CommandSearch from '@site/src/components/CommandSearch';
 import VersionCards from '@site/src/components/VersionCards';
 
-PermissionsExPlus (PEX) is a permissions plugin for Minecraft servers. It controls **who can do what** by assigning **permissions** to **users** and **groups**.
+<HomepageHero />
+
+<CommandSearch />
+
+## Quick links
 
 <VersionCards type="home" />
 
 ## Install in 4 steps
 
-1. Download **`PermissionsExPlus-1.23.5.jar`** from [GitHub Releases](https://github.com/rowan-smith/PermissionsExPlus/releases).
+1. Download **`PermissionsExPlus-%%site.version%%.jar`** from [GitHub Releases](https://github.com/%%site.repo%%/releases).
 2. Remove any old PermissionsEx jars from `plugins/`.
 3. Copy the jar into `plugins/` and restart the server.
 4. Run `/pex` in-game — you should see the help menu.
 
-See [Requirements](/requirements/) for Java and platform details.
+See [Requirements](/requirements) for Java and platform details.
 
 ## Your first permissions
 
@@ -47,24 +53,24 @@ See [Requirements](/requirements/) for Java and platform details.
 
 | Concept | Summary | Learn more |
 |---------|---------|------------|
-| **Groups** | Bundles of permissions (admin, vip, default) | [Group commands](/commands/groups/) |
-| **Inheritance** | Groups inherit permissions from parent groups | [Inheritance](/concepts/inheritance/) |
-| **Context** | Different permissions per world | [Context](/concepts/context/) |
-| **Weight** | Which group's prefix wins in chat | [Weight](/concepts/weight/) |
+| **Groups** | Bundles of permissions (admin, vip, default) | [Group commands](/commands/groups) |
+| **Inheritance** | Groups inherit permissions from parent groups | [Inheritance](/concepts/inheritance) |
+| **Context** | Different permissions per world | [Context](/concepts/context) |
+| **Weight** | Which group's prefix wins in chat | [Weight](/concepts/weight) |
 
 ## Documentation map
 
 | I want to… | Go to |
 |------------|-------|
-| Set up a staff hierarchy | [Common Setups](/guides/recipes/) |
-| Learn every command | [Commands](/commands/general/) |
-| Edit config files | [Configuration](/configuration/) |
-| Fix something broken | [Troubleshooting](/guides/troubleshooting/) |
-| Integrate my plugin | [API Cookbook](/developers/cookbook/) |
-| Browse API classes | [Javadoc](/developers/reference/) |
+| Set up a staff hierarchy | [Common Setups](/guides/recipes) |
+| Learn every command | [Commands](/commands/general) |
+| Edit config files | [Configuration](/configuration) |
+| Fix something broken | [Troubleshooting](/guides/troubleshooting) |
+| Integrate my plugin | [API Cookbook](/developers/cookbook) |
+| Browse API classes | [Javadoc](/developers/reference) |
 
 ## Get help
 
-- [GitHub Issues](https://github.com/rowan-smith/PermissionsExPlus/issues) — bug reports and questions
+- [GitHub Issues](https://github.com/%%site.repo%%/issues) — bug reports and questions
 - `/pex report` — generate a diagnostic report in-game
-- [Migration guide](/faq/migration/) — switching from another permissions plugin
+- [Migration guide](/faq/migration) — switching from another permissions plugin

@@ -16,7 +16,7 @@ PermissionsExPlus exposes APIs for companion plugins that need to read or modify
 <dependency>
   <groupId>dev.rono.permissions</groupId>
   <artifactId>permissionsex-api</artifactId>
-  <version>1.23.5</version>
+  <version>%%site.version%%</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -27,7 +27,7 @@ PermissionsExPlus exposes APIs for companion plugins that need to read or modify
 |-------|----------------|
 | **[API Cookbook](/developers/cookbook/)** | Practical recipes — check perms, add groups, events |
 | **[Javadoc](/developers/reference/)** | Full class and method reference for every version |
-| **[Sample plugins](https://github.com/rowan-smith/PermissionsExPlus/tree/main/plugin)** | Working example jars in the repo |
+| **[Sample plugins](https://github.com/%%site.repo%%/tree/main/plugin)** | Working example jars in the repo |
 
 The website is intentionally thin — detailed API signatures live in Javadoc. The cookbook shows you *how* to do common tasks with links to the relevant classes.
 
@@ -48,7 +48,7 @@ For classic `PermissionsEx.getUser()` static calls, also add:
 <dependency>
   <groupId>dev.rono.permissions</groupId>
   <artifactId>permissionsex-legacy-stub</artifactId>
-  <version>1.23.5</version>
+  <version>%%site.version%%</version>
   <scope>provided</scope>
 </dependency>
 ```

@@ -1,0 +1,434 @@
+[
+  {
+    "command": "/demote",
+    "syntax": "/demote <user> [ladder]",
+    "summary": "Rank ladder shortcut",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "demote"
+  },
+  {
+    "command": "/pex backend",
+    "syntax": "/pex backend [alias]",
+    "summary": "Show or switch the active storage backend.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-backend"
+  },
+  {
+    "command": "/pex config",
+    "syntax": "/pex config <node> [value]",
+    "summary": "View or change a config node from `config.yml`.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-config"
+  },
+  {
+    "command": "/pex convert uuid",
+    "syntax": "/pex convert uuid",
+    "summary": "Bulk-converts user records from username keys to UUID keys. Run after migrating from older PEX versions.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-convert-uuid"
+  },
+  {
+    "command": "/pex demote",
+    "syntax": "/pex demote <user> [ladder]",
+    "summary": "Demotes the user to the previous group on the ladder.",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "pex-demote"
+  },
+  {
+    "command": "/pex group <group>",
+    "syntax": "/pex group <group>",
+    "summary": "Shows group details: parents, weight, prefix, member count.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group"
+  },
+  {
+    "command": "/pex group <group> add",
+    "syntax": "/pex group <group> add <permission> [world]",
+    "summary": "Grants a permission to the group. All members (and child groups via inheritance) receive it.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-add"
+  },
+  {
+    "command": "/pex group <group> add <permission> [world]",
+    "syntax": "/pex group <group> add <permission> [world]",
+    "summary": "Assign to a group (recommended)",
+    "category": "Permissions",
+    "docSlug": "/commands/permissions",
+    "anchor": "pex-group-group-add-permission-world"
+  },
+  {
+    "command": "/pex group <group> create",
+    "syntax": "/pex group <group> create [parents...]",
+    "summary": "Creates a new group. Optionally specify parent groups for [inheritance](/concepts/inheritance/).",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-create"
+  },
+  {
+    "command": "/pex group <group> delete",
+    "syntax": "/pex group <group> delete",
+    "summary": "Deletes the group. Users in this group are **not** deleted but lose this membership.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-delete"
+  },
+  {
+    "command": "/pex group <group> list",
+    "syntax": "/pex group <group> list [world]",
+    "summary": "Lists all permissions assigned to the group (not inherited — use `/pex hierarchy` for the full tree).",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-list"
+  },
+  {
+    "command": "/pex group <group> parents",
+    "syntax": "/pex group <group> parents [subcommand] [world]",
+    "summary": "Manage [inheritance](/concepts/inheritance/) parents.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-parents"
+  },
+  {
+    "command": "/pex group <group> prefix",
+    "syntax": "/pex group <group> prefix [newprefix] [world]",
+    "summary": "Set or read the group's chat prefix.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-prefix"
+  },
+  {
+    "command": "/pex group <group> rank",
+    "syntax": "/pex group <group> rank [rank] [ladder]",
+    "summary": "Assign a rank number on a [rank ladder](/commands/ranks/).",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-rank"
+  },
+  {
+    "command": "/pex group <group> rank",
+    "syntax": "/pex group <group> rank [rank] [ladder]",
+    "summary": "Assign or view a group's position on a ladder.",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "pex-group-group-rank"
+  },
+  {
+    "command": "/pex group <group> remove",
+    "syntax": "/pex group <group> remove <permission> [world]",
+    "summary": "Removes a permission from the group's direct list.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-remove"
+  },
+  {
+    "command": "/pex group <group> set",
+    "syntax": "/pex group <group> set <option> <value> [world]",
+    "summary": "Set a custom option on the group.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-set"
+  },
+  {
+    "command": "/pex group <group> timed add",
+    "syntax": "/pex group <group> timed add <permission> <lifetime> [world]",
+    "summary": "Temporary group-level permission. Expires for the group definition (affects all members).",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-timed-add"
+  },
+  {
+    "command": "/pex group <group> users",
+    "syntax": "/pex group <group> users",
+    "summary": "Lists all users who belong to this group.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-users"
+  },
+  {
+    "command": "/pex group <group> weight",
+    "syntax": "/pex group <group> weight [value]",
+    "summary": "Get or set the group's [weight](/concepts/weight/) (priority for prefix resolution).",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-group-group-weight"
+  },
+  {
+    "command": "/pex group vip swap essentials.fly essentials.fly.unlimited",
+    "syntax": "/pex group vip swap essentials.fly essentials.fly.unlimited",
+    "summary": "Swap permissions",
+    "category": "Permissions",
+    "docSlug": "/commands/permissions",
+    "anchor": "pex-group-vip-swap-essentialsfly-essentialsflyunlimited"
+  },
+  {
+    "command": "/pex groups list",
+    "syntax": "/pex groups list [world]",
+    "summary": "Lists all defined groups. Add a world for world-scoped listing.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "pex-groups-list"
+  },
+  {
+    "command": "/pex hierarchy",
+    "syntax": "/pex hierarchy [world]",
+    "summary": "Prints the full user/group permission tree. Useful for auditing setups.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-hierarchy"
+  },
+  {
+    "command": "/pex import",
+    "syntax": "/pex import <backend>",
+    "summary": "Import permission data from another configured backend into the current one.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-import"
+  },
+  {
+    "command": "/pex promote",
+    "syntax": "/pex promote <user> [ladder]",
+    "summary": "Promotes the user to the next group on the ladder.",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "pex-promote"
+  },
+  {
+    "command": "/pex reload",
+    "syntax": "/pex reload",
+    "summary": "Reloads `config.yml`, the active backend, and all in-memory permission data.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-reload"
+  },
+  {
+    "command": "/pex report",
+    "syntax": "/pex report",
+    "summary": "Generates a diagnostic report (PEX version, backend, config snapshot) for bug reports.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-report"
+  },
+  {
+    "command": "/pex toggle debug",
+    "syntax": "/pex toggle debug",
+    "summary": "Enables verbose permission-resolution logging in the server console.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-toggle-debug"
+  },
+  {
+    "command": "/pex user <user>",
+    "syntax": "/pex user <user>",
+    "summary": "Shows a summary: groups, prefix, suffix, and key options.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user"
+  },
+  {
+    "command": "/pex user <user> add",
+    "syntax": "/pex user <user> add <permission> [world]",
+    "summary": "Grants a permission directly to the user (not via a group). Use for one-off exceptions.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-add"
+  },
+  {
+    "command": "/pex user <user> add <permission> [world]",
+    "syntax": "/pex user <user> add <permission> [world]",
+    "summary": "Assign to a user (exceptions)",
+    "category": "Permissions",
+    "docSlug": "/commands/permissions",
+    "anchor": "pex-user-user-add-permission-world"
+  },
+  {
+    "command": "/pex user <user> check",
+    "syntax": "/pex user <user> check <permission> [world]",
+    "summary": "Tests whether the user has a specific permission node. Returns yes/no with the matching expression.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-check"
+  },
+  {
+    "command": "/pex user <user> delete",
+    "syntax": "/pex user <user> delete",
+    "summary": "Permanently deletes the user's record. They will be re-created on next join if `createUserRecords` is enabled.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-delete"
+  },
+  {
+    "command": "/pex user <user> group add",
+    "syntax": "/pex user <user> group add <group> [world] [lifetime]",
+    "summary": "Adds the user to a group. Optional lifetime makes membership temporary.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-group-add"
+  },
+  {
+    "command": "/pex user <user> group list",
+    "syntax": "/pex user <user> group list [world]",
+    "summary": "Shows all groups the user belongs to.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-group-list"
+  },
+  {
+    "command": "/pex user <user> group remove",
+    "syntax": "/pex user <user> group remove <group> [world]",
+    "summary": "Removes the user from one group without affecting other memberships.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-group-remove"
+  },
+  {
+    "command": "/pex user <user> group set",
+    "syntax": "/pex user <user> group set <group> [world]",
+    "summary": "**Replaces** all group memberships with a single group. The most common way to \"rank\" a player.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-group-set"
+  },
+  {
+    "command": "/pex user <user> list",
+    "syntax": "/pex user <user> list [world]",
+    "summary": "Lists all effective permissions for the user. Add a world name for world-scoped view.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-list"
+  },
+  {
+    "command": "/pex user <user> prefix",
+    "syntax": "/pex user <user> prefix [newprefix] [world]",
+    "summary": "Get or set the user's chat prefix. Omit `newprefix` to read the current value.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-prefix"
+  },
+  {
+    "command": "/pex user <user> remove",
+    "syntax": "/pex user <user> remove <permission> [world]",
+    "summary": "Removes a directly-assigned permission.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-remove"
+  },
+  {
+    "command": "/pex user <user> set",
+    "syntax": "/pex user <user> set <option> <value> [world]",
+    "summary": "Set or read custom option key-value pairs.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-set"
+  },
+  {
+    "command": "/pex user <user> superperms",
+    "syntax": "/pex user <user> superperms",
+    "summary": "Shows the Bukkit superperms attachment state (Spigot/Paper only). Useful for [troubleshooting](/guides/troubleshooting/).",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-superperms"
+  },
+  {
+    "command": "/pex user <user> timed add",
+    "syntax": "/pex user <user> timed add <permission> <lifetime> [world]",
+    "summary": "Grants a permission that **expires automatically**.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-timed-add"
+  },
+  {
+    "command": "/pex user <user> timed remove",
+    "syntax": "/pex user <user> timed remove <permission> [world]",
+    "summary": "Removes an active timed permission before it expires.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-timed-remove"
+  },
+  {
+    "command": "/pex user <user> toggle debug",
+    "syntax": "/pex user <user> toggle debug",
+    "summary": "Enables permission-resolution debug logging for one player only.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-user-user-toggle-debug"
+  },
+  {
+    "command": "/pex user Griefer add permissionsex.disabled",
+    "syntax": "/pex user Griefer add permissionsex.disabled",
+    "summary": "Permission node",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-user-griefer-add-permissionsexdisabled"
+  },
+  {
+    "command": "/pex user Griefer add permissionsex.disabled",
+    "syntax": "/pex user Griefer add permissionsex.disabled",
+    "summary": "Special node",
+    "category": "Permissions",
+    "docSlug": "/commands/permissions",
+    "anchor": "pex-user-griefer-add-permissionsexdisabled"
+  },
+  {
+    "command": "/pex user Steve timed remove essentials.fly",
+    "syntax": "/pex user Steve timed remove essentials.fly",
+    "summary": "Temporary permissions",
+    "category": "Permissions",
+    "docSlug": "/commands/permissions",
+    "anchor": "pex-user-steve-timed-remove-essentialsfly"
+  },
+  {
+    "command": "/pex users cleanup",
+    "syntax": "/pex users cleanup <group> [threshold]",
+    "summary": "Removes user records in a group that have been inactive for the threshold (days).",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-users-cleanup"
+  },
+  {
+    "command": "/pex users list",
+    "syntax": "/pex users list",
+    "summary": "Lists every user record stored in the backend.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "pex-users-list"
+  },
+  {
+    "command": "/pex world <world>",
+    "syntax": "/pex world <world>",
+    "summary": "Shows world info: inheritance parents, default group.",
+    "category": "Worlds",
+    "docSlug": "/commands/worlds",
+    "anchor": "pex-world-world"
+  },
+  {
+    "command": "/pex world <world> inherit",
+    "syntax": "/pex world <world> inherit <parentWorlds...>",
+    "summary": "Sets which worlds this world inherits permissions from. Child worlds start with the parent's permissions plus their own overrides.",
+    "category": "Worlds",
+    "docSlug": "/commands/worlds",
+    "anchor": "pex-world-world-inherit"
+  },
+  {
+    "command": "/pex worlds",
+    "syntax": "/pex worlds",
+    "summary": "Lists all known worlds/realms.",
+    "category": "Worlds",
+    "docSlug": "/commands/worlds",
+    "anchor": "pex-worlds"
+  },
+  {
+    "command": "/promote",
+    "syntax": "/promote <user> [ladder]",
+    "summary": "Rank ladder shortcut",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "promote"
+  }
+]

@@ -1,0 +1,120 @@
+.hero {
+  position: relative;
+  margin: -1rem -1rem 2rem;
+  padding: 2.75rem 1.5rem 2.5rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, #111827 0%, #1a2332 45%, #0f2922 100%);
+  border: 1px solid rgba(74, 222, 128, 0.18);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(74, 222, 128, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 222, 128, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at 30% 20%, black, transparent 70%);
+}
+
+.inner {
+  position: relative;
+  max-width: 46rem;
+}
+
+.badge {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  color: #86efac;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0 0 1rem;
+  color: #f8fafc;
+  font-size: clamp(1.85rem, 4vw, 2.65rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.title em {
+  font-style: normal;
+  color: #4ade80;
+}
+
+.subtitle {
+  margin: 0 0 1.5rem;
+  max-width: 38rem;
+  color: #cbd5e1;
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.subtitle code {
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fbbf24;
+  border: none;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.primary,
+.secondary,
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.65rem 1.1rem;
+  border-radius: 0.65rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.primary {
+  background: #4ade80;
+  color: #052e16 !important;
+  box-shadow: 0 8px 24px rgba(74, 222, 128, 0.25);
+}
+
+.primary:hover {
+  transform: translateY(-1px);
+  background: #86efac;
+}
+
+.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.ghost {
+  color: #94a3b8 !important;
+}
+
+.ghost:hover {
+  color: #e2e8f0 !important;
+}
+
+[data-theme='dark'] .hero {
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}

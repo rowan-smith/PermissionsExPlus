@@ -1,8 +1,7 @@
 import Link from '@docusaurus/Link';
+import {getJavadocVersions} from '@site/src/config/javadocVersions';
+import siteVars from '@site/site-vars.json';
 import styles from './VersionCards.module.css';
-
-const VERSION = '1.23.5';
-const REPO = 'rowan-smith/PermissionsExPlus';
 
 type Card = {
   href: string;
@@ -11,64 +10,36 @@ type Card = {
   external?: boolean;
 };
 
-const HOME_CARDS: Card[] = [
-  {
-    href: `https://github.com/${REPO}/releases`,
-    label: `Download v${VERSION}`,
-    description: 'Get the latest release jar',
-    external: true,
-  },
-  {
-    href: '/guides/recipes',
-    label: 'Common Setups',
-    description: 'Staff ranks, VIP, survival — copy-paste recipes',
-  },
-  {
-    href: '/commands/general',
-    label: 'Command Reference',
-    description: 'Full /pex command documentation',
-  },
-];
-
-const JAVADOC_VERSIONS: Card[] = [
-  {
-    label: '1.23.5 (current)',
-    href: 'pathname:///apidocs/1.23.5/index.html',
-    description: 'Modern + legacy API (PermissionsExPlus)',
-  },
-  {
-    label: '1.23.4',
-    href: 'pathname:///apidocs/1.23.4/index.html',
-    description: 'Classic PermissionsEx API',
-  },
-  {
-    label: '1.23.3',
-    href: 'pathname:///apidocs/1.23.3/index.html',
-    description: 'Classic PermissionsEx API',
-  },
-  {
-    label: '1.23.2',
-    href: 'pathname:///apidocs/1.23.2/index.html',
-    description: 'Classic PermissionsEx API',
-  },
-  {
-    label: '1.23.1',
-    href: 'pathname:///apidocs/1.23.1/index.html',
-    description: 'Classic PermissionsEx API',
-  },
-  {
-    label: '1.22.1',
-    href: 'pathname:///apidocs/1.22.1/apidocs/index.html',
-    description: 'Original PermissionsEx API',
-  },
-];
-
 type Props = {
   type: 'home' | 'javadoc';
 };
 
 export default function VersionCards({type}: Props): JSX.Element {
-  const cards = type === 'home' ? HOME_CARDS : JAVADOC_VERSIONS;
+  const homeCards: Card[] = [
+    {
+      href: '/guides/recipes',
+      label: 'Common Setups',
+      description: 'Staff ranks, VIP, survival — copy-paste recipes',
+    },
+    {
+      href: '/commands/general',
+      label: 'Command Reference',
+      description: 'Full /pex command documentation',
+    },
+    {
+      href: '/developers/cookbook',
+      label: 'API Cookbook',
+      description: 'Integrate your plugin with PEX',
+    },
+  ];
+
+  const javadocCards: Card[] = getJavadocVersions().map((entry) => ({
+    href: entry.href,
+    label: entry.label,
+    description: entry.description,
+  }));
+
+  const cards = type === 'home' ? homeCards : javadocCards;
 
   return (
     <div className={styles.grid}>

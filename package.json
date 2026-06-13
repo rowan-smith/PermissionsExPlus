@@ -3,6 +3,10 @@
   "version": "1.23.5",
   "private": true,
   "scripts": {
+    "sync-site-vars": "node scripts/sync-site-vars.mjs",
+    "build:data": "node scripts/build-command-index.mjs && node scripts/sync-changelog.mjs",
+    "prestart": "npm run sync-site-vars && npm run build:data",
+    "prebuild": "npm run sync-site-vars && npm run build:data",
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build",
@@ -15,6 +19,7 @@
   "dependencies": {
     "@docusaurus/core": "^3.10.1",
     "@docusaurus/preset-classic": "^3.10.1",
+    "@easyops-cn/docusaurus-search-local": "^0.52.3",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.3.0",
