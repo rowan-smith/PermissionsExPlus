@@ -1,9 +1,8 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-
-const REPO = 'rowan-smith/PermissionsExPlus';
-const VERSION = '1.23.5';
+import siteVars from './site-vars.json';
+import siteVarsPlugin from './src/remark/siteVarsPlugin';
 
 const config: Config = {
   title: 'PermissionsExPlus',
@@ -11,11 +10,15 @@ const config: Config = {
     'Permissions plugin for Minecraft servers — users, groups, worlds, and /pex commands.',
   favicon: 'img/favicon.ico',
 
-  url: 'https://example.rono.dev',
-  baseUrl: '/',
+  url: siteVars.siteUrl,
+  baseUrl: siteVars.baseUrl,
 
   organizationName: 'rowan-smith',
   projectName: 'PermissionsExPlus',
+
+  customFields: {
+    ...siteVars,
+  },
 
   onBrokenLinks: 'throw',
   trailingSlash: false,
@@ -38,7 +41,8 @@ const config: Config = {
         docs: {
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
-          editUrl: `https://github.com/${REPO}/tree/gh-pages/`,
+          editUrl: `https://github.com/${siteVars.repo}/tree/gh-pages/`,
+          remarkPlugins: [siteVarsPlugin],
         },
         blog: false,
         theme: {
@@ -68,12 +72,12 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: `https://github.com/${REPO}/releases`,
+          href: `https://github.com/${siteVars.repo}/releases`,
           label: 'Download',
           position: 'right',
         },
         {
-          href: `https://github.com/${REPO}`,
+          href: `https://github.com/${siteVars.repo}`,
           label: 'GitHub',
           position: 'right',
         },
@@ -94,17 +98,17 @@ const config: Config = {
         {
           title: 'Project',
           items: [
-            {label: 'GitHub', href: `https://github.com/${REPO}`},
-            {label: 'Releases', href: `https://github.com/${REPO}/releases`},
-            {label: 'Issues', href: `https://github.com/${REPO}/issues`},
+            {label: 'GitHub', href: `https://github.com/${siteVars.repo}`},
+            {label: 'Releases', href: `https://github.com/${siteVars.repo}/releases`},
+            {label: 'Issues', href: `https://github.com/${siteVars.repo}/issues`},
             {
               label: 'License',
-              href: `https://github.com/${REPO}/blob/main/LICENSE`,
+              href: `https://github.com/${siteVars.repo}/blob/main/LICENSE`,
             },
           ],
         },
       ],
-      copyright: `PermissionsExPlus v${VERSION} · Built with Docusaurus`,
+      copyright: `PermissionsExPlus v${siteVars.version} · Built with Docusaurus`,
     },
     prism: {
       theme: prismThemes.github,

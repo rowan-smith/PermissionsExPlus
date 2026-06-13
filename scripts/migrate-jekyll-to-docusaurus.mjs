@@ -58,10 +58,10 @@ function slugFromPermalink(permalink) {
 
 function transformBody(body, destRel) {
   let out = body
-    .replace(/\{\{\s*site\.version\s*\}\}/g, VERSION)
-    .replace(/\{\{\s*site\.repo\s*\}\}/g, REPO)
-    .replace(/\{\{\s*site\.baseurl\s*\}\}\//g, '/')
-    .replace(/\{\{\s*site\.baseurl\s*\}\}/g, '');
+    .replace(/\{\{\s*site\.version\s*\}\}/g, '@site.version@')
+    .replace(/\{\{\s*site\.repo\s*\}\}/g, '@site.repo@')
+    .replace(/\{\{\s*site\.baseurl\s*\}\}\//g, '@site.baseurl@/')
+    .replace(/\{\{\s*site\.baseurl\s*\}\}/g, '@site.baseurl@');
 
   // Jekyll reference page version cards → static markdown
   if (destRel === 'developers/reference.md') {

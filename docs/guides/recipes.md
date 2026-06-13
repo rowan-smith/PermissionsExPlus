@@ -100,7 +100,7 @@ Uses [world context](/concepts/context/).
 
 ## Network proxy (Bungee + backend)
 
-1. Install `PermissionsExPlus-1.23.5.jar` on **every** backend and the proxy
+1. Install `PermissionsExPlus-.version@.jar` on **every** backend and the proxy
 2. Use the same `permissions.yml` (SQL backend recommended for shared data)
 3. Set up groups on one server, `/pex import` or share the database
 

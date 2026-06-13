@@ -3,6 +3,9 @@
   "version": "1.23.5",
   "private": true,
   "scripts": {
+    "sync-site-vars": "node scripts/sync-site-vars.mjs",
+    "prestart": "npm run sync-site-vars",
+    "prebuild": "npm run sync-site-vars",
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build",

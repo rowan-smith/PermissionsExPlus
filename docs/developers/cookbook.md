@@ -26,7 +26,7 @@ var api = PermissionsEx.getApi();
 <dependency>
   <groupId>dev.rono.permissions</groupId>
   <artifactId>permissionsex-api</artifactId>
-  <version>1.23.5</version>
+  <version>.version@</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -42,7 +42,7 @@ if (user.has("myplugin.use")) {
 }
 ```
 
-**Javadoc:** [User](pathname:///apidocs/1.23.5/dev/rono/permissions/api/subject/User.html) · [PermissionSubject.has()](pathname:///apidocs/1.23.5/dev/rono/permissions/api/subject/PermissionSubject.html)
+**Javadoc:** [User](pathname:///apidocs/.version@/dev/rono/permissions/api/subject/User.html) · [PermissionSubject.has()](pathname:///apidocs/.version@/dev/rono/permissions/api/subject/PermissionSubject.html)
 
 ---
 
@@ -56,7 +56,7 @@ user.save();
 
 Always call `save()` after mutations.
 
-**Javadoc:** [User.addPermission()](pathname:///apidocs/1.23.5/dev/rono/permissions/api/subject/PermissionSubject.html#addPermission(java.lang.String))
+**Javadoc:** [User.addPermission()](pathname:///apidocs/.version@/dev/rono/permissions/api/subject/PermissionSubject.html#addPermission(java.lang.String))
 
 ---
 
@@ -68,7 +68,7 @@ group.addPermission("essentials.fly");
 group.save();
 ```
 
-**Javadoc:** [GroupManager](pathname:///apidocs/1.23.5/dev/rono/permissions/api/service/GroupManager.html) · [Group](pathname:///apidocs/1.23.5/dev/rono/permissions/api/subject/Group.html)
+**Javadoc:** [GroupManager](pathname:///apidocs/.version@/dev/rono/permissions/api/service/GroupManager.html) · [Group](pathname:///apidocs/.version@/dev/rono/permissions/api/subject/Group.html)
 
 ---
 
@@ -82,7 +82,7 @@ group.setPrefix("&6[VIP] ");
 group.save();
 ```
 
-**Javadoc:** [GroupManager.createGroup()](pathname:///apidocs/1.23.5/dev/rono/permissions/api/service/GroupManager.html)
+**Javadoc:** [GroupManager.createGroup()](pathname:///apidocs/.version@/dev/rono/permissions/api/service/GroupManager.html)
 
 ---
 
@@ -101,7 +101,7 @@ user.setGroups(java.util.List.of("admin"));
 user.save();
 ```
 
-**Javadoc:** [User.addGroup()](pathname:///apidocs/1.23.5/dev/rono/permissions/api/subject/User.html)
+**Javadoc:** [User.addGroup()](pathname:///apidocs/.version@/dev/rono/permissions/api/subject/User.html)
 
 ---
 
@@ -112,7 +112,7 @@ user.addTimedPermission("essentials.fly", 604800); // 7 days in seconds
 user.save();
 ```
 
-**Javadoc:** [PermissionSubject.addTimedPermission()](pathname:///apidocs/1.23.5/dev/rono/permissions/api/subject/PermissionSubject.html)
+**Javadoc:** [PermissionSubject.addTimedPermission()](pathname:///apidocs/.version@/dev/rono/permissions/api/subject/PermissionSubject.html)
 
 ---
 
@@ -130,7 +130,7 @@ scoped.addPermission("myplugin.visited");
 user.save();
 ```
 
-**Javadoc:** [PermissionContext](pathname:///apidocs/1.23.5/dev/rono/permissions/api/permission/PermissionContext.html) · [SubjectContext](pathname:///apidocs/1.23.5/dev/rono/permissions/api/subject/SubjectContext.html)
+**Javadoc:** [PermissionContext](pathname:///apidocs/.version@/dev/rono/permissions/api/permission/PermissionContext.html) · [SubjectContext](pathname:///apidocs/.version@/dev/rono/permissions/api/subject/SubjectContext.html)
 
 ---
 
@@ -144,7 +144,7 @@ try {
 }
 ```
 
-**Javadoc:** [User.promote()](pathname:///apidocs/1.23.5/dev/rono/permissions/api/subject/User.html)
+**Javadoc:** [User.promote()](pathname:///apidocs/.version@/dev/rono/permissions/api/subject/User.html)
 
 ---
 
@@ -170,7 +170,7 @@ api.events().subscribe(dispatch -> {
 });
 ```
 
-**Javadoc:** [PermissionEntityEvent](pathname:///apidocs/1.23.5/ru/tehkode/permissions/events/PermissionEntityEvent.html) · [PermissionsExApi.events()](pathname:///apidocs/1.23.5/dev/rono/permissions/api/service/PermissionsExApi.html)
+**Javadoc:** [PermissionEntityEvent](pathname:///apidocs/.version@/ru/tehkode/permissions/events/PermissionEntityEvent.html) · [PermissionsExApi.events()](pathname:///apidocs/.version@/dev/rono/permissions/api/service/PermissionsExApi.html)
 
 ---
 
@@ -185,7 +185,7 @@ boolean ok = PermissionsEx.getPermissionManager()
     .has(player, "myplugin.use", player.getWorld().getName());
 ```
 
-**Javadoc:** [PermissionManager](pathname:///apidocs/1.23.5/ru/tehkode/permissions/PermissionManager.html) · [PermissionUser](pathname:///apidocs/1.23.5/ru/tehkode/permissions/PermissionUser.html)
+**Javadoc:** [PermissionManager](pathname:///apidocs/.version@/ru/tehkode/permissions/PermissionManager.html) · [PermissionUser](pathname:///apidocs/.version@/ru/tehkode/permissions/PermissionUser.html)
 
 ---
 
@@ -200,4 +200,4 @@ boolean ok = PermissionsEx.getPermissionManager()
 
 Full class reference: [Javadoc](/developers/reference/)
 
-Sample plugins: [GitHub /plugin](https://github.com/rowan-smith/PermissionsExPlus/tree/main/plugin)
+Sample plugins: [GitHub /plugin](https://github.com/.repo@/tree/main/plugin)

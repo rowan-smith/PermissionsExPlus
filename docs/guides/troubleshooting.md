@@ -117,12 +117,12 @@ After importing from another plugin, verify:
 /pex report
 ```
 
-Include this output when opening a [GitHub issue](https://github.com/rowan-smith/PermissionsExPlus/issues).
+Include this output when opening a [GitHub issue](https://github.com/.repo@/issues).
 
 ---
 
 ## Still stuck?
 
-1. Check [GitHub Issues](https://github.com/rowan-smith/PermissionsExPlus/issues) for known problems
+1. Check [GitHub Issues](https://github.com/.repo@/issues) for known problems
 2. Search for your Minecraft + PEX version combination
 3. Open a new issue with `/pex report` output, server type, and Java version
