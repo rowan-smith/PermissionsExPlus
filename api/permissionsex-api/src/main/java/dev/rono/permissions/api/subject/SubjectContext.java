@@ -4,28 +4,14 @@ import dev.rono.permissions.api.permission.PermissionContext;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Context-scoped projection of a {@link PermissionSubject}.
- *
- * <p>Obtained via {@link PermissionSubject#inContext(PermissionContext)}. Every method applies to the
- * bound {@link #context()} without repeating scope arguments.</p>
- *
- * <p><strong>Thin facade invariant:</strong> implementations delegate to the underlying subject with the
- * bound context fixed; no duplicated resolution or persistence logic.</p>
- */
+/** Context-scoped projection of a {@link PermissionSubject}. */
 public interface SubjectContext {
 
-    /** @return bound permission scope */
     PermissionContext context();
 
-    /** @return underlying permission subject */
     PermissionSubject subject();
 
-    boolean hasPermission(String permission);
-
-    default boolean has(String permission) {
-        return hasPermission(permission);
-    }
+    boolean has(String permission);
 
     List<String> permissions();
 

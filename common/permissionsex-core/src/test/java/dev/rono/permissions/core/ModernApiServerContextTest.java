@@ -1,37 +1,37 @@
 package dev.rono.permissions.core;
 
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.permission.PermissionContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Server-bound context facades (proxy realm names share the world namespace). */
+/** Server-bound PermissionContext facades (proxy realm names share the world namespace). */
 class ModernApiServerContextTest extends ModernApiTestSupport {
 
     @Test
-    void inServerDelegatesChecksAndMutations() {
+    void serverContextDelegatesChecksAndMutations() {
         var user = api().getUserManager().createUser("server-ctx-user");
-        var ctx = user.inServer("lobby");
+        var ctx = user.inContext(PermissionContext.server("lobby"));
 
-        assertEquals("lobby", ctx.world());
+        assertEquals("lobby", ctx.context().get(PermissionContext.SERVER).orElseThrow());
         assertSame(user, ctx.subject());
 
         ctx.addPermission("lobby.only");
         user.save();
 
-        assertTrue(ctx.hasPermission("lobby.only"));
-        assertFalse(user.global().hasPermission("lobby.only"));
-        assertFalse(user.hasPermission("lobby.only"));
+        assertTrue(ctx.has("lobby.only"));
+        assertFalse(user.global().has("lobby.only"));
+        assertFalse(user.has("lobby.only"));
     }
 
     @Test
-    void inServerMatchesInWorldForSameRealm() {
+    void serverContextMatchesWorldContextForSameRealm() {
         var user = api().getUserManager().createUser("server-world-parity");
-        user.inServer("survival").addPermission("shared.node");
+        user.inContext(PermissionContext.server("survival")).addPermission("shared.node");
         user.save();
 
-        assertTrue(user.inWorld("survival").hasPermission("shared.node"));
-        assertTrue(user.inServer("survival").hasPermission("shared.node"));
+        assertTrue(user.inContext(PermissionContext.world("survival")).has("shared.node"));
+        assertTrue(user.inContext(PermissionContext.server("survival")).has("shared.node"));
     }
 
     @Test
@@ -39,31 +39,31 @@ class ModernApiServerContextTest extends ModernApiTestSupport {
         api().getGroupManager().createGroup("server-ctx-group").save();
         var user = api().getUserManager().createUser("server-ctx-group-user");
 
-        user.inServer("lobby").addGroup("server-ctx-group");
+        user.inContext(PermissionContext.server("lobby")).addGroup("server-ctx-group");
         user.save();
 
-        assertTrue(user.inServer("lobby").inGroup("server-ctx-group"));
-        assertFalse(user.inServer("hub").inGroup("server-ctx-group"));
+        assertTrue(user.inContext(PermissionContext.server("lobby")).inGroup("server-ctx-group"));
+        assertFalse(user.inContext(PermissionContext.server("hub")).inGroup("server-ctx-group"));
     }
 
     @Test
     void groupServerContextHierarchyOperations() {
         var parent = api().getGroupManager().createGroup("server-parent");
         var child = api().getGroupManager().createGroup("server-child");
-        child.inServer("lobby").addParent(parent.getName());
+        child.inContext(PermissionContext.server("lobby")).addParent(parent.getName());
         child.save();
 
-        assertTrue(child.inServer("lobby").isChildOf(parent.getName()));
-        assertFalse(parent.inServer("lobby").children().isEmpty());
+        assertTrue(child.inContext(PermissionContext.server("lobby")).isChildOf(parent.getName()));
+        assertFalse(parent.inContext(PermissionContext.server("lobby")).children().isEmpty());
     }
 
     @Test
-    void serverGlobalNormalizesEmptyString() {
+    void emptyServerContextNormalizesToGlobal() {
         var user = api().getUserManager().createUser("server-global-user");
-        user.inServer("").addPermission("server-global-key");
+        user.inContext(PermissionContext.server("")).addPermission("server-global-key");
         user.save();
 
-        assertTrue(user.hasPermission("server-global-key"));
-        assertEquals(Worlds.GLOBAL, Worlds.normalize(""));
+        assertTrue(user.has("server-global-key"));
+        assertTrue(PermissionContext.server("").isGlobal());
     }
 }

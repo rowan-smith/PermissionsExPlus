@@ -56,11 +56,17 @@ public interface PermissionContext {
 
     /** @param server backend or logical server id */
     static PermissionContext server(String server) {
+        if (server == null || server.isEmpty()) {
+            return global();
+        }
         return of(Map.of(SERVER, server));
     }
 
     /** @param world loaded world or realm name */
     static PermissionContext world(String world) {
+        if (world == null || world.isEmpty()) {
+            return global();
+        }
         return of(Map.of(WORLD, world));
     }
 

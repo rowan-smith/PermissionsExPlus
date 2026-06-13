@@ -1,12 +1,11 @@
 package dev.rono.permissions.api.subject;
 
+import dev.rono.permissions.api.permission.PermissionContext;
 import dev.rono.permissions.api.user.User;
 import java.util.List;
 
-/**
- * Context-scoped view of a {@link User} including group membership operations.
- */
-public interface UserContext extends SubjectWorldContext {
+/** Context-scoped view of a {@link User}, including group membership operations. */
+public interface UserContext extends SubjectContext {
 
     @Override
     User subject();

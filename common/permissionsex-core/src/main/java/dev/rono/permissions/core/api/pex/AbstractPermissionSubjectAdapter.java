@@ -7,7 +7,6 @@ import dev.rono.permissions.api.subject.TimedPermissionEntry;
 import dev.rono.permissions.api.world.Worlds;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import dev.rono.permissions.core.api.ContextPermissionEvaluator;
-import dev.rono.permissions.core.api.ModernWorlds;
 import ru.tehkode.permissions.PermissionEntity;
 
 import java.util.ArrayList;
@@ -126,16 +125,16 @@ abstract class AbstractPermissionSubjectAdapter implements PermissionSubject {
     }
 
     @Override
-    public Set<String> configuredWorlds() {
-        var worlds = new LinkedHashSet<String>();
+    public Set<String> configuredRealms() {
+        var realms = new LinkedHashSet<String>();
         for (String world : delegate.getWorlds()) {
-            worlds.add(Worlds.fromMapKey(world));
+            realms.add(Worlds.fromMapKey(world));
         }
-        return Set.copyOf(worlds);
+        return Set.copyOf(realms);
     }
 
     @Override
-    public Map<String, List<String>> permissionsByWorld() {
+    public Map<String, List<String>> permissionsByRealm() {
         var mapped = new LinkedHashMap<String, List<String>>();
         for (Map.Entry<String, List<String>> entry : delegate.getAllPermissions().entrySet()) {
             mapped.put(Worlds.fromMapKey(entry.getKey()), List.copyOf(entry.getValue()));
@@ -144,13 +143,13 @@ abstract class AbstractPermissionSubjectAdapter implements PermissionSubject {
     }
 
     @Override
-    public Map<String, List<String>> effectivePermissionsByWorld() {
-        var worlds = new LinkedHashSet<String>();
-        worlds.add(Worlds.GLOBAL);
-        worlds.addAll(configuredWorlds());
+    public Map<String, List<String>> effectivePermissionsByRealm() {
+        var realms = new LinkedHashSet<String>();
+        realms.add(Worlds.GLOBAL);
+        realms.addAll(configuredRealms());
         var mapped = new LinkedHashMap<String, List<String>>();
-        for (String world : worlds) {
-            mapped.put(world, effectivePermissions(world));
+        for (String realm : realms) {
+            mapped.put(realm, effectivePermissions(ContextPermissionEvaluator.fromLegacyWorld(realm)));
         }
         return Map.copyOf(mapped);
     }
@@ -158,11 +157,22 @@ abstract class AbstractPermissionSubjectAdapter implements PermissionSubject {
     @Override
     public List<TimedPermissionEntry> timedPermissionEntries(PermissionContext context) {
         var legacyWorld = storageRealm(context);
-        var apiWorld = Worlds.fromMapKey(legacyWorld == null ? "" : legacyWorld);
         var entries = new ArrayList<TimedPermissionEntry>();
         for (String permission : delegate.getTimedPermissions(legacyWorld)) {
             entries.add(new TimedPermissionEntry(
-                    permission, apiWorld, delegate.getTimedPermissionLifetime(permission, legacyWorld)));
+                    permission, context, delegate.getTimedPermissionLifetime(permission, legacyWorld)));
+        }
+        return List.copyOf(entries);
+    }
+
+    @Override
+    public List<TimedPermissionEntry> allTimedPermissionEntries() {
+        var entries = new ArrayList<TimedPermissionEntry>();
+        entries.addAll(timedPermissionEntries(PermissionContext.global()));
+        for (String realm : configuredRealms()) {
+            if (!Worlds.isGlobal(realm)) {
+                entries.addAll(timedPermissionEntries(ContextPermissionEvaluator.fromLegacyWorld(realm)));
+            }
         }
         return List.copyOf(entries);
     }

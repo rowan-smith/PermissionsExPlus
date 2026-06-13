@@ -1,12 +1,15 @@
 package dev.rono.permissions.core.api.pex;
 
+import dev.rono.permissions.api.permission.PermissionContext;
 import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.subject.SubjectType;
+import dev.rono.permissions.api.subject.SubjectContexts;
 import dev.rono.permissions.api.subject.TimedGroupMembership;
+import dev.rono.permissions.api.subject.UserContext;
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.api.world.Worlds;
 import dev.rono.permissions.core.DefaultPermissionManager;
-import dev.rono.permissions.core.api.ModernWorlds;
+import dev.rono.permissions.core.api.ContextPermissionEvaluator;
 import ru.tehkode.permissions.PermissionUser;
 
 import java.util.ArrayList;
@@ -63,35 +66,39 @@ public final class UserImpl extends AbstractPermissionSubjectAdapter implements 
     }
 
     @Override
-    public List<String> groups(String world, boolean inherit) {
-        var legacyWorld = ModernWorlds.toLegacy(world);
+    public UserContext inContext(PermissionContext context) {
+        return SubjectContexts.user(this, context);
+    }
+
+    @Override
+    public List<String> groups(PermissionContext context, boolean inherit) {
+        var legacyWorld = storageRealm(context);
         return inherit ? user.getParentIdentifiers(legacyWorld) : user.getOwnParentIdentifiers(legacyWorld);
     }
 
     @Override
-    public boolean inGroup(String groupName, String world, boolean inherit) {
-        return user.inGroup(groupName, ModernWorlds.toLegacy(world), inherit);
+    public boolean inGroup(String groupName, PermissionContext context, boolean inherit) {
+        return user.inGroup(groupName, storageRealm(context), inherit);
     }
 
     @Override
-    public void addGroup(String groupName, String world) {
-        user.addGroup(groupName, ModernWorlds.toLegacy(world));
+    public void addGroup(String groupName, PermissionContext context) {
+        user.addGroup(groupName, storageRealm(context));
     }
 
     @Override
-    public void addGroup(String groupName, String world, int lifetimeSeconds) {
-        user.addGroup(groupName, ModernWorlds.toLegacy(world), lifetimeSeconds);
+    public void addGroup(String groupName, PermissionContext context, int lifetimeSeconds) {
+        user.addGroup(groupName, storageRealm(context), lifetimeSeconds);
     }
 
     @Override
-    public void removeGroup(String groupName, String world) {
-        user.removeGroup(groupName, ModernWorlds.toLegacy(world));
+    public void removeGroup(String groupName, PermissionContext context) {
+        user.removeGroup(groupName, storageRealm(context));
     }
 
     @Override
-    public List<TimedGroupMembership> timedGroupMemberships(String world) {
-        var legacyWorld = ModernWorlds.toLegacy(world);
-        var apiWorld = Worlds.normalize(world);
+    public List<TimedGroupMembership> timedGroupMemberships(PermissionContext context) {
+        var legacyWorld = storageRealm(context);
         var memberships = new ArrayList<TimedGroupMembership>();
         for (Map.Entry<String, String> entry : user.getOptions(legacyWorld).entrySet()) {
             var groupName = parseTimedGroupOption(entry.getKey());
@@ -99,14 +106,26 @@ public final class UserImpl extends AbstractPermissionSubjectAdapter implements 
                 continue;
             }
             memberships.add(new TimedGroupMembership(
-                    groupName, apiWorld, groupMembershipRemainingSeconds(groupName, world)));
+                    groupName, context, groupMembershipRemainingSeconds(groupName, context)));
         }
         return List.copyOf(memberships);
     }
 
     @Override
-    public int groupMembershipRemainingSeconds(String groupName, String world) {
-        var until = user.getOption("group-" + groupName + "-until", ModernWorlds.toLegacy(world), null);
+    public List<TimedGroupMembership> allTimedGroupMemberships() {
+        var memberships = new ArrayList<TimedGroupMembership>();
+        memberships.addAll(timedGroupMemberships(PermissionContext.global()));
+        for (String realm : configuredRealms()) {
+            if (!Worlds.isGlobal(realm)) {
+                memberships.addAll(timedGroupMemberships(ContextPermissionEvaluator.fromLegacyWorld(realm)));
+            }
+        }
+        return List.copyOf(memberships);
+    }
+
+    @Override
+    public int groupMembershipRemainingSeconds(String groupName, PermissionContext context) {
+        var until = user.getOption("group-" + groupName + "-until", storageRealm(context), null);
         if (until == null) {
             return 0;
         }
@@ -123,6 +142,10 @@ public final class UserImpl extends AbstractPermissionSubjectAdapter implements 
         var identifier = user.getIdentifier();
         user.remove();
         manager.resetUser(identifier);
+    }
+
+    private String storageRealm(PermissionContext context) {
+        return ContextPermissionEvaluator.storageRealm(context, manager.getPlatform());
     }
 
     private static String parseTimedGroupOption(String option) {

@@ -1,11 +1,14 @@
 package dev.rono.permissions.core.api.pex;
 
 import dev.rono.permissions.api.group.Group;
+import dev.rono.permissions.api.permission.PermissionContext;
 import dev.rono.permissions.api.permission.PermissionHolder;
+import dev.rono.permissions.api.subject.GroupContext;
+import dev.rono.permissions.api.subject.SubjectContexts;
 import dev.rono.permissions.api.subject.SubjectType;
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.core.DefaultPermissionManager;
-import dev.rono.permissions.core.api.ModernWorlds;
+import dev.rono.permissions.core.api.ContextPermissionEvaluator;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
 
@@ -47,6 +50,11 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
     }
 
     @Override
+    public GroupContext inContext(PermissionContext context) {
+        return SubjectContexts.group(this, context);
+    }
+
+    @Override
     public int weight() {
         return group.getWeight();
     }
@@ -57,43 +65,43 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
     }
 
     @Override
-    public boolean isDefault(String world) {
-        return group.isDefault(ModernWorlds.toLegacy(world));
+    public boolean isDefault(PermissionContext context) {
+        return group.isDefault(storageRealm(context));
     }
 
     @Override
-    public void setDefault(boolean value, String world) {
-        group.setDefault(value, ModernWorlds.toLegacy(world));
+    public void setDefault(boolean value, PermissionContext context) {
+        group.setDefault(value, storageRealm(context));
     }
 
     @Override
-    public List<String> parents(String world) {
-        return group.getOwnParentIdentifiers(ModernWorlds.toLegacy(world));
+    public List<String> parents(PermissionContext context) {
+        return group.getOwnParentIdentifiers(storageRealm(context));
     }
 
     @Override
-    public List<String> parentTree(String world) {
-        return GroupHierarchyEngine.resolveParentTree(manager, group, ModernWorlds.toLegacy(world));
+    public List<String> parentTree(PermissionContext context) {
+        return GroupHierarchyEngine.resolveParentTree(manager, group, storageRealm(context));
     }
 
     @Override
-    public void addParent(String parentName, String world) {
-        group.addParent(parentName, ModernWorlds.toLegacy(world));
+    public void addParent(String parentName, PermissionContext context) {
+        group.addParent(parentName, storageRealm(context));
     }
 
     @Override
-    public void removeParent(String parentName, String world) {
-        group.removeParent(parentName, ModernWorlds.toLegacy(world));
+    public void removeParent(String parentName, PermissionContext context) {
+        group.removeParent(parentName, storageRealm(context));
     }
 
     @Override
-    public void setParents(List<String> parentNames, String world) {
-        group.setParentsIdentifier(parentNames, ModernWorlds.toLegacy(world));
+    public void setParents(List<String> parentNames, PermissionContext context) {
+        group.setParentsIdentifier(parentNames, storageRealm(context));
     }
 
     @Override
-    public boolean isChildOf(String groupName, String world, boolean inherit) {
-        return group.isChildOf(groupName, ModernWorlds.toLegacy(world), inherit);
+    public boolean isChildOf(String groupName, PermissionContext context, boolean inherit) {
+        return group.isChildOf(groupName, storageRealm(context), inherit);
     }
 
     @Override
@@ -113,14 +121,14 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
     }
 
     @Override
-    public Set<String> memberIdentifiers(String world) {
+    public Set<String> memberIdentifiers(PermissionContext context) {
         return GroupHierarchyEngine.resolveMemberIdentifiers(
-                manager, group.getIdentifier(), ModernWorlds.toLegacy(world), false);
+                manager, group.getIdentifier(), storageRealm(context), false);
     }
 
     @Override
-    public List<User> members(String world, boolean inherit) {
-        var legacyWorld = ModernWorlds.toLegacy(world);
+    public List<User> members(PermissionContext context, boolean inherit) {
+        var legacyWorld = storageRealm(context);
         var seen = new LinkedHashSet<String>();
         var members = new ArrayList<User>();
         collectMembers(seen, members, manager.getUsers(group.getIdentifier(), legacyWorld, inherit));
@@ -136,18 +144,18 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
     }
 
     @Override
-    public List<Group> children(String world, boolean inherit) {
+    public List<Group> children(PermissionContext context, boolean inherit) {
         var children = new ArrayList<Group>();
-        for (PermissionGroup child : manager.getGroups(group.getIdentifier(), ModernWorlds.toLegacy(world), inherit)) {
+        for (PermissionGroup child : manager.getGroups(group.getIdentifier(), storageRealm(context), inherit)) {
             children.add(new GroupImpl(child.getIdentifier(), child, manager));
         }
         return List.copyOf(children);
     }
 
     @Override
-    public List<String> childIdentifiers(String world, boolean inherit) {
+    public List<String> childIdentifiers(PermissionContext context, boolean inherit) {
         return GroupHierarchyEngine.resolveChildIdentifiers(
-                manager, group.getIdentifier(), ModernWorlds.toLegacy(world), inherit);
+                manager, group.getIdentifier(), storageRealm(context), inherit);
     }
 
     @Override
@@ -169,5 +177,9 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
         var identifier = group.getIdentifier();
         group.remove();
         manager.resetGroup(identifier);
+    }
+
+    private String storageRealm(PermissionContext context) {
+        return ContextPermissionEvaluator.storageRealm(context, manager.getPlatform());
     }
 }

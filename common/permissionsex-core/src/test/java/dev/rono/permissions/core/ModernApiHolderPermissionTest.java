@@ -51,7 +51,7 @@ class ModernApiHolderPermissionTest extends ModernApiTestSupport {
         user.save();
 
         assertNotNull(node.expiresAt());
-        assertTrue(user.hasPermission("holder.timed"));
+        assertTrue(user.has("holder.timed"));
     }
 
     @Test

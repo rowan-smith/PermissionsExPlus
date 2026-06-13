@@ -3,7 +3,6 @@ package dev.rono.permissions.core;
 import dev.rono.permissions.api.bus.EntityMutation;
 import dev.rono.permissions.api.bus.SystemMutation;
 import dev.rono.permissions.api.event.PermissionEventListener;
-import dev.rono.permissions.api.world.Worlds;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -25,7 +24,7 @@ class ModernApiEventBusTest extends ModernApiTestSupport {
         });
 
         var user = api().getUserManager().createUser("bus-entity-user");
-        user.addPermission("bus.test", Worlds.GLOBAL);
+        user.addPermission("bus.test");
         user.save();
 
         assertTrue(count.get() > 0);
@@ -44,7 +43,7 @@ class ModernApiEventBusTest extends ModernApiTestSupport {
         api().getEventBus().unsubscribe(sub);
 
         var user = api().getUserManager().createUser("bus-unsub-user");
-        user.addPermission("bus.unsub", Worlds.GLOBAL);
+        user.addPermission("bus.unsub");
         user.save();
 
         assertEquals(0, count.get());
@@ -61,7 +60,7 @@ class ModernApiEventBusTest extends ModernApiTestSupport {
         });
 
         var user = api().getUserManager().createUser("bus-mutation-user");
-        user.addPermission("bus.mutation", Worlds.GLOBAL);
+        user.addPermission("bus.mutation");
         user.save();
 
         assertNotNull(mutation.get());
