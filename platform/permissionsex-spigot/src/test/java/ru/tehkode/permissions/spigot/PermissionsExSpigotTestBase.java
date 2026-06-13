@@ -1,6 +1,8 @@
 package ru.tehkode.permissions.spigot;
 
 import dev.rono.permissions.api.runtime.PlatformRuntime;
+import dev.rono.permissions.api.runtime.BukkitContextResolver;
+import dev.rono.permissions.api.runtime.ContextResolver;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import dev.rono.permissions.core.PermissionsExConfig;
 import dev.rono.permissions.core.config.PexConfigData;
@@ -170,6 +172,11 @@ public abstract class PermissionsExSpigotTestBase {
                     @Override
                     public boolean isOperator(UUID uuid) {
                         return false;
+                    }
+
+                    @Override
+                    public ContextResolver getContextResolver() {
+                        return new BukkitContextResolver();
                     }
                 });
 
