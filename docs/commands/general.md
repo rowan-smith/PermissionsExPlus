@@ -48,7 +48,7 @@ Generates a diagnostic report (PEX version, backend, config snapshot) for bug re
 /pex report
 ```
 
-Paste the output when opening a [GitHub issue](https://github.com/.repo@/issues).
+Paste the output when opening a [GitHub issue](https://github.com/%%site.repo%%/issues).
 
 ---
 

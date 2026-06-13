@@ -1,4 +1,5 @@
 import Link from '@docusaurus/Link';
+import {getJavadocVersions} from '@site/src/config/javadocVersions';
 import siteVars from '@site/site-vars.json';
 import styles from './VersionCards.module.css';
 
@@ -9,20 +10,12 @@ type Card = {
   external?: boolean;
 };
 
-const LEGACY_JAVADOC_VERSIONS = ['1.23.4', '1.23.3', '1.23.2', '1.23.1'] as const;
-
 type Props = {
   type: 'home' | 'javadoc';
 };
 
 export default function VersionCards({type}: Props): JSX.Element {
   const homeCards: Card[] = [
-    {
-      href: `https://github.com/${siteVars.repo}/releases`,
-      label: `Download v${siteVars.version}`,
-      description: 'Get the latest release jar',
-      external: true,
-    },
     {
       href: '/guides/recipes',
       label: 'Common Setups',
@@ -33,25 +26,18 @@ export default function VersionCards({type}: Props): JSX.Element {
       label: 'Command Reference',
       description: 'Full /pex command documentation',
     },
+    {
+      href: '/developers/cookbook',
+      label: 'API Cookbook',
+      description: 'Integrate your plugin with PEX',
+    },
   ];
 
-  const javadocCards: Card[] = [
-    {
-      label: `${siteVars.version} (current)`,
-      href: `pathname:///apidocs/${siteVars.version}/index.html`,
-      description: 'Modern + legacy API (PermissionsExPlus)',
-    },
-    ...LEGACY_JAVADOC_VERSIONS.map((version) => ({
-      label: version,
-      href: `pathname:///apidocs/${version}/index.html`,
-      description: 'Classic PermissionsEx API',
-    })),
-    {
-      label: '1.22.1',
-      href: 'pathname:///apidocs/1.22.1/apidocs/index.html',
-      description: 'Original PermissionsEx API',
-    },
-  ];
+  const javadocCards: Card[] = getJavadocVersions().map((entry) => ({
+    href: entry.href,
+    label: entry.label,
+    description: entry.description,
+  }));
 
   const cards = type === 'home' ? homeCards : javadocCards;
 

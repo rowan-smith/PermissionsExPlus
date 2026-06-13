@@ -8,9 +8,9 @@ Contributions are welcome — bug reports, compatibility fixes, and documentatio
 
 ## Report a bug
 
-1. Check [existing issues](https://github.com/.repo@/issues)
+1. Check [existing issues](https://github.com/%%site.repo%%/issues)
 2. Use `/pex report` in-game to generate diagnostic info
-3. [Open a new issue](https://github.com/.repo@/issues/new) with:
+3. [Open a new issue](https://github.com/%%site.repo%%/issues/new) with:
    - Server type and version (Spigot, Paper, etc.)
    - Minecraft version
    - Java version
@@ -19,7 +19,7 @@ Contributions are welcome — bug reports, compatibility fixes, and documentatio
 ## Build from source
 
 ```bash
-git clone https://github.com/.repo@.git
+git clone https://github.com/%%site.repo%%.git
 cd PermissionsExPlus
 mvn clean package
 ```
@@ -30,7 +30,7 @@ Universal jar:
 mvn clean package -pl bootstrap -am
 ```
 
-Output: `bootstrap/target/PermissionsExPlus-.version@.jar`
+Output: `bootstrap/target/PermissionsExPlus-%%site.version%%.jar`
 
 ## Run tests
 
@@ -55,4 +55,4 @@ mvn test
 
 ## License
 
-By contributing, you agree that your contributions are licensed under the [GPL v2.0 or later](https://github.com/.repo@/blob/main/LICENSE).
+By contributing, you agree that your contributions are licensed under the [GPL v2.0 or later](https://github.com/%%site.repo%%/blob/main/LICENSE).

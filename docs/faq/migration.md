@@ -8,7 +8,7 @@ slug: /faq/migration
 
 1. **Back up** your `plugins/PermissionsEx/` folder
 2. Remove old PEX jars from `plugins/`
-3. Install **`PermissionsExPlus-.version@.jar`**
+3. Install **`PermissionsExPlus-%%site.version%%.jar`**
 4. Start the server — existing `permissions.yml` should load as-is
 5. Run `/pex` to verify
 

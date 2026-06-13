@@ -15,7 +15,7 @@ This fork keeps the familiar `/pex` command structure while adding:
 - A modern `dev.rono.permissions.api` integration API
 - Restored classic `ru.tehkode.*` hook plugin compatibility
 
-**Current version:** .version@
+**Current version:** %%site.version%%
 
 ## Credits
 
@@ -23,13 +23,13 @@ This fork keeps the familiar `/pex` command structure while adding:
 |---|---|
 | **Original authors** | t3hk0d3, zml |
 | **Fork maintenance** | Rono / [rowan-smith](https://github.com/rowan-smith) |
-| **License** | [GNU GPL v2.0 or later](https://github.com/.repo@/blob/main/LICENSE) |
+| **License** | [GNU GPL v2.0 or later](https://github.com/%%site.repo%%/blob/main/LICENSE) |
 
 ## Links
 
-- [GitHub Repository](https://github.com/.repo@)
-- [Releases](https://github.com/.repo@/releases)
-- [Report an Issue](https://github.com/.repo@/issues)
+- [GitHub Repository](https://github.com/%%site.repo%%)
+- [Releases](https://github.com/%%site.repo%%/releases)
+- [Report an Issue](https://github.com/%%site.repo%%/issues)
 - [Original PermissionsEx](https://github.com/PEXPlugins/PermissionsEx)
 
 ## Why a fork?

@@ -5,9 +5,9 @@ import siteVars from '../../site-vars.json';
 
 function substitute(value: string): string {
   return value
-    .replace(/@site\.version@/g, siteVars.version)
-    .replace(/@site\.repo@/g, siteVars.repo)
-    .replace(/@site\.baseurl@/g, siteVars.baseUrl);
+    .replace(/%%site\.version%%/g, siteVars.version)
+    .replace(/%%site\.repo%%/g, siteVars.repo)
+    .replace(/%%site\.baseurl%%/g, siteVars.baseUrl);
 }
 
 const siteVarsPlugin: Plugin<[], Root> = () => (tree) => {

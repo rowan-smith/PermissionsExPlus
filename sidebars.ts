@@ -4,26 +4,23 @@ const sidebars: SidebarsConfig = {
   docsSidebar: [
     {
       type: 'category',
-      label: 'Introduction',
+      label: 'Getting Started',
       collapsed: false,
       items: [
         'index',
         'requirements',
-        'storage',
-        'configuration',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Concepts',
-      collapsed: false,
-      items: [
         'concepts/permissions',
         'concepts/inheritance',
         'concepts/context',
         'concepts/weight',
         'concepts/meta',
       ],
+    },
+    {
+      type: 'category',
+      label: 'Configuration',
+      collapsed: false,
+      items: ['configuration', 'storage'],
     },
     {
       type: 'category',
@@ -42,29 +39,28 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Guides',
       collapsed: false,
-      items: ['guides/recipes', 'guides/troubleshooting'],
+      items: [
+        'guides/recipes',
+        'guides/troubleshooting',
+        'faq/default-groups',
+        'faq/migration',
+      ],
     },
     {
       type: 'category',
-      label: 'FAQ',
-      collapsed: false,
-      items: ['faq/default-groups', 'faq/migration'],
-    },
-    {
-      type: 'category',
-      label: 'Developers',
+      label: 'Developer Docs',
       collapsed: false,
       items: [
         'developers/index',
         'developers/cookbook',
-        'developers/contributing',
         'developers/reference',
+        'developers/contributing',
       ],
     },
     {
       type: 'category',
       label: 'Project',
-      collapsed: false,
+      collapsed: true,
       items: ['about'],
     },
   ],

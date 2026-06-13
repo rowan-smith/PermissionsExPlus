@@ -13,11 +13,11 @@ slug: /requirements
 | Velocity | Yes |
 | Sponge | Yes |
 
-Install the universal **`PermissionsExPlus-.version@.jar`** on each server process (backend and proxy).
+Install the universal **`PermissionsExPlus-%%site.version%%.jar`** on each server process (backend and proxy).
 
 ## Java
 
-**Java 21 or newer** is required to run PermissionsExPlus .version@.
+**Java 21 or newer** is required to run PermissionsExPlus %%site.version%%.
 
 Check your version:
 
@@ -57,4 +57,4 @@ Each server process must have **only one** PEX jar. Remove old copies before res
 - `PermissionsEx.jar`, `PermissionsExPlus-spigot-*.jar`
 - `permissionsex-spigot-*.jar`, `permissionsex-bungee-*.jar`
 
-Keep a single `PermissionsExPlus-.version@.jar`.
+Keep a single `PermissionsExPlus-%%site.version%%.jar`.

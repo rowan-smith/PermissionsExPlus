@@ -21,9 +21,11 @@ When `pom.xml` is present (after merging into `main`), the script reads `${proje
 
 Docs can use Maven-style placeholders — replaced at build time:
 
-- `@site.version@` — current release version
-- `@site.repo@` — GitHub repo slug
-- `@site.baseurl@` — site base URL (usually `/`)
+- `%%site.version%%` — current release version
+- `%%site.repo%%` — GitHub repo slug
+- `%%site.baseurl%%` — site base URL (usually `/`)
+
+Note: avoid `@site.*` in MDX files — Docusaurus reserves the `@site` alias.
 
 MDX pages can also use `<Version />`, `<Repo />`, and `<JarName />` components.
 
