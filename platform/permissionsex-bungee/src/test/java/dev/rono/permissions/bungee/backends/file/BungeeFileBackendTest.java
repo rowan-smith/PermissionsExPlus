@@ -1,6 +1,7 @@
 package dev.rono.permissions.bungee.backends.file;
 
 import dev.rono.permissions.core.DefaultPermissionManager;
+import dev.rono.permissions.api.runtime.PlatformRuntime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -26,7 +27,7 @@ class BungeeFileBackendTest {
     void setUp() throws Exception {
         PermissionBackend.registerBackendAlias("file", BungeeFileBackend.class);
         config = new BungeeTestConfig(tempDir);
-        manager = new DefaultPermissionManager(config, java.util.logging.Logger.getLogger("bungee-test"), new BungeeTestPlatform());
+        manager = new DefaultPermissionManager(config, java.util.logging.Logger.getLogger("bungee-test"), PlatformRuntime.adapterOnly(new BungeeTestPlatform()));
     }
 
     @Test
@@ -35,7 +36,7 @@ class BungeeFileBackendTest {
         group.addPermission("proxy.command.alert", null);
         manager.getBackend().close();
 
-        DefaultPermissionManager reloaded = new DefaultPermissionManager(config, manager.getLogger(), new BungeeTestPlatform());
+        DefaultPermissionManager reloaded = new DefaultPermissionManager(config, manager.getLogger(), PlatformRuntime.adapterOnly(new BungeeTestPlatform()));
         assertTrue(reloaded.getGroup("staff").getPermissions(null).contains("proxy.command.alert"));
     }
 
@@ -44,7 +45,7 @@ class BungeeFileBackendTest {
         manager.getBackend().setWorldInheritance("lobby", Collections.singletonList("global"));
         manager.getBackend().close();
 
-        DefaultPermissionManager reloaded = new DefaultPermissionManager(config, manager.getLogger(), new BungeeTestPlatform());
+        DefaultPermissionManager reloaded = new DefaultPermissionManager(config, manager.getLogger(), PlatformRuntime.adapterOnly(new BungeeTestPlatform()));
         assertEquals(Collections.singletonList("global"), reloaded.getBackend().getWorldInheritance("lobby"));
     }
 
@@ -200,9 +201,6 @@ class BungeeFileBackendTest {
         public boolean isOnline(java.util.UUID uuid) {
             return false;
         }
-
-        @Override
-        public void publish(dev.rono.permissions.api.bus.PermissionDispatch dispatch) {}
 
         @Override
         public boolean isOperator(java.util.UUID uuid) {

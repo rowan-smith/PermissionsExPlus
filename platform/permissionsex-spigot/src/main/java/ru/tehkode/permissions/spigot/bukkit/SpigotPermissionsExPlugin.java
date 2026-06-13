@@ -26,12 +26,12 @@ import com.mojang.api.profiles.HttpProfileRepository;
 import com.mojang.api.profiles.Profile;
 import com.mojang.api.profiles.ProfileRepository;
 import dev.rono.permissions.api.PermissionsExApi;
-import dev.rono.permissions.api.bus.PermissionDispatch;
-import dev.rono.permissions.api.runtime.PlatformAdapter;
-import dev.rono.permissions.core.DefaultPermissionManager;
+import dev.rono.permissions.api.runtime.PlatformRuntime;
 import dev.rono.permissions.core.commands.CoreCloudCommandRegistrar;
 import dev.rono.permissions.core.commands.CoreCommandService;
 import dev.rono.permissions.runtime.startup.BukkitPermissionBootstrapReporter;
+import dev.rono.permissions.spigot.platform.BukkitPlatformAdapter;
+import dev.rono.permissions.spigot.platform.BukkitPlatformScheduler;
 import dev.rono.permissions.spigot.platform.SpigotEventPublisher;
 import dev.rono.permissions.spigot.platform.SpigotPlatformBridge;
 import org.bukkit.ChatColor;
@@ -74,7 +74,7 @@ import java.util.stream.Collectors;
 /**
  * @author code
  */
-public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInterface, PlatformAdapter {
+public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInterface {
     protected PermissionManager permissionsManager;
 	private PermissionsExConfig config;
 	protected SuperpermsListener superms;
@@ -83,7 +83,10 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
     private CoreCommandService coreCommandService;
 	private boolean errored = false;
 	private SpigotPlatformBridge platformBridge;
+	private BukkitPlatformAdapter platformAdapter;
+	private BukkitPlatformScheduler platformScheduler;
 	private SpigotEventPublisher eventPublisher;
+	private PlatformRuntime platformRuntime;
 
 	public SpigotPermissionsExPlugin() {
 		super();
@@ -186,7 +189,10 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 			}
 
 			platformBridge = new SpigotPlatformBridge(this);
-			eventPublisher = new SpigotEventPublisher(this);
+			platformAdapter = new BukkitPlatformAdapter(platformBridge);
+			platformScheduler = new BukkitPlatformScheduler(this);
+			eventPublisher = new SpigotEventPublisher(this, () -> permissionsManager);
+			platformRuntime = PlatformRuntime.of(platformAdapter, eventPublisher, platformScheduler);
 			if (!dev.rono.permissions.spigot.compat.ServerVersions.isWithinSupportedRange(getServer())) {
 				getLogger().warning("Minecraft version " + dev.rono.permissions.spigot.compat.ServerVersions.minecraftVersion(getServer())
 						+ " is outside the tested range "
@@ -196,7 +202,7 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 						+ "; continuing with compatibility shims enabled.");
 			}
 			if (this.permissionsManager == null) {
-				this.permissionsManager = new DefaultPermissionManager(config, getLogger(), this);
+				this.permissionsManager = new SpigotPermissionManager(config, getLogger(), platformRuntime);
 			}
             this.coreCommandService = new CoreCommandService(this.permissionsManager);
 
@@ -228,11 +234,6 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
                         new SpigotConfigBridge(),
                         new SpigotUuidConversionBridge())
                         .register();
-                try {
-                    cloudManager.registerBrigadier();
-                } catch (BukkitCommandManager.BrigadierFailureException brigadierEx) {
-                    getLogger().log(Level.FINE, "Brigadier tab-completion hook not available", brigadierEx);
-                }
             } catch (Exception cloudEx) {
                 getLogger().warning("Failed to initialize Cloud command registration: " + cloudEx.getMessage());
             }
@@ -242,7 +243,7 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 			this.getServer().getPluginManager().registerEvents(cleaner, this);
 
 			var permissionsExApi =
-					((DefaultPermissionManager) this.permissionsManager).permissionsExApi();
+					((SpigotPermissionManager) this.permissionsManager).permissionsExApi();
 			this.getServer().getServicesManager().register(PermissionManager.class, this.permissionsManager, this, ServicePriority.Normal);
 			this.getServer().getServicesManager().register(
 					PermissionsExApi.class,
@@ -274,7 +275,7 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 		try {
 			if (this.permissionsManager != null) {
 				var permissionsExApi =
-						((DefaultPermissionManager) this.permissionsManager).permissionsExApi();
+						((SpigotPermissionManager) this.permissionsManager).permissionsExApi();
 				this.permissionsManager.end();
 				this.getServer().getServicesManager().unregister(PermissionsExApi.class, permissionsExApi);
 				this.getServer().getServicesManager().unregister(PermissionManager.class, this.permissionsManager);
@@ -382,6 +383,10 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 		return superms;
 	}
 
+	protected StrippingBukkitCommandManager<CommandSender> getCloudManager() {
+		return cloudManager;
+	}
+
 	@Override
 	public String UUIDToName(UUID uid) {
 		return platformBridge.uuidToName(uid);
@@ -407,44 +412,8 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 		eventPublisher.callEvent(event);
 	}
 
-	@Override
-	public void publish(PermissionDispatch dispatch) {
-		eventPublisher.publish(dispatch);
-	}
-
-	@Override
-	public String uuidToName(UUID uid) {
-		return platformBridge.uuidToName(uid);
-	}
-
-	@Override
-	public UUID nameToUuid(String name) {
-		return platformBridge.nameToUuid(name);
-	}
-
-	@Override
-	public UUID serverId() {
-		return platformBridge.serverId();
-	}
-
-	@Override
-	public Collection<String> realmNames() {
-		return platformBridge.realmNames();
-	}
-
-	@Override
-	public String onlineRealm(UUID player) {
-		return platformBridge.onlineRealm(player);
-	}
-
-	@Override
-	public String onlineDisplayName(UUID player) {
-		return platformBridge.onlineDisplayName(player);
-	}
-
-	@Override
-	public boolean isOperator(UUID uuid) {
-		return platformBridge.isOperator(uuid);
+	public PlatformRuntime getPlatformRuntime() {
+		return platformRuntime;
 	}
 
 	public PermissionManager getPermissionsManager() {
@@ -566,7 +535,7 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
             final AtomicInteger batchNum = new AtomicInteger(1);
             final int totalBatches = (int) Math.ceil(userIdentifiers.size() / 50000.0);
 
-            permissionsManager.getExecutor().execute(new Runnable() {
+            platformScheduler.runAsync(new Runnable() {
                 @Override
                 public void run() {
                     List<String> names = splitIdentifiers.next();
@@ -583,7 +552,7 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
                     }
 
                     if (splitIdentifiers.hasNext()) {
-                        permissionsManager.getExecutor().schedule(this, 10, TimeUnit.MINUTES);
+                        platformScheduler.runLaterSeconds(this, TimeUnit.MINUTES.toSeconds(10));
                         getLogger().info("Completed conversion batch " + batchNum.getAndIncrement() + " of " + totalBatches);
                     } else {
                         getLogger().info("UUID conversion complete");

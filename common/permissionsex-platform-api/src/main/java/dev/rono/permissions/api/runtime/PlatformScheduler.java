@@ -28,4 +28,11 @@ public interface PlatformScheduler {
      * @param delayTicks delay in platform tick units
      */
     void runLater(Runnable task, long delayTicks);
+
+    /**
+     * Schedules {@code task} after {@code delaySeconds}. Default converts seconds to 20 ticks per second.
+     */
+    default void runLaterSeconds(Runnable task, long delaySeconds) {
+        runLater(task, delaySeconds * 20L);
+    }
 }

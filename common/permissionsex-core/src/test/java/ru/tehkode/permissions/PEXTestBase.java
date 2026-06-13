@@ -4,6 +4,8 @@ import dev.rono.permissions.api.bus.EntityDispatch;
 import dev.rono.permissions.api.bus.PermissionDispatch;
 import dev.rono.permissions.api.bus.SystemDispatch;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.api.runtime.PlatformEventBus;
+import dev.rono.permissions.api.runtime.PlatformRuntime;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import dev.rono.permissions.core.PermissionsExConfig;
 import dev.rono.permissions.core.backends.AbstractPermissionBackend;
@@ -411,19 +413,6 @@ public abstract class PEXTestBase {
                     }
 
                     @Override
-                    public void publish(PermissionDispatch dispatch) {
-                        firedDispatches.add(dispatch);
-                        if (dispatch instanceof EntityDispatch ed) {
-                            assert ed.mutation() != null;
-                            return;
-                        }
-                        if (dispatch instanceof SystemDispatch sd) {
-                            assert sd.mutation() != null;
-                            return;
-                        }
-                    }
-
-                    @Override
                     public String onlineRealm(UUID uuid) {
                         return null;
                     }
@@ -439,7 +428,17 @@ public abstract class PEXTestBase {
                     }
                 };
 
-        manager = new DefaultPermissionManager(config, Logger.getLogger("PEX"), platformAdapter);
+        PlatformEventBus eventBus = dispatch -> {
+            firedDispatches.add(dispatch);
+            if (dispatch instanceof EntityDispatch ed) {
+                assert ed.mutation() != null;
+            } else if (dispatch instanceof SystemDispatch sd) {
+                assert sd.mutation() != null;
+            }
+        };
+
+        manager = new DefaultPermissionManager(
+                config, Logger.getLogger("PEX"), PlatformRuntime.of(platformAdapter, eventBus, dev.rono.permissions.api.runtime.DirectPlatformScheduler.INSTANCE));
     }
 
     public void waitForExecutor() throws InterruptedException {

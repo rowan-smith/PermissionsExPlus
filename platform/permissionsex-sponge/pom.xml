@@ -12,12 +12,17 @@
 
     <artifactId>permissionsex-sponge</artifactId>
     <name>PermissionsEx Sponge</name>
-    <description>Sponge runtime adapter (placeholder).</description>
+    <description>Sponge runtime adapter.</description>
 
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-platform-api</artifactId>
+            <artifactId>permissionsex-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>permissionsex-bungee</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

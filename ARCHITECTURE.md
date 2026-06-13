@@ -68,8 +68,12 @@ Plugin → PermissionsEx.getApi() → PermissionsExApi → UserManager / GroupMa
 ### Platform interaction flow
 
 ```
-permissionsex-core → PlatformAdapter (permissionsex-platform-api)
-  → permissionsex-spigot / bungee / velocity / … → Server API (Bukkit / Proxy / …)
+permissionsex-core → PlatformRuntime
+  ├── PlatformAdapter      (identity / realms)
+  ├── PlatformEventBus     (native listener publication)
+  └── PlatformScheduler    (host thread scheduling)
+        ↓
+permissionsex-spigot / bungee / velocity / sponge → Server API
 ```
 
 ### Legacy flow

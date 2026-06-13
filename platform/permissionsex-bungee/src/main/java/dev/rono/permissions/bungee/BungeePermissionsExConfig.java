@@ -6,6 +6,7 @@ import dev.rono.permissions.core.config.PexConfigFlavor;
 import dev.rono.permissions.core.config.PexRef;
 import dev.rono.permissions.core.configuration.PexYamlConfig;
 import dev.rono.permissions.core.runtime.PexVolatileRef;
+import org.bukkit.configuration.ConfigurationSection;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import ru.tehkode.permissions.PEXBackendConfiguration;
@@ -20,14 +21,14 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 @SuppressWarnings("unchecked")
-final class BungeePermissionsExConfig implements PermissionsExConfig {
+public class BungeePermissionsExConfig implements PermissionsExConfig, ru.tehkode.permissions.bukkit.PermissionsExConfig {
     private final Path configFile;
     private final Logger logger;
     private final Yaml yaml;
     private Map<String, Object> root;
     private PexVolatileRef<PexConfigData> loaded;
 
-    BungeePermissionsExConfig(java.io.File dataFolder, Logger logger) {
+    public BungeePermissionsExConfig(java.io.File dataFolder, Logger logger) {
         this.logger = logger;
         this.configFile = dataFolder.toPath().resolve("config.yml");
         DumperOptions options = new DumperOptions();
@@ -248,5 +249,30 @@ final class BungeePermissionsExConfig implements PermissionsExConfig {
         permissions.put("backends", backends);
         root.put("permissions", permissions);
         return root;
+    }
+
+    @Override
+    public boolean useNetEvents() {
+        return false;
+    }
+
+    @Override
+    public boolean updaterEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean alwaysUpdate() {
+        return false;
+    }
+
+    @Override
+    public java.util.List<String> getServerTags() {
+        return java.util.Collections.emptyList();
+    }
+
+    @Override
+    public ConfigurationSection getBackendConfig(String backend) {
+        return null;
     }
 }

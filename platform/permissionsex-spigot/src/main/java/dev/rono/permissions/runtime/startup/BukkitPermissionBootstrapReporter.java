@@ -36,7 +36,7 @@ public final class BukkitPermissionBootstrapReporter {
 
     public static void log(SpigotPermissionsExPlugin plugin, PermissionManager manager) {
         Logger log = plugin.getLogger();
-        PlatformDescriptor desc = describe(plugin.getServer());
+        PlatformDescriptor desc = describePlatform(plugin.getServer());
         log.info(PREFIX + "Runtime: " + desc.runtimeBannerLine());
         log.info(PREFIX + "Platform adapter: "
                 + InternalPermissionManager.require(manager).getPlatform().getClass().getSimpleName());
@@ -58,11 +58,22 @@ public final class BukkitPermissionBootstrapReporter {
         }
     }
 
-    private static PlatformDescriptor describe(Server server) {
+    private static PlatformDescriptor describePlatform(Server server) {
         String impl = server.getName();
         String mc = resolveMinecraftVersion(server);
         String vendor = tryPaperVendorDetails(server);
         return new PlatformDescriptor(impl, mc, PlatformFamily.BUKKIT, vendor);
+    }
+
+    private static String tryPaperVendorDetails(Server server) {
+        try {
+            Class<?> probe = Class.forName("dev.rono.permissions.paper.PaperPlatformProbe");
+            var method = probe.getMethod("tryVendorDetails", Server.class);
+            Object result = method.invoke(null, server);
+            return result instanceof String s && !s.isBlank() ? s : null;
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
     }
 
     private static String resolveMinecraftVersion(Server server) {
@@ -83,26 +94,6 @@ public final class BukkitPermissionBootstrapReporter {
         }
         int dash = bukkitVersion.indexOf('-');
         return dash > 0 ? bukkitVersion.substring(0, dash) : bukkitVersion;
-    }
-
-    private static String tryPaperVendorDetails(Server server) {
-        try {
-            Class<?> buildInfo = Class.forName("io.papermc.paper.ServerBuildInfo");
-            Method buildInfoMethod = buildInfo.getMethod("buildInfo");
-            Object info = buildInfoMethod.invoke(null);
-            if (info == null) {
-                return null;
-            }
-            Method mcVer = info.getClass().getMethod("minecraftVersionId");
-            Object mc = mcVer.invoke(info);
-            Method build = info.getClass().getMethod("buildNumber");
-            Object num = build.invoke(info);
-            if (mc instanceof String mcs && num != null) {
-                return "Paper build " + num + " (" + mcs + ")";
-            }
-        } catch (ReflectiveOperationException | ClassCastException ignored) {
-        }
-        return null;
     }
 
     private static void logConsumerScan(SpigotPermissionsExPlugin self, Logger log) {

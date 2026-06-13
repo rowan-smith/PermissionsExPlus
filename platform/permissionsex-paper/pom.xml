@@ -12,12 +12,12 @@
 
     <artifactId>permissionsex-paper</artifactId>
     <name>PermissionsEx Paper</name>
-    <description>Paper-specific runtime adapter (placeholder — ships with spigot module today).</description>
+    <description>Paper-specific runtime enhancements over the generic Spigot adapter.</description>
 
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-platform-api</artifactId>
+            <artifactId>permissionsex-spigot</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -12,18 +12,22 @@
 
     <artifactId>permissionsex-velocity</artifactId>
     <name>PermissionsEx Velocity</name>
-    <description>Velocity proxy runtime adapter (placeholder).</description>
+    <description>Velocity proxy runtime adapter.</description>
 
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-platform-api</artifactId>
+            <artifactId>permissionsex-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>permissionsex-bungee</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.velocitypowered</groupId>
             <artifactId>velocity-api</artifactId>
-            <version>3.4.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

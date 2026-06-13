@@ -25,6 +25,9 @@ import dev.rono.permissions.api.bus.SystemDispatch;
 import dev.rono.permissions.api.bus.SystemMutation;
 import dev.rono.permissions.api.event.PermissionEventBus;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.api.runtime.PlatformEventBus;
+import dev.rono.permissions.api.runtime.PlatformRuntime;
+import dev.rono.permissions.api.runtime.PlatformScheduler;
 import dev.rono.permissions.core.api.*;
 import dev.rono.permissions.core.api.pex.HolderPermissionService;
 import dev.rono.permissions.core.api.pex.PermissionsExApiImpl;
@@ -50,7 +53,10 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 	protected ConcurrentMap<String, PermissionGroup> groups = new ConcurrentHashMap<>();
 	protected PermissionBackend backend = null;
 	private final PermissionsExConfig config;
+	private final PlatformRuntime platformRuntime;
 	private final PlatformAdapter platform;
+	private final PlatformEventBus platformEventBus;
+	private final PlatformScheduler platformScheduler;
 	private final Logger logger;
 	protected ScheduledExecutorService executor;
 	private final TimedExpiryCoordinator timedExpiryCoordinator;
@@ -64,11 +70,14 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 	private final PermissionsExApiImpl permissionsExApi;
 	private final HolderPermissionService holderPermissions;
 
-	public DefaultPermissionManager(PermissionsExConfig config, Logger logger, PlatformAdapter platform) throws PermissionBackendException {
+	public DefaultPermissionManager(PermissionsExConfig config, Logger logger, PlatformRuntime platformRuntime) throws PermissionBackendException {
 		CorePermissionBackendRegistrar.ensureRegistered();
 		this.config = config;
 		this.logger = logger;
-		this.platform = platform;
+		this.platformRuntime = platformRuntime;
+		this.platform = platformRuntime.adapter();
+		this.platformEventBus = platformRuntime.eventBus();
+		this.platformScheduler = platformRuntime.scheduler();
 		this.debugMode = config.isDebug();
 		this.allowOps = config.allowOps();
 		this.userAddGroupsLast = config.userAddGroupsLast();
@@ -76,6 +85,12 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 		this.timedExpiryCoordinator = new TimedExpiryCoordinator(this);
 		this.holderPermissions = new HolderPermissionService(this);
 		this.permissionsExApi = new PermissionsExApiImpl(this);
+	}
+
+	/** @deprecated use {@link #DefaultPermissionManager(PermissionsExConfig, Logger, PlatformRuntime)} */
+	@Deprecated
+	public DefaultPermissionManager(PermissionsExConfig config, Logger logger, PlatformAdapter platform) throws PermissionBackendException {
+		this(config, logger, PlatformRuntime.adapterOnly(platform));
 	}
 
 	public PermissionsExApi permissionsExApi() {
@@ -138,12 +153,29 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 		if (config instanceof ru.tehkode.permissions.bukkit.PermissionsExConfig legacy) {
 			return legacy;
 		}
-		return new dev.rono.permissions.core.legacy.LegacyPermissionsExConfigAdapter(config);
+		throw new IllegalStateException(
+				"Runtime config does not implement ru.tehkode.permissions.bukkit.PermissionsExConfig: "
+						+ config.getClass().getName());
 	}
 
 	@Override
 	public PlatformAdapter getPlatform() {
 		return platform;
+	}
+
+	@Override
+	public PlatformEventBus getPlatformEventBus() {
+		return platformEventBus;
+	}
+
+	@Override
+	public PlatformScheduler getPlatformScheduler() {
+		return platformScheduler;
+	}
+
+	@Override
+	public PlatformRuntime getPlatformRuntime() {
+		return platformRuntime;
 	}
 
 	@Override
@@ -163,21 +195,20 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 
 	@Override
 	public void registerTask(TimerTask task, int delay) {
-		if (executor == null || delay == PermissionManager.TRANSIENT_PERMISSION) {
+		if (delay == PermissionManager.TRANSIENT_PERMISSION) {
 			return;
 		}
-
-		executor.schedule(task, delay, TimeUnit.SECONDS);
+		platformScheduler.runLaterSeconds(task::run, delay);
 	}
 
 	@Override
 	public boolean has(Player player, String permission) {
-		return has(player.getUniqueId(), permission, player.getWorld().getName());
+		throw new UnsupportedOperationException("Player checks require SpigotPermissionManager on Bukkit runtimes");
 	}
 
 	@Override
 	public boolean has(Player player, String permission, String world) {
-		return has(player.getUniqueId(), permission, world);
+		throw new UnsupportedOperationException("Player checks require SpigotPermissionManager on Bukkit runtimes");
 	}
 
 	/**
@@ -257,7 +288,7 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 
 	@Override
 	public PermissionUser getUser(Player player) {
-		return getUser(player.getUniqueId());
+		throw new UnsupportedOperationException("Player lookups require SpigotPermissionManager on Bukkit runtimes");
 	}
 
 	@Override
@@ -401,7 +432,7 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 	 */
 	@Override
 	public void resetUser(Player player) {
-		resetUser(player.getUniqueId().toString());
+		throw new UnsupportedOperationException("Player cache control requires SpigotPermissionManager on Bukkit runtimes");
 	}
 
 	@Override
@@ -424,7 +455,7 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 
 	@Override
 	public void clearUserCache(Player player) {
-		clearUserCache(player.getUniqueId());
+		throw new UnsupportedOperationException("Player cache control requires SpigotPermissionManager on Bukkit runtimes");
 	}
 
 	@Override
@@ -768,14 +799,14 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 	protected void publishSystem(SystemMutation mutation) {
 		SystemDispatch dispatch = new SystemDispatch(getServerUUID(), mutation);
 		eventBus.dispatch(dispatch);
-		platform.publish(dispatch);
+		platformEventBus.publish(dispatch);
 	}
 
 	@Override
 	public void publishEntity(String entityIdentifier, String entityType, EntityMutation mutation) {
 		EntityDispatch dispatch = new EntityDispatch(getServerUUID(), entityIdentifier, entityType, mutation);
 		eventBus.dispatch(dispatch);
-		platform.publish(dispatch);
+		platformEventBus.publish(dispatch);
 	}
 
 	public PermissionMatcher getPermissionMatcher() {

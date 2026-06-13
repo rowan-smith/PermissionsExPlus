@@ -1,13 +1,13 @@
 package dev.rono.permissions.api.runtime;
 
-import dev.rono.permissions.api.bus.PermissionDispatch;
 import java.util.Collection;
 import java.util.UUID;
 
 /**
- * Host integration bridge (Spigot, Bungee, tests). No Bukkit types on this interface.
+ * Host integration bridge (Spigot, Bungee, Velocity, Sponge, tests). No Bukkit types on this interface.
  *
- * <p>Implemented by platform modules to supply player identity, realm names, and event publication.</p>
+ * <p>Implemented by platform modules to supply player identity and realm names. Event publication is handled
+ * by {@link PlatformEventBus}; scheduling by {@link PlatformScheduler}.</p>
  */
 public interface PlatformAdapter {
 
@@ -50,13 +50,6 @@ public interface PlatformAdapter {
      * @return registered realm names
      */
     Collection<String> realmNames();
-
-    /**
-     * Publishes a permission dispatch to the modern event bus and platform-specific listeners.
-     *
-     * @param dispatch entity or system dispatch payload
-     */
-    void publish(PermissionDispatch dispatch);
 
     /**
      * Returns the current realm/world when the player is online.
