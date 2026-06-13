@@ -1,7 +1,6 @@
 package ru.tehkode.permissions.spigot;
 
-import dev.rono.permissions.api.bus.PermissionDispatch;
-import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.api.runtime.PlatformRuntime;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import dev.rono.permissions.core.PermissionsExConfig;
 import dev.rono.permissions.core.config.PexConfigData;
@@ -27,7 +26,7 @@ import java.util.logging.Logger;
 public abstract class PermissionsExSpigotTestBase {
     protected PermissionManager manager;
     protected PermissionsExConfig config;
-    protected PlatformAdapter nativeI;
+    protected PlatformRuntime platformRuntime;
     protected YamlConfiguration yamlConfig;
 
     static {
@@ -131,8 +130,8 @@ public abstract class PermissionsExSpigotTestBase {
             public void save() {}
         };
 
-        nativeI =
-                new PlatformAdapter() {
+        platformRuntime = PlatformRuntime.adapterOnly(
+                new dev.rono.permissions.api.runtime.PlatformAdapter() {
                     @Override
                     public String uuidToName(UUID uid) {
                         return uid.toString();
@@ -159,9 +158,6 @@ public abstract class PermissionsExSpigotTestBase {
                     }
 
                     @Override
-                    public void publish(PermissionDispatch dispatch) {}
-
-                    @Override
                     public String onlineRealm(UUID uuid) {
                         return null;
                     }
@@ -175,9 +171,9 @@ public abstract class PermissionsExSpigotTestBase {
                     public boolean isOperator(UUID uuid) {
                         return false;
                     }
-                };
+                });
 
-        manager = new DefaultPermissionManager(config, Logger.getLogger("PEX-Test"), nativeI);
+        manager = new DefaultPermissionManager(config, Logger.getLogger("PEX-Test"), platformRuntime);
     }
 
     protected void waitForExecutor() throws InterruptedException {

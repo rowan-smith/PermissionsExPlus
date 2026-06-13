@@ -11,22 +11,36 @@ legacy-api/
   permissionsex-legacy-compat Regression tests (MockBukkit + optional classic plugin JARs)
 
 api/
-  permissionsex-core-api      Platform-neutral SPI (PlatformAdapter, bus dispatches)
+  permissionsex-core-api      Engine ↔ API SPI (bus dispatches, permission holder types)
   permissionsex-api           PermissionsExApi + managers for modern hook plugins
   permissionsex-api-bungee    PermissionsEx.getApi() + proxy service registry
 
-platform/
-  permissionsex-core          Engine (manager, backends, commands, hierarchy)
-  permissionsex-spigot        Bukkit/Paper runtime
-  permissionsex-bungee        Proxy runtime
-  permissionsex-bootstrap     Universal shaded jar (plugin.yml + bungee.yml)
+common/
+  permissionsex-platform-api  Runtime bridge (PlatformAdapter, scheduler, logging, identity)
+  permissionsex-core          Engine (manager, backends, commands, hierarchy) — THE ONLY permission logic
 
-plugin/
-  permissionsex-example-legacy-plugin Sample classic hook plugin
-  permissionsex-example-plugin         Sample modern hook plugin
+platform/
+  permissionsex-spigot        Bukkit/Paper runtime (live today)
+  permissionsex-bungee        Bungee/Waterfall proxy runtime (live today)
+  permissionsex-paper         Paper-specific runtime enhancements
+  permissionsex-velocity      Velocity proxy runtime
+  permissionsex-sponge        Sponge runtime
+
+bootstrap/
+  permissionsex-bootstrap     Universal shaded jar (all platform descriptors)
 ```
 
-Dependency direction: **platform** → **legacy-api** / **api** → **core-api**; **plugin** modules depend on **legacy-api** (+ **legacy-stub**) or **api** only.
+Dependency direction: **platform** → **common** → **legacy-api** / **api** → **core-api**; **bootstrap** merges platform jars; **plugin** modules depend on **legacy-api** (+ **legacy-stub**) or **api** only.
+
+## Design rules
+
+| Rule | Meaning |
+|------|---------|
+| **Single engine** | Only `permissionsex-core` contains permission logic (evaluation, hierarchy, timed expiry, backends, caching). |
+| **Platform thinness** | Platform modules are translation layers: adapters, lifecycle, event bridging, service registration — never permission logic. |
+| **API separation** | `api/` = plugin-facing contracts; `core-api/` = engine-facing SPI; `platform-api/` = runtime abstraction between engine and host. |
+| **Legacy freeze** | `ru.tehkode.permissions.*` is frozen — compatibility fixes only. |
+| **Context rule** | `String world` = canonical subject scope; `PermissionContext` = extended metadata; platforms never interpret permissions. |
 
 ## Namespace policy
 
@@ -35,11 +49,39 @@ Dependency direction: **platform** → **legacy-api** / **api** → **core-api**
 | `ru.tehkode.permissions.*` | Stable legacy API for hook plugins (interfaces, events, backend aliases) |
 | `dev.rono.permissions.core.*` | Implementation (manager, backends, commands) |
 | `dev.rono.permissions.api.*` | Modern minimal integration SPI |
-| `dev.rono.permissions.spigot.*` / `bungee.*` | Platform-specific wiring |
+| `dev.rono.permissions.api.runtime.*` | Platform bridge types (`permissionsex-platform-api`) |
+| `dev.rono.permissions.spigot.*` / `bungee.*` / `paper.*` / … | Platform-specific wiring |
 
 New implementation code belongs under `dev.rono`. Public contracts consumed by third-party plugins remain under `ru.tehkode` as thin types delegating to core where needed.
 
 **Hook plugin API documentation:** [`docs/api/README.md`](docs/api/README.md) (modern + legacy reference and roadmap). Architectural invariants: [`docs/api/API_INVARIANTS.md`](docs/api/API_INVARIANTS.md).
+
+## Runtime architecture flow
+
+### Modern API flow
+
+```
+Plugin → PermissionsEx.getApi() → PermissionsExApi → UserManager / GroupManager
+  → permissionsex-core (DefaultPermissionManager, GroupHierarchyEngine, TimedExpiryCoordinator)
+```
+
+### Platform interaction flow
+
+```
+permissionsex-core → PlatformRuntime
+  ├── PlatformAdapter      (identity / realms)
+  ├── PlatformEventBus     (native listener publication)
+  └── PlatformScheduler    (host thread scheduling)
+        ↓
+permissionsex-spigot / bungee / velocity / sponge → Server API
+```
+
+### Legacy flow
+
+```
+Legacy plugin → PermissionsEx.getPermissionManager() → PermissionManager (adapter)
+  → same permissionsex-core engine
+```
 
 ## Permission resolution
 
@@ -60,7 +102,15 @@ Bus dispatches (`EntityDispatch`, `SystemDispatch`) are translated to legacy `ru
 
 ### Bungee runtime
 
-`BungeePexPermissionBridge` handles `PermissionCheckEvent` using direct expression matching. No Bukkit events are published on proxy.
+`BungeePexPermissionBridge` handles `PermissionCheckEvent` using direct expression matching. No Bukkit events are published on proxy. Config, backends, and API registration are shared with Velocity/Sponge via `ProxyPlatformInitializer`.
+
+### Velocity runtime
+
+`PermissionsSetupEvent` supplies a permission provider; `ProxyPlatformInitializer` registers `PermissionsExApi` through `ProxyPermissionServices` (same static registry as Bungee).
+
+### Sponge runtime
+
+Engine wiring reuses `ProxyPlatformInitializer` for config/backends/API registry. Platform adapter maps worlds as permission realms.
 
 ## Backends
 

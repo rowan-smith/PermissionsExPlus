@@ -15,5 +15,7 @@ Replace the placeholders below with repo-specific details:
 - This project is: a multi-module Java Minecraft server plugin built with Maven
 - Main feature folders/modules (nested under concern groups):
     - `api/permissionsex-core-api`, `api/permissionsex-api`: public interfaces, shared contracts, exposed types, extension points
-    - `platform/permissionsex-core`: shared business logic, services, managers, configuration handling, persistence abstractions, reusable utilities
+    - `common/permissionsex-platform-api`: runtime bridge between engine and host (`PlatformAdapter`, scheduler, logging)
+    - `common/permissionsex-core`: shared business logic, services, managers, configuration handling, persistence abstractions, reusable utilities
     - `platform/permissionsex-spigot`: Spigot/Paper/Bukkit platform bootstrap, command registration, listener registration, platform adapters, scheduler integration
+    - `platform/permissionsex-bungee`, `permissionsex-paper`, `permissionsex-velocity`, `permissionsex-sponge`: platform-specific translation layers only — no permission logic

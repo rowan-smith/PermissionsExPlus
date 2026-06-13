@@ -1,15 +1,16 @@
 package dev.rono.permissions.bungee;
 
-import cloud.commandframework.execution.CommandExecutionCoordinator;
-import dev.rono.permissions.api.bus.PermissionDispatch;
-import dev.rono.permissions.api.runtime.PlatformAdapter;
-import dev.rono.permissions.bungee.backends.file.BungeeFileBackend;
-import dev.rono.permissions.bungee.backends.memory.BungeeMemoryBackend;
+import dev.rono.permissions.api.runtime.NoOpPlatformEventBus;
+import dev.rono.permissions.api.runtime.PlatformRuntime;
+import dev.rono.permissions.bungee.platform.BungeePlatformAdapter;
+import dev.rono.permissions.bungee.platform.BungeePlatformScheduler;
 import dev.rono.permissions.core.DefaultPermissionManager;
+import cloud.commandframework.execution.CommandExecutionCoordinator;
 import dev.rono.permissions.core.commands.CoreCloudCommandRegistrar;
 import dev.rono.permissions.core.commands.CoreCloudPlatform;
 import dev.rono.permissions.core.commands.CoreCommandService;
 import dev.rono.permissions.runtime.startup.BungeePermissionBootstrapReporter;
+import dev.rono.permissions.runtime.startup.ProxyPlatformInitializer;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -19,7 +20,6 @@ import org.yaml.snakeyaml.Yaml;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionUser;
-import ru.tehkode.permissions.backends.PermissionBackend;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
 import java.io.IOException;
@@ -29,22 +29,24 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * Bungee bootstrap and {@link PlatformAdapter} bridge (proxy runtimes deliberately ignore synchronous Bukkit-domain dispatches).
+ * Bungee bootstrap wiring the permission engine through {@link PlatformRuntime}.
  */
-public class BungeePermissionsExPlugin extends Plugin implements PlatformAdapter {
-    private static final UUID PROXY_UUID = UUID.nameUUIDFromBytes("permissionsexplus-bungee".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+public class BungeePermissionsExPlugin extends Plugin {
     private PermissionManager manager;
     private BungeePermissionsExConfig config;
     private CoreCommandService commandService;
     private StrippingBungeeCommandManager<CommandSender> cloudManager;
+    private PlatformRuntime platformRuntime;
 
     @Override
     public void onEnable() {
         try {
-            this.config = new BungeePermissionsExConfig(getDataFolder(), getLogger());
-            PermissionBackend.registerBackendAlias("memory", BungeeMemoryBackend.class);
-            PermissionBackend.registerBackendAlias("file", BungeeFileBackend.class);
-            this.manager = new DefaultPermissionManager(config, getLogger(), this);
+            var adapter = new BungeePlatformAdapter(this);
+            var scheduler = new BungeePlatformScheduler(this);
+            this.platformRuntime = PlatformRuntime.of(adapter, NoOpPlatformEventBus.INSTANCE, scheduler);
+            var startup = ProxyPlatformInitializer.start(getDataFolder(), getLogger(), platformRuntime);
+            this.config = startup.config();
+            this.manager = startup.manager();
             getProxy().getPluginManager().registerListener(this, new BungeePexPermissionBridge(manager));
             this.commandService = new CoreCommandService(manager);
             this.cloudManager = new StrippingBungeeCommandManager<>(
@@ -63,10 +65,6 @@ public class BungeePermissionsExPlugin extends Plugin implements PlatformAdapter
                             new BungeeImportBridge(),
                             CoreCloudPlatform.PROXY)
                     .register();
-            this.manager.initTimer();
-            ProxyPermissionServices.register(
-                    ((DefaultPermissionManager) this.manager).permissionsExApi(),
-                    this.manager);
             BungeePermissionBootstrapReporter.log(this, this.manager);
         } catch (PermissionBackendException ex) {
             getLogger().severe("Failed to initialize PermissionsExPlus Bungee adapter: " + ex.getMessage());
@@ -76,68 +74,20 @@ public class BungeePermissionsExPlugin extends Plugin implements PlatformAdapter
 
     @Override
     public void onDisable() {
-        ProxyPermissionServices.unregister();
-        if (manager != null) {
-            manager.end();
-            manager = null;
-        }
+        ProxyPlatformInitializer.shutdown(manager instanceof DefaultPermissionManager dpm ? dpm : null);
+        manager = null;
         commandService = null;
         cloudManager = null;
+        platformRuntime = null;
         getLogger().info("PermissionsExPlus Bungee adapter disabled");
-    }
-
-    @Override
-    public void publish(PermissionDispatch dispatch) {
-        // Proxy runtimes intentionally do not emulate Bukkit event listeners.
-    }
-
-    @Override
-    public String uuidToName(UUID uid) {
-        ProxiedPlayer player = getProxy().getPlayer(uid);
-        return player != null ? player.getName() : null;
-    }
-
-    @Override
-    public UUID nameToUuid(String name) {
-        ProxiedPlayer player = getProxy().getPlayer(name);
-        return player != null ? player.getUniqueId() : null;
-    }
-
-    @Override
-    public boolean isOnline(UUID uuid) {
-        return getProxy().getPlayer(uuid) != null;
-    }
-
-    @Override
-    public UUID serverId() {
-        return PROXY_UUID;
-    }
-
-    @Override
-    public Collection<String> realmNames() {
-        return getProxy().getServers().keySet();
-    }
-
-    @Override
-    public String onlineRealm(UUID uuid) {
-        ProxiedPlayer player = getProxy().getPlayer(uuid);
-        return player != null && player.getServer() != null ? player.getServer().getInfo().getName() : null;
-    }
-
-    @Override
-    public String onlineDisplayName(UUID uuid) {
-        ProxiedPlayer player = getProxy().getPlayer(uuid);
-        return player != null ? player.getName() : null;
-    }
-
-    @Override
-    public boolean isOperator(UUID uuid) {
-        ProxiedPlayer player = getProxy().getPlayer(uuid);
-        return player != null && player.hasPermission("permissionsex.admin");
     }
 
     public PermissionManager getManager() {
         return manager;
+    }
+
+    public PlatformRuntime getPlatformRuntime() {
+        return platformRuntime;
     }
 
     private final class BungeeSenderAdapter implements CoreCloudCommandRegistrar.SenderAdapter<CommandSender> {

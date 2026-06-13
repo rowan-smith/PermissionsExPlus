@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>dev.rono.permissions</groupId>
+        <artifactId>platform</artifactId>
+        <version>1.23.5</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>permissionsex-paper</artifactId>
+    <name>PermissionsEx Paper</name>
+    <description>Paper-specific runtime enhancements over the generic Spigot adapter.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>permissionsex-spigot</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>${paper.test.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

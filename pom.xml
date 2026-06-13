@@ -13,7 +13,9 @@
     <modules>
         <module>api</module>
         <module>legacy-api</module>
+        <module>common</module>
         <module>platform</module>
+        <module>bootstrap</module>
         <module>plugin</module>
     </modules>
 
@@ -196,6 +198,12 @@
                 <groupId>net.md-5</groupId>
                 <artifactId>bungeecord-api</artifactId>
                 <version>1.21-R0.3-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.velocitypowered</groupId>
+                <artifactId>velocity-api</artifactId>
+                <version>3.4.0-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

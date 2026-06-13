@@ -12,5 +12,5 @@
 
     <artifactId>permissionsex-core-api</artifactId>
     <name>PermissionsEx Core API (platform-neutral SPI)</name>
-    <description>Internal contracts shared by core and platform adapters: permission dispatches and {@code PlatformAdapter}.</description>
+    <description>Internal contracts between the permission engine and the public API: bus dispatches and permission holder types.</description>
 </project>

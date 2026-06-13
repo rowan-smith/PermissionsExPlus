@@ -15,9 +15,10 @@
     <name>PermissionsEx Platform (reactor)</name>
 
     <modules>
-        <module>permissionsex-core</module>
         <module>permissionsex-spigot</module>
         <module>permissionsex-bungee</module>
-        <module>permissionsex-bootstrap</module>
+        <module>permissionsex-paper</module>
+        <module>permissionsex-velocity</module>
+        <module>permissionsex-sponge</module>
     </modules>
 </project>

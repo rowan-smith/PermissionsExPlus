@@ -51,7 +51,7 @@ PermissionManager legacy = PermissionsEx.getPermissionManager();
 
 ## Tests
 
-Modern API integration tests live in `platform/permissionsex-core/src/test/java/dev/rono/permissions/core/`:
+Modern API integration tests live in `common/permissionsex-core/src/test/java/dev/rono/permissions/core/`:
 
 | Class | Coverage |
 |-------|----------|
@@ -65,7 +65,7 @@ Modern API integration tests live in `platform/permissionsex-core/src/test/java/
 | `ApiLayerInvariantTest` | architectural composition guards |
 | `WorldsTest`, `PermissionContextTest` | pure utility unit tests |
 
-Run: `mvn -pl platform/permissionsex-core test -Dtest='ModernApi*Test,ApiLayerInvariantTest,WorldsTest,PermissionContextTest'`
+Run: `mvn -pl common/permissionsex-core test -Dtest='ModernApi*Test,ApiLayerInvariantTest,WorldsTest,PermissionContextTest'`
 
 ## Related docs
 

@@ -324,7 +324,7 @@ Not required for typical hook plugins. Used by platform modules and deep integra
 | `PlatformAdapter` | Host bridge (UUID/name, realms, event publish) |
 | `PermissionDispatch` | `EntityDispatch` / `SystemDispatch` notifications |
 | `EntityMutation` / `SystemMutation` | Change kinds |
-| `SchedulerBridge` | Sync/async scheduling |
+| `PlatformScheduler` | Sync/async scheduling |
 | `ContextResolver` | `realmFor(UUID)` |
 
 On Spigot, internal dispatches are translated to legacy Bukkit events. See [LEGACY_API.md — Events](LEGACY_API.md#events).

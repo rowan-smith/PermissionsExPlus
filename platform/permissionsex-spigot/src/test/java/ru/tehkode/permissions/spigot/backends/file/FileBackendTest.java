@@ -25,7 +25,7 @@ public class FileBackendTest extends PermissionsExSpigotTestBase {
         super.setUp();
         yamlConfig.set("permissions.basedir", tempDir.toAbsolutePath().toString());
         yamlConfig.set("permissions.backend", "file");
-        manager = new DefaultPermissionManager(config, manager.getLogger(), nativeI);
+        manager = new DefaultPermissionManager(config, manager.getLogger(), platformRuntime);
     }
 
     @Test
@@ -35,7 +35,7 @@ public class FileBackendTest extends PermissionsExSpigotTestBase {
         group.setOption("test-option", "test-value");
         manager.getBackend().close();
 
-        PermissionManager manager2 = new DefaultPermissionManager(config, manager.getLogger(), nativeI);
+        PermissionManager manager2 = new DefaultPermissionManager(config, manager.getLogger(), platformRuntime);
         PermissionGroup group2 = manager2.getGroup("testGroup");
         assertTrue(group2.getPermissions(null).contains("test.permission"));
         assertEquals("test-value", group2.getOption("test-option", null));
@@ -47,7 +47,7 @@ public class FileBackendTest extends PermissionsExSpigotTestBase {
         assertEquals(Collections.singletonList("world"), manager.getBackend().getWorldInheritance("world_nether"));
         manager.getBackend().close();
 
-        PermissionManager manager2 = new DefaultPermissionManager(config, manager.getLogger(), nativeI);
+        PermissionManager manager2 = new DefaultPermissionManager(config, manager.getLogger(), platformRuntime);
         assertEquals(Collections.singletonList("world"), manager2.getBackend().getWorldInheritance("world_nether"));
     }
 }

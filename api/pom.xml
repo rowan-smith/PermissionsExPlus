@@ -34,7 +34,7 @@
                         <configuration>
                             <!-- Bungee helpers depend on provided proxy APIs -->
                             <excludeArtifactIds>permissionsex-api-bungee</excludeArtifactIds>
-                            <excludePackageNames>dev.rono.permissions.bootstrap</excludePackageNames>
+                            <excludePackageNames>dev.rono.permissions.bootstrap:dev.rono.permissions.api.runtime</excludePackageNames>
                         </configuration>
                     </execution>
                 </executions>
