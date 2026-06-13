@@ -1,68 +1,82 @@
 ---
-layout: page
-title: Home
+layout: default
+title: Getting Started
 permalink: /
+description: Install PermissionsExPlus and set up permissions on your Minecraft server.
 ---
 
-PermissionsExPlus is a maintained fork of the original [PermissionsEx](https://github.com/PEXPlugins/PermissionsEx) (PEX) plugin for Bukkit/Spigot servers. It keeps the familiar command structure and permission model while adding active maintenance, modern platform support, and updated compatibility.
+PermissionsExPlus (PEX) is a permissions plugin for Minecraft servers. It controls **who can do what** by assigning **permissions** to **users** and **groups**.
 
-**Current version:** `{{ site.version }}`
+<div class="version-cards">
+  <a class="version-card" href="https://github.com/{{ site.repo }}/releases">
+    <span class="version-card-label">Download v{{ site.version }}</span>
+    <span class="version-card-desc">Get the latest release jar</span>
+  </a>
+  <a class="version-card" href="{{ site.baseurl }}/guides/recipes/">
+    <span class="version-card-label">Common Setups</span>
+    <span class="version-card-desc">Staff ranks, VIP, survival — copy-paste recipes</span>
+  </a>
+  <a class="version-card" href="{{ site.baseurl }}/commands/general/">
+    <span class="version-card-label">Command Reference</span>
+    <span class="version-card-desc">Full /pex command documentation</span>
+  </a>
+</div>
 
-## What it does
+## Install in 4 steps
 
-PermissionsExPlus provides a flexible permissions system with support for:
+1. Download **`PermissionsExPlus-{{ site.version }}.jar`** from [GitHub Releases](https://github.com/{{ site.repo }}/releases).
+2. Remove any old PermissionsEx jars from `plugins/`.
+3. Copy the jar into `plugins/` and restart the server.
+4. Run `/pex` in-game — you should see the help menu.
 
-- User and group permission management
-- Group inheritance and hierarchy
-- Prefix and suffix management
-- Timed permissions and timed group membership
-- Multi-world permission handling
-- Rank ladder promotion and demotion
-- Runtime backend inspection and switching
-- UUID-based player records
+See [Requirements]({{ site.baseurl }}/requirements/) for Java and platform details.
 
-## Supported platforms
+## Your first permissions
 
-| Platform | Status |
-|----------|--------|
-| Spigot / CraftBukkit | Supported |
-| Paper | Supported |
-| BungeeCord / Waterfall | Supported |
-| Velocity | Supported |
-| Sponge | Supported |
-
-Install the universal **`PermissionsExPlus-{{ site.version }}.jar`** bootstrap artifact on each server process. See [Installation]({{ site.baseurl }}/installation/) for details.
-
-## Quick start
+**Create a group, give it permissions, assign a player:**
 
 ```text
 /pex group admin create
+/pex group admin add permissions.*
 /pex group admin add '*'
+/pex group admin prefix &c[Admin]
 /pex user Steve group set admin
-/pex user Alex add essentials.home
-/pex group moderator prefix [Mod]
-/pex promote Steve
 ```
 
-## Documentation
+**Give one player a single permission:**
 
-| Section | Description |
-|---------|-------------|
-| [Installation]({{ site.baseurl }}/installation/) | Download, build, and deploy the universal jar |
-| [Commands]({{ site.baseurl }}/commands/) | Full `/pex` command reference |
-| [Examples]({{ site.baseurl }}/examples/) | Sample configs and common setups |
-| [Compatibility]({{ site.baseurl }}/compatibility/) | Minecraft, Java, and platform matrix |
-| [Integrations]({{ site.baseurl }}/integrations/) | Hook plugin development guide |
-| [Modern API]({{ site.baseurl }}/modern-api/) | `dev.rono.permissions.api` reference |
-| [Legacy API]({{ site.baseurl }}/legacy-api/) | Classic `ru.tehkode.permissions` reference |
-| [Architecture]({{ site.baseurl }}/architecture/) | Module layout and design rules |
+```text
+/pex user Alex add essentials.home
+```
 
-## Why this fork exists
+**Grant a temporary permission (7 days):**
 
-PermissionsEx was widely used, but the original project became unmaintained. PermissionsExPlus continues that legacy with active fixes, updated compatibility, and a clearer long-term home for the plugin.
+```text
+/pex user Alex timed add essentials.fly 7d
+```
 
-## Credits
+## Core ideas
 
-- Original authors: `t3hk0d3`, `zml`
-- Fork maintenance: `Rono` / [rowan-smith](https://github.com/rowan-smith)
-- License: [GNU GPL v2.0 or later](https://github.com/{{ site.repo }}/blob/main/LICENSE)
+| Concept | Summary | Learn more |
+|---------|---------|------------|
+| **Groups** | Bundles of permissions (admin, vip, default) | [Group commands]({{ site.baseurl }}/commands/groups/) |
+| **Inheritance** | Groups inherit permissions from parent groups | [Inheritance]({{ site.baseurl }}/concepts/inheritance/) |
+| **Context** | Different permissions per world | [Context]({{ site.baseurl }}/concepts/context/) |
+| **Weight** | Which group's prefix wins in chat | [Weight]({{ site.baseurl }}/concepts/weight/) |
+
+## Documentation map
+
+| I want to… | Go to |
+|------------|-------|
+| Set up a staff hierarchy | [Common Setups]({{ site.baseurl }}/guides/recipes/) |
+| Learn every command | [Commands]({{ site.baseurl }}/commands/general/) |
+| Edit config files | [Configuration]({{ site.baseurl }}/configuration/) |
+| Fix something broken | [Troubleshooting]({{ site.baseurl }}/guides/troubleshooting/) |
+| Integrate my plugin | [API Cookbook]({{ site.baseurl }}/developers/cookbook/) |
+| Browse API classes | [Javadoc]({{ site.baseurl }}/developers/reference/) |
+
+## Get help
+
+- [GitHub Issues](https://github.com/{{ site.repo }}/issues) — bug reports and questions
+- `/pex report` — generate a diagnostic report in-game
+- [Migration guide]({{ site.baseurl }}/faq/migration/) — switching from another permissions plugin

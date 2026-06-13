@@ -1,51 +1,42 @@
 ---
-layout: page
+layout: default
 title: About
 permalink: /about/
+description: About PermissionsExPlus — history, credits, and license.
 ---
 
-## PermissionsExPlus
+## What is PermissionsExPlus?
 
-PermissionsExPlus is a maintained fork of the original [PermissionsEx](https://github.com/PEXPlugins/PermissionsEx) plugin for Bukkit/Spigot servers.
+PermissionsExPlus is a maintained fork of [PermissionsEx](https://github.com/PEXPlugins/PermissionsEx), the permissions plugin used on thousands of Minecraft servers since 2011.
 
-The goal of this fork is to keep PermissionsEx usable on modern server environments, preserve the familiar command structure, and continue maintenance for server administrators who still rely on PEX-style permission management.
+This fork keeps the familiar `/pex` command structure while adding:
 
-## Why this fork exists
+- Active maintenance and modern platform support
+- Spigot, Paper, BungeeCord, Velocity, and Sponge from one jar
+- A modern `dev.rono.permissions.api` integration API
+- Restored classic `ru.tehkode.*` hook plugin compatibility
 
-PermissionsEx was one of the most widely used permission plugins for Minecraft servers. After the original project became unmaintained, PermissionsExPlus was created to:
-
-- Fix compatibility issues on modern Spigot/Paper, Bungee, Velocity, and Sponge
-- Restore and freeze the classic `ru.tehkode.*` hook plugin API
-- Introduce a modern `dev.rono.permissions.api` integration surface
-- Provide a universal bootstrap jar for multi-platform deployments
-- Maintain active development and documentation
-
-## Current release
-
-**Version {{ site.version }}**
-
-| Area | State |
-|------|--------|
-| Build | Full reactor tests pass |
-| Spigot/Paper | Compiles against 1.21.x API |
-| Bungee | Compiles and tests against BungeeCord API |
-| Legacy hook plugins | Contract restored to baseline `628215f` |
-| Minecraft target | 1.8.8 – 1.26.1 (Java 21 runtime required) |
+**Current version:** {{ site.version }}
 
 ## Credits
 
-- **Original authors:** `t3hk0d3`, `zml`
-- **Fork maintenance:** `Rono` / [rowan-smith](https://github.com/rowan-smith)
-- **Original project:** [PermissionsEx](https://github.com/PEXPlugins/PermissionsEx)
-
-## License
-
-PermissionsExPlus is licensed under the **GNU General Public License v2.0 or later**.
-
-See the [LICENSE](https://github.com/{{ site.repo }}/blob/main/LICENSE) file in the repository.
+| | |
+|---|---|
+| **Original authors** | t3hk0d3, zml |
+| **Fork maintenance** | Rono / [rowan-smith](https://github.com/rowan-smith) |
+| **License** | [GNU GPL v2.0 or later](https://github.com/{{ site.repo }}/blob/main/LICENSE) |
 
 ## Links
 
 - [GitHub Repository](https://github.com/{{ site.repo }})
-- [Documentation Home]({{ site.baseurl }}/)
+- [Releases](https://github.com/{{ site.repo }}/releases)
+- [Report an Issue](https://github.com/{{ site.repo }}/issues)
 - [Original PermissionsEx](https://github.com/PEXPlugins/PermissionsEx)
+
+## Why a fork?
+
+The original PermissionsEx project became unmaintained. Server owners still relied on PEX's permission model, command structure, and ecosystem of hook plugins. PermissionsExPlus exists to keep that working on modern Minecraft versions with a clear path forward.
+
+## Contributing
+
+Contributions are welcome — bug fixes, compatibility improvements, and documentation. See [Contributing]({{ site.baseurl }}/developers/contributing/).

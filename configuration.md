@@ -1,126 +1,106 @@
 ---
-layout: page
+layout: default
 title: Configuration
 permalink: /configuration/
+description: Configure PermissionsExPlus with config.yml and permissions.yml.
 ---
 
-PermissionsExPlus stores data in `plugins/PermissionsEx/` by default (configurable via `basedir`).
+## config.yml
 
-## File layout
-
-```
-plugins/PermissionsEx/
-├── config.yml          # Plugin settings and backend configuration
-└── permissions.yml     # Groups, users, and permissions (file backend)
-```
-
-## `config.yml` reference
+Place in `plugins/PermissionsEx/config.yml`:
 
 ```yaml
 permissions:
   debug: false
   allowOps: false
-  user-add-groups-last: false
-  log-players: true
   createUserRecords: true
-  save-default-group: true
   backend: file
   basedir: plugins/PermissionsEx
-  informplayers:
-    changes: false
   backends:
     file:
       type: file
       file: permissions.yml
-    sql:
-      type: sql
-      # driver, url, user, password — see SQL backend docs in repo
-    multi:
-      type: multi
-      backends:
-        - file
-        - sql
 ```
 
-## Backends
+### Common options
 
-| Alias | Type | Description |
-|-------|------|-------------|
-| `file` | YAML | Default. Stores groups/users in `permissions.yml` |
-| `memory` | In-memory | Ephemeral — useful for testing |
-| `sql` | Database | MySQL/MariaDB/SQLite via JDBC |
-| `multi` | Composite | Routes reads/writes across multiple backends |
+| Option | What it does |
+|--------|--------------|
+| `debug` | Extra logging for troubleshooting |
+| `allowOps` | Whether server ops bypass PEX |
+| `createUserRecords` | Auto-create a user entry when someone joins |
+| `backend` | Active storage backend (`file`, `sql`, `memory`) |
+| `basedir` | Folder for config and data files |
 
-Switch backends at runtime:
-
-```text
-/pex backend <alias>
-```
-
-Reload after config changes:
+Change a setting in-game:
 
 ```text
+/pex config permissions.debug true
 /pex reload
 ```
 
-## `permissions.yml` schema
+## permissions.yml
+
+This file holds your groups and users:
 
 ```yaml
 schema-version: 1
 
 groups:
-  <group-name>:
-    default: true|false
-    weight: <integer>
-    prefix: '<chat prefix>'
-    suffix: '<chat suffix>'
-    inheritance:
-      - <parent-group>
+  default:
+    default: true
     permissions:
-      - <permission.node>
-    worlds:
-      <world-name>:
-        permissions:
-          - <world-scoped.node>
+      - modifyworld
+  moderator:
+    inheritance:
+      - default
+    prefix: '&7[Mod] '
+    permissions:
+      - essentials.kick
+  admin:
+    inheritance:
+      - moderator
+    prefix: '&c[Admin] '
+    permissions:
+      - '*'
 
 users:
-  <uuid-or-name>:
+  069a79f4-44e9-4726-a5be-fca90e38aaf5:
     group:
-      - <group-name>
-    permissions:
-      - <permission.node>
-    options:
-      name: <display-name>
+      - admin
 ```
 
 ### Permission syntax
 
-| Pattern | Meaning |
-|---------|---------|
-| `*` | Wildcard — grants all permissions |
-| `-node.name` | Negation — explicitly denies a node |
-| `regex` patterns | Regex matching (disable per-player with `permissionsex.disabled`) |
+| Syntax | Meaning |
+|--------|---------|
+| `*` | All permissions |
+| `-node.name` | Explicitly deny a permission |
+| `permissions.*` | All PEX admin commands |
 
-### World scoping
-
-Permissions and group memberships can be scoped per world. World inheritance (`/pex world <world> inherit <parents>`) lets child worlds inherit parent world permissions.
-
-## UUID storage
-
-Modern servers should use UUID keys in `permissions.yml`:
+### Reload after edits
 
 ```text
-/pex convert uuid
+/pex reload
 ```
 
-This bulk-converts name-based records to UUID-based storage.
+## Example: starter server
 
-## Validation
+```yaml
+groups:
+  default:
+    default: true
+    permissions:
+      - modifyworld
+  vip:
+    inheritance: [default]
+    prefix: '&6[VIP] '
+    permissions:
+      - essentials.fly
+```
 
-PEX validates YAML on load. Invalid config produces clear error messages in the server log. See `PexYamlValidator` in the source for validation rules.
+Then assign a player:
 
-## Related
-
-- [Examples]({{ site.baseurl }}/examples/) — copy-paste starter configs
-- [Commands]({{ site.baseurl }}/commands/) — manage permissions in-game
-- [Compatibility]({{ site.baseurl }}/compatibility/) — platform requirements
+```text
+/pex user Steve group add vip
+```

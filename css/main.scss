@@ -3,46 +3,37 @@
 ---
 @charset "utf-8";
 
+$base-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+$mono-font-family: 'JetBrains Mono', ui-monospace, monospace;
+$base-font-size: 16px;
+$small-font-size: $base-font-size * 0.875;
+$base-line-height: 1.65;
+$sidebar-width: 260px;
+$header-height: 56px;
+$spacing-unit: 24px;
 
+$text-color: #1a1a2e;
+$text-muted: #5c6370;
+$background-color: #f8f9fc;
+$surface-color: #ffffff;
+$brand-color: #4f46e5;
+$brand-light: #eef2ff;
+$border-color: #e2e8f0;
+$code-bg: #f1f5f9;
 
-// Our variables
-$base-font-family: Helvetica, Arial, sans-serif;
-$base-font-size:   16px;
-$small-font-size:  $base-font-size * 0.875;
-$base-line-height: 1.5;
-$sidebar_width: 200px;
+$grey-color: #64748b;
+$grey-color-light: #e2e8f0;
+$grey-color-dark: #334155;
 
-$spacing-unit:     30px;
+$on-palm: 600px;
+$on-laptop: 900px;
 
-$text-color:       #111;
-$background-color: #fdfdfd;
-$brand-color:      #2a7ae2;
-
-$grey-color:       #828282;
-$grey-color-light: lighten($grey-color, 40%);
-$grey-color-dark:  darken($grey-color, 25%);
-
-$on-palm:          600px;
-$on-laptop:        800px;
-
-
-
-// Using media queries with like this:
-// @include media-query($palm) {
-//     .wrapper {
-//         padding-right: $spacing-unit / 2;
-//         padding-left: $spacing-unit / 2;
-//     }
-// }
 @mixin media-query($device) {
     @media screen and (max-width: $device) {
         @content;
     }
 }
 
-
-
-// Import partials from `sass_dir` (defaults to `_sass`)
 @import
         "base",
         "layout",

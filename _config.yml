@@ -2,60 +2,112 @@
 title: PermissionsExPlus
 email: rowan-smith@users.noreply.github.com
 description: >
-  A maintained fork of PermissionsEx for modern Bukkit/Spigot/Paper, Bungee, Velocity, and Sponge servers.
-  Flexible permissions with users, groups, inheritance, prefixes, timed permissions, and multi-world support.
+  Permissions plugin for Minecraft servers. Manage users, groups, permissions,
+  prefixes, and multi-world setups with familiar /pex commands.
 baseurl: ""
 url: "https://example.rono.dev"
 github_username: rowan-smith
 repo: rowan-smith/PermissionsExPlus
 version: "1.23.5"
 
-# Build settings
 markdown: kramdown
 kramdown:
   input: GFM
   syntax_highlighter: rouge
 highlighter: rouge
 permalink: pretty
+exclude:
+  - vendor
+  - Gemfile.lock
+  - .bundle
+  - scripts
 
-# Sidebar navigation (order matters)
+javadoc_versions:
+  - version: "1.23.5"
+    label: "1.23.5 (current)"
+    url: /apidocs/1.23.5/index.html
+    description: Modern + legacy API (PermissionsExPlus)
+  - version: "1.23.4"
+    label: "1.23.4"
+    url: /apidocs/1.23.4/index.html
+    description: Classic PermissionsEx API
+  - version: "1.23.3"
+    label: "1.23.3"
+    url: /apidocs/1.23.3/index.html
+    description: Classic PermissionsEx API
+  - version: "1.23.2"
+    label: "1.23.2"
+    url: /apidocs/1.23.2/index.html
+    description: Classic PermissionsEx API
+  - version: "1.23.1"
+    label: "1.23.1"
+    url: /apidocs/1.23.1/index.html
+    description: Classic PermissionsEx API
+  - version: "1.22.1"
+    label: "1.22.1"
+    url: /apidocs/1.22.1/apidocs/index.html
+    description: Original PermissionsEx API
+
 navigation:
-  - section: Getting Started
+  - section: Introduction
     links:
-      - title: Home
+      - title: Getting Started
         url: /
-      - title: Installation
-        url: /installation/
-      - title: Examples
-        url: /examples/
-      - title: Compatibility
-        url: /compatibility/
-  - section: Usage
-    links:
-      - title: Commands
-        url: /commands/
+      - title: Requirements
+        url: /requirements/
+      - title: Storage
+        url: /storage/
       - title: Configuration
         url: /configuration/
-  - section: Developer
+  - section: Concepts
     links:
-      - title: Integrations
-        url: /integrations/
-      - title: Modern API
-        url: /modern-api/
-      - title: Legacy API
-        url: /legacy-api/
-      - title: API Invariants
-        url: /api-invariants/
-      - title: API Roadmap
-        url: /api-roadmap/
-      - title: Developer Resources
-        url: /developer-resources/
-      - title: Javadoc (1.22.1)
-        url: /apidocs/1.22.1/apidocs/index.html
-        external: true
+      - title: How Permissions Work
+        url: /concepts/permissions/
+      - title: Inheritance
+        url: /concepts/inheritance/
+      - title: Context & Worlds
+        url: /concepts/context/
+      - title: Weight
+        url: /concepts/weight/
+      - title: Prefix & Meta
+        url: /concepts/meta/
+  - section: Commands
+    links:
+      - title: General
+        url: /commands/general/
+      - title: Users
+        url: /commands/users/
+      - title: Groups
+        url: /commands/groups/
+      - title: Permissions
+        url: /commands/permissions/
+      - title: Worlds
+        url: /commands/worlds/
+      - title: Ranks
+        url: /commands/ranks/
+  - section: Guides
+    links:
+      - title: Common Setups
+        url: /guides/recipes/
+      - title: Troubleshooting
+        url: /guides/troubleshooting/
+  - section: FAQ
+    links:
+      - title: Default Groups
+        url: /faq/default-groups/
+      - title: Migration
+        url: /faq/migration/
+  - section: Developers
+    links:
+      - title: Overview
+        url: /developers/
+      - title: API Cookbook
+        url: /developers/cookbook/
+      - title: Contributing
+        url: /developers/contributing/
+      - title: Javadoc
+        url: /developers/reference/
   - section: Project
     links:
-      - title: Architecture
-        url: /architecture/
       - title: About
         url: /about/

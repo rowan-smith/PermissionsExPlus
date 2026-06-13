@@ -1,0 +1,9 @@
+dev.rono.permissions.api.permission
+dev.rono.permissions.api.bus
+ru.tehkode.permissions.bukkit
+ru.tehkode.permissions
+ru.tehkode.permissions.commands
+ru.tehkode.permissions.exceptions
+ru.tehkode.permissions.backends
+ru.tehkode.permissions.events
+ru.tehkode.utils

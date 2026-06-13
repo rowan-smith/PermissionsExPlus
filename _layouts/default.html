@@ -1,21 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   {% include head.html %}
   <body>
     {% include header.html %}
     <div class="page-content">
-      <div class="wrapper">
-        <div id="sidebar">
-        {% include sidebar.html %}
-        </div>
-        <div id="content">
-        {{ content }}
-        </div>
+      <div class="docs-layout">
+        <aside id="sidebar" class="docs-sidebar" aria-label="Sidebar">
+          {% include sidebar.html %}
+        </aside>
+        <main id="content" class="docs-content prose">
+          {% include breadcrumbs.html %}
+          <h1 class="page-title">{{ page.title }}</h1>
+          {{ content }}
+        </main>
       </div>
     </div>
-
     {% include footer.html %}
-
+    <script>
+      (function () {
+        var toggle = document.getElementById('nav-toggle');
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.getElementById('nav-overlay');
+        if (!toggle || !sidebar || !overlay) return;
+        function setOpen(open) {
+          document.body.classList.toggle('nav-open', open);
+          toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+          toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+          overlay.hidden = !open;
+        }
+        toggle.addEventListener('click', function () {
+          setOpen(!document.body.classList.contains('nav-open'));
+        });
+        overlay.addEventListener('click', function () { setOpen(false); });
+        sidebar.querySelectorAll('a').forEach(function (link) {
+          link.addEventListener('click', function () {
+            if (window.matchMedia('(max-width: 900px)').matches) setOpen(false);
+          });
+        });
+      })();
+    </script>
   </body>
-
 </html>

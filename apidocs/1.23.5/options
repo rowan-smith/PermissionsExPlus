@@ -1,0 +1,25 @@
+--class-path
+'/tmp/pex-main/target/classes:/tmp/pex-main/api/permissionsex-core-api/target/classes:/tmp/pex-main/legacy-api/permissionsex-legacy-api/target/classes:/home/ubuntu/.m2/repository/org/spigotmc/spigot-api/1.21.11-R0.1-SNAPSHOT/spigot-api-1.21.11-R0.1-SNAPSHOT.jar:/home/ubuntu/.m2/repository/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar:/home/ubuntu/.m2/repository/org/joml/joml/1.10.8/joml-1.10.8.jar:/home/ubuntu/.m2/repository/net/md-5/bungeecord-serializer/1.21-R0.4/bungeecord-serializer-1.21-R0.4.jar:/home/ubuntu/.m2/repository/net/md-5/bungeecord-chat/1.21-R0.4/bungeecord-chat-1.21-R0.4.jar:/home/ubuntu/.m2/repository/net/md-5/bungeecord-dialog/1.21-R0.4/bungeecord-dialog-1.21-R0.4.jar:/home/ubuntu/.m2/repository/org/yaml/snakeyaml/2.5/snakeyaml-2.5.jar:/home/ubuntu/.m2/repository/com/google/guava/guava/33.4.8-jre/guava-33.4.8-jre.jar:/home/ubuntu/.m2/repository/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar:/home/ubuntu/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/home/ubuntu/.m2/repository/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar:/home/ubuntu/.m2/repository/com/google/errorprone/error_prone_annotations/2.36.0/error_prone_annotations-2.36.0.jar:/home/ubuntu/.m2/repository/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar:/home/ubuntu/.m2/repository/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar'
+-encoding
+'UTF-8'
+-protected
+--release
+21
+-sourcepath
+'/tmp/pex-main/api/permissionsex-core-api/src/main/java:/tmp/pex-main/api/permissionsex-core-api/target/generated-sources/annotations:/tmp/pex-main/legacy-api/permissionsex-legacy-api/src/main/java:/tmp/pex-main/legacy-api/permissionsex-legacy-api/target/generated-sources/annotations'
+-author
+-bottom
+'Copyright &#169; 2026. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/tmp/pex-main/target/reports/apidocs'
+-docencoding
+'UTF-8'
+-Xdoclint:all,-missing
+-doctitle
+'PermissionsExPlus 1.23.5 API'
+-use
+-version
+-windowtitle
+'PermissionsExPlus 1.23.5 API'
