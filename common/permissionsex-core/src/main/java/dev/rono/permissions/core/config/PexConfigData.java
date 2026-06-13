@@ -21,7 +21,8 @@ public record PexConfigData(
         String backend,
         Map<String, Object> informPlayers,
         String basedir,
-        Map<String, Map<String, Object>> backends)
+        Map<String, Map<String, Object>> backends,
+        CommandFramework commandFramework)
         implements Serializable {
 
     public static final String KEY_DEBUG = "debug";
@@ -39,6 +40,7 @@ public record PexConfigData(
     public static final String KEY_BACKEND_TYPE = "type";
     /** Path leaf inside {@code backends.file}. */
     public static final String KEY_BACKEND_FILE_LEAF = "file";
+    public static final String KEY_COMMAND_FRAMEWORK = CommandFramework.CONFIG_KEY;
 
     private static final String FALLBACK_BACKEND = "file";
 
@@ -82,6 +84,9 @@ public record PexConfigData(
         }
         Objects.requireNonNull(basedirLocal, "basedir");
 
+        CommandFramework commandFramework =
+                CommandFramework.fromConfig(copy.get(KEY_COMMAND_FRAMEWORK));
+
         return new PexConfigData(
                 debug,
                 allowOps,
@@ -92,7 +97,8 @@ public record PexConfigData(
                 bk,
                 inform,
                 basedirLocal,
-                coerceBackendMap(copy.get(KEY_BACKENDS)));
+                coerceBackendMap(copy.get(KEY_BACKENDS)),
+                commandFramework);
     }
 
     /** Matches {@link PexPermissionsData#toRootYaml} — writable map suitable for SnakeYAML ({@code permissions:}). */
@@ -112,6 +118,7 @@ public record PexConfigData(
             be.put(e.getKey(), new LinkedHashMap<>(e.getValue()));
         }
         m.put(KEY_BACKENDS, be);
+        m.put(KEY_COMMAND_FRAMEWORK, commandFramework.name().toLowerCase());
         return m;
     }
 
@@ -132,7 +139,8 @@ public record PexConfigData(
                 backendAlias,
                 inf,
                 basedir,
-                b);
+                b,
+                CommandFramework.MODERN);
     }
 
     public boolean informPlayerChanges() {
@@ -151,7 +159,8 @@ public record PexConfigData(
                 nb,
                 informPlayers,
                 basedir,
-                backends);
+                backends,
+                commandFramework);
     }
 
     public String storeRelative() {
@@ -205,6 +214,7 @@ public record PexConfigData(
         putBooleanIfUnset(inform, KEY_INFORM_CHANGES, false);
 
         putIfUnset(permissionsMap, KEY_BACKEND, flavor.defaultBackend());
+        putIfUnset(permissionsMap, KEY_COMMAND_FRAMEWORK, CommandFramework.MODERN.name().toLowerCase());
     }
 
     @SuppressWarnings("unchecked")

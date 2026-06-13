@@ -1,6 +1,7 @@
 # PermissionsExPlus — starter config.yml (place in plugins/PermissionsEx/config.yml)
 
 permissions:
+  command-framework: modern
   debug: false
   allowOps: false
   user-add-groups-last: false

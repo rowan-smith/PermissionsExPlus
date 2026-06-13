@@ -1,6 +1,7 @@
 package dev.rono.permissions.core.commands;
 
 import cloud.commandframework.CommandManager;
+import dev.rono.permissions.core.config.CommandFramework;
 import ru.tehkode.permissions.PermissionUser;
 
 public final class CoreCloudCommandRegistrar<C> {
@@ -22,7 +23,8 @@ public final class CoreCloudCommandRegistrar<C> {
                 configReloader,
                 configBridge,
                 uuidConversionBridge,
-                CoreCloudPlatform.GAME_SERVER);
+                CoreCloudPlatform.GAME_SERVER,
+                CommandFramework.MODERN);
     }
 
     public CoreCloudCommandRegistrar(
@@ -42,8 +44,55 @@ public final class CoreCloudCommandRegistrar<C> {
                 configReloader,
                 configBridge,
                 uuidConversionBridge,
-                null,
-                cloudPlatform);
+                cloudPlatform,
+                CommandFramework.MODERN);
+    }
+
+    public CoreCloudCommandRegistrar(
+            CommandManager<C> manager,
+            Class<C> senderType,
+            CoreCommandService commandService,
+            SenderAdapter<C> senderAdapter,
+            CoreCommandService.CoreConfigReloader configReloader,
+            CoreCommandService.ConfigBridge configBridge,
+            CoreCommandService.UuidConversionBridge uuidConversionBridge,
+            CoreCloudPlatform cloudPlatform,
+            CommandFramework commandFramework) {
+        this(
+                manager,
+                senderType,
+                commandService,
+                senderAdapter,
+                configReloader,
+                configBridge,
+                uuidConversionBridge,
+                cloudPlatform,
+                commandFramework,
+                null);
+    }
+
+    public CoreCloudCommandRegistrar(
+            CommandManager<C> manager,
+            Class<C> senderType,
+            CoreCommandService commandService,
+            SenderAdapter<C> senderAdapter,
+            CoreCommandService.CoreConfigReloader configReloader,
+            CoreCommandService.ConfigBridge configBridge,
+            CoreCommandService.UuidConversionBridge uuidConversionBridge,
+            CoreCloudPlatform cloudPlatform,
+            CommandFramework commandFramework,
+            CoreCommandService.ImportBridge importBridge) {
+        this.context = new CoreCloudCommandContext<>(
+                manager,
+                senderType,
+                commandService,
+                senderAdapter,
+                configReloader,
+                configBridge,
+                uuidConversionBridge,
+                importBridge,
+                cloudPlatform,
+                commandFramework);
     }
 
     public CoreCloudCommandRegistrar(
@@ -56,7 +105,7 @@ public final class CoreCloudCommandRegistrar<C> {
             CoreCommandService.UuidConversionBridge uuidConversionBridge,
             CoreCommandService.ImportBridge importBridge,
             CoreCloudPlatform cloudPlatform) {
-        this.context = new CoreCloudCommandContext<>(
+        this(
                 manager,
                 senderType,
                 commandService,
@@ -64,8 +113,9 @@ public final class CoreCloudCommandRegistrar<C> {
                 configReloader,
                 configBridge,
                 uuidConversionBridge,
-                importBridge,
-                cloudPlatform);
+                cloudPlatform,
+                CommandFramework.MODERN,
+                importBridge);
     }
 
     public void register() {

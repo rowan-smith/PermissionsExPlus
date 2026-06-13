@@ -1,9 +1,11 @@
 package dev.rono.permissions.core.commands;
 
 import dev.rono.permissions.core.InternalPermissionManager;
+import dev.rono.permissions.core.api.BackendSnapshotSupport;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionUser;
+import ru.tehkode.permissions.backends.PermissionBackend;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 import ru.tehkode.permissions.exceptions.RankingException;
 import ru.tehkode.utils.DateUtils;
@@ -151,6 +153,54 @@ public class CoreCommandService {
         return "Debug mode " + (manager.isDebug() ? "enabled" : "disabled");
     }
 
+    public String debugStatus() {
+        return "Debug mode is " + (manager.isDebug() ? "enabled" : "disabled");
+    }
+
+    public String setDebug(boolean enabled) {
+        manager.setDebug(enabled);
+        return "Debug mode " + (enabled ? "enabled" : "disabled");
+    }
+
+    public List<String> contextsLines(CoreCloudPlatform platform) {
+        List<String> lines = new ArrayList<>();
+        lines.add(platform == CoreCloudPlatform.PROXY ? "SERVERS" : "WORLDS");
+        for (String name : worldNames()) {
+            lines.add("  " + name);
+        }
+        lines.add("REGIONS");
+        lines.add("  (none registered)");
+        return lines;
+    }
+
+    public List<String> backendListLines() {
+        List<String> lines = new ArrayList<>();
+        lines.add("Registered backends:");
+        for (String alias : PermissionBackend.getRegisteredBackendAliases()) {
+            lines.add("  " + alias);
+        }
+        return lines;
+    }
+
+    public String backendExport() throws PermissionBackendException {
+        try {
+            return BackendSnapshotSupport.export(manager.getBackend());
+        } catch (Exception ex) {
+            throw new PermissionBackendException("Failed to export active backend", ex);
+        }
+    }
+
+    public String backendExport(String backendName) throws PermissionBackendException {
+        if (backendName == null || backendName.isBlank()) {
+            return backendExport();
+        }
+        try {
+            return BackendSnapshotSupport.export(manager.createBackend(backendName));
+        } catch (Exception ex) {
+            throw new PermissionBackendException("Failed to export backend \"" + backendName + "\"", ex);
+        }
+    }
+
     public UserView userView(String userIdentifier) {
         PermissionUser user = manager.getUser(userIdentifier);
         return new UserView(user.getIdentifier(), user.getName(), user.getParentIdentifiers(), user.getPermissions(null));
@@ -168,7 +218,247 @@ public class CoreCommandService {
 
     public String userHas(String userIdentifier, String permission, String world) {
         PermissionUser user = manager.getUser(userIdentifier);
-        return "Has '" + permission + "' in " + world + ": " + user.has(permission, world);
+        return "Has '" + permission + "' in " + PexCommandContexts.displayRealm(world) + ": " + user.has(permission, world);
+    }
+
+    public List<String> userPermissionTraceLines(String userIdentifier, String permission, String world) {
+        PermissionUser user = manager.getUser(userIdentifier);
+        List<String> lines = new ArrayList<>();
+        lines.add("Tracing '" + permission + "' for " + user.getName()
+                + " @ " + PexCommandContexts.displayRealm(world));
+        String expression = user.getMatchingExpression(permission, world);
+        if (expression == null) {
+            lines.add("  No matching node found.");
+            lines.add("  Effective result: " + user.has(permission, world));
+            return lines;
+        }
+        lines.add("  Matching expression: " + expression);
+        lines.add("  Expression result: " + (user.explainExpression(expression) ? "GRANTED" : "DENIED"));
+        lines.add("  Effective result: " + user.has(permission, world));
+        return lines;
+    }
+
+    public List<String> groupPermissionTraceLines(String groupIdentifier, String permission, String world) {
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        List<String> lines = new ArrayList<>();
+        lines.add("Tracing '" + permission + "' on group " + group.getIdentifier()
+                + " @ " + PexCommandContexts.displayRealm(world));
+        boolean own = group.getOwnPermissions(world).contains(permission);
+        boolean effective = group.getPermissions(world).contains(permission);
+        lines.add("  Direct node: " + own);
+        lines.add("  Effective (with inheritance): " + effective);
+        return lines;
+    }
+
+    public String groupCheckPermission(String groupIdentifier, String permission, String world) {
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        boolean has = group.getPermissions(world).contains(permission);
+        return "Group \"" + group.getIdentifier() + "\" "
+                + (has ? "has" : "does not have") + " \"" + permission + "\" in "
+                + PexCommandContexts.displayRealm(world);
+    }
+
+    public List<String> userTimedPermissionsLines(String userIdentifier, String world) {
+        PermissionUser user = manager.getUser(userIdentifier);
+        List<String> lines = new ArrayList<>();
+        lines.add("Timed permissions for " + user.getName() + " @ " + PexCommandContexts.displayRealm(world) + ":");
+        List<String> timed = user.getTimedPermissions(world);
+        if (timed.isEmpty()) {
+            lines.add("  (none)");
+            return lines;
+        }
+        for (String permission : timed) {
+            int remaining = user.getTimedPermissionLifetime(permission, world);
+            lines.add("  " + permission + " (" + remaining + "s remaining)");
+        }
+        return lines;
+    }
+
+    public List<String> groupTimedPermissionsLines(String groupIdentifier, String world) {
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        List<String> lines = new ArrayList<>();
+        lines.add("Timed permissions for group \"" + group.getIdentifier() + "\" @ "
+                + PexCommandContexts.displayRealm(world) + ":");
+        List<String> timed = group.getTimedPermissions(world);
+        if (timed.isEmpty()) {
+            lines.add("  (none)");
+            return lines;
+        }
+        for (String permission : timed) {
+            int remaining = group.getTimedPermissionLifetime(permission, world);
+            lines.add("  " + permission + " (" + remaining + "s remaining)");
+        }
+        return lines;
+    }
+
+    public List<String> userTimedGroupsLines(String userIdentifier, String world) {
+        PermissionUser user = manager.getUser(userIdentifier);
+        List<String> lines = new ArrayList<>();
+        lines.add("Timed groups for " + user.getName() + " @ " + PexCommandContexts.displayRealm(world) + ":");
+        boolean any = false;
+        for (Map.Entry<String, String> entry : user.getOptions(world).entrySet()) {
+            String group = timedGroupFromOption(entry.getKey());
+            if (group == null) {
+                continue;
+            }
+            any = true;
+            long expiry = Long.parseLong(entry.getValue());
+            long remaining = Math.max(0L, expiry - System.currentTimeMillis() / 1000L);
+            lines.add("  " + group + " (" + remaining + "s remaining)");
+        }
+        if (!any) {
+            lines.add("  (none)");
+        }
+        return lines;
+    }
+
+    public List<String> userOptionsListLines(String userIdentifier, String world) {
+        PermissionUser user = manager.getUser(userIdentifier);
+        List<String> lines = new ArrayList<>();
+        lines.add("Options for " + user.getName() + " @ " + PexCommandContexts.displayRealm(world) + ":");
+        Map<String, String> options = user.getOptions(world);
+        if (options.isEmpty()) {
+            lines.add("  (none)");
+            return lines;
+        }
+        for (Map.Entry<String, String> entry : options.entrySet()) {
+            if (timedGroupFromOption(entry.getKey()) != null) {
+                continue;
+            }
+            lines.add("  " + entry.getKey() + " = \"" + entry.getValue() + "\"");
+        }
+        return lines;
+    }
+
+    public List<String> groupOptionsListLines(String groupIdentifier, String world) {
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        List<String> lines = new ArrayList<>();
+        lines.add("Options for group \"" + group.getIdentifier() + "\" @ "
+                + PexCommandContexts.displayRealm(world) + ":");
+        Map<String, String> options = group.getOptions(world);
+        if (options.isEmpty()) {
+            lines.add("  (none)");
+            return lines;
+        }
+        for (Map.Entry<String, String> entry : options.entrySet()) {
+            lines.add("  " + entry.getKey() + " = \"" + entry.getValue() + "\"");
+        }
+        return lines;
+    }
+
+    public String userOptionUnset(String userIdentifier, String option, String world) {
+        return userSetOption(userIdentifier, option, "", world);
+    }
+
+    public String groupSetOption(String groupIdentifier, String key, String value, String world) {
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        group.setOption(key, value, world);
+        if (value != null && value.isEmpty()) {
+            return "Option \"" + key + "\" cleared!";
+        }
+        return "Option \"" + key + "\" set!";
+    }
+
+    public String groupGetOption(String groupIdentifier, String option, String world) {
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        String value = group.getOption(option, world, null);
+        return "Group \"" + group.getIdentifier() + "\" @ " + PexCommandContexts.displayRealm(world)
+                + " option \"" + option + "\" = \"" + value + "\"";
+    }
+
+    public String groupOptionUnset(String groupIdentifier, String option, String world) {
+        return groupSetOption(groupIdentifier, option, "", world);
+    }
+
+    public String userAddTimedPermissionSeconds(String userIdentifier, String permission, int seconds, String world) {
+        if (seconds <= 0) {
+            return userAddPermission(userIdentifier, permission, world);
+        }
+        PermissionUser user = manager.getUser(userIdentifier);
+        user.addTimedPermission(permission, world, seconds);
+        return "Timed permission \"" + permission + "\" added!";
+    }
+
+    public String groupAddTimedPermissionSeconds(String groupIdentifier, String permission, int seconds, String world) {
+        if (seconds <= 0) {
+            return groupAddPermission(groupIdentifier, permission, world);
+        }
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        group.addTimedPermission(permission, world, seconds);
+        return "Timed permission \"" + permission + "\" added to group \"" + group.getIdentifier() + "\"!";
+    }
+
+    public String userAddGroupSeconds(String userIdentifier, String group, String world, int seconds) {
+        PermissionUser user = manager.getUser(userIdentifier);
+        if (seconds <= 0) {
+            user.addGroup(group, world);
+        } else {
+            user.addGroup(group, world, seconds);
+        }
+        return "User \"" + user.getName() + "\" added to group \"" + group + "\"!";
+    }
+
+    public List<String> ladderInfoLines(String ladder) {
+        List<String> lines = new ArrayList<>();
+        lines.add("Ladder \"" + ladder + "\":");
+        Map<Integer, PermissionGroup> groups = manager.getRankLadder(ladder);
+        if (groups.isEmpty()) {
+            lines.add("  (no ranked groups)");
+            return lines;
+        }
+        groups.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> lines.add("  #" + entry.getKey() + " " + entry.getValue().getIdentifier()));
+        return lines;
+    }
+
+    public List<String> ladderGroupsLines(String ladder) {
+        return ladderInfoLines(ladder);
+    }
+
+    public List<String> laddersListLines() {
+        List<String> lines = new ArrayList<>();
+        lines.add("Rank ladders:");
+        for (String ladder : knownLadders()) {
+            lines.add("  " + ladder);
+        }
+        return lines;
+    }
+
+    public String ladderGroupsAdd(String ladder, String groupIdentifier) {
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        Map<Integer, PermissionGroup> existing = manager.getRankLadder(ladder);
+        int nextRank = existing.keySet().stream().mapToInt(Integer::intValue).max().orElse(0) + 1;
+        group.setRankLadder(ladder);
+        group.setRank(nextRank);
+        group.save();
+        return "Group \"" + group.getIdentifier() + "\" added to ladder \"" + ladder + "\" at rank " + nextRank;
+    }
+
+    public String ladderGroupsRemove(String ladder, String groupIdentifier) {
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        if (!ladder.equalsIgnoreCase(group.getRankLadder())) {
+            return "Group \"" + group.getIdentifier() + "\" is not on ladder \"" + ladder + "\"";
+        }
+        group.setRank(0);
+        group.save();
+        return "Group \"" + group.getIdentifier() + "\" removed from ladder \"" + ladder + "\"";
+    }
+
+    public String ladderGroupsMove(String ladder, String groupIdentifier, int rank) {
+        PermissionGroup group = manager.getGroup(groupIdentifier);
+        group.setRankLadder(ladder);
+        group.setRank(rank);
+        group.save();
+        return "Group \"" + group.getIdentifier() + "\" moved to rank " + rank + " on ladder \"" + ladder + "\"";
+    }
+
+    public String ladderPromote(String ladder, String userIdentifier, PermissionUser actor) throws RankingException {
+        return promote(userIdentifier, actor, ladder);
+    }
+
+    public String ladderDemote(String ladder, String userIdentifier, PermissionUser actor) throws RankingException {
+        return demote(userIdentifier, actor, ladder);
     }
 
     public String userAddPermission(String userIdentifier, String permission, String world) {
@@ -641,6 +931,13 @@ public class CoreCommandService {
         }
 
         return value;
+    }
+
+    private static String timedGroupFromOption(String option) {
+        if (option == null || !option.startsWith("group-") || !option.endsWith("-until")) {
+            return null;
+        }
+        return option.substring("group-".length(), option.length() - "-until".length());
     }
 
     private List<PermissionGroup> parseGroups(String csv) {

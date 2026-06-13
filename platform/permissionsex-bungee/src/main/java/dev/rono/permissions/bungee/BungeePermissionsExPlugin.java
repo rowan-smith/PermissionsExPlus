@@ -62,8 +62,9 @@ public class BungeePermissionsExPlugin extends Plugin {
                             config::reload,
                             new BungeeConfigBridge(),
                             force -> "UUID conversion is not supported on Bungee.",
-                            new BungeeImportBridge(),
-                            CoreCloudPlatform.PROXY)
+                            CoreCloudPlatform.PROXY,
+                            config.options().current().commandFramework(),
+                            new BungeeImportBridge())
                     .register();
             BungeePermissionBootstrapReporter.log(this, this.manager);
         } catch (PermissionBackendException ex) {

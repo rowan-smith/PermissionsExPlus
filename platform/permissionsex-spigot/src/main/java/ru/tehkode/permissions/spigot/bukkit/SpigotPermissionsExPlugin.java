@@ -28,6 +28,7 @@ import com.mojang.api.profiles.ProfileRepository;
 import dev.rono.permissions.api.PermissionsExApi;
 import dev.rono.permissions.api.runtime.PlatformRuntime;
 import dev.rono.permissions.core.commands.CoreCloudCommandRegistrar;
+import dev.rono.permissions.core.commands.CoreCloudPlatform;
 import dev.rono.permissions.core.commands.CoreCommandService;
 import dev.rono.permissions.runtime.startup.BukkitPermissionBootstrapReporter;
 import dev.rono.permissions.spigot.platform.BukkitPlatformAdapter;
@@ -232,7 +233,9 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
                         new SpigotSenderAdapter(),
                         this::reloadConfig,
                         new SpigotConfigBridge(),
-                        new SpigotUuidConversionBridge())
+                        new SpigotUuidConversionBridge(),
+                        CoreCloudPlatform.GAME_SERVER,
+                        config.options().current().commandFramework())
                         .register();
             } catch (Exception cloudEx) {
                 getLogger().warning("Failed to initialize Cloud command registration: " + cloudEx.getMessage());
