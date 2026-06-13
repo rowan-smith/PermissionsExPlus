@@ -15,6 +15,12 @@ import java.util.Set;
  *
  * <p>Extends {@link PermissionSubject} with weight, default-group flags, parent/child relationships,
  * rank-ladder metadata, and membership queries.</p>
+ *
+ * <p><strong>Identifier vs entity naming:</strong> methods ending in {@code Identifiers} or returning
+ * {@code List<String>} / {@code Set<String>} of names return stable backend identifiers only.
+ * Methods returning {@link User} or {@link Group} resolve live adapter objects (may materialize
+ * cached engine entities). Prefer identifier methods for bulk queries; use entity methods when you
+ * need to mutate or inspect full subject state.</p>
  */
 public interface Group extends PermissionSubject {
 
@@ -262,6 +268,11 @@ public interface Group extends PermissionSubject {
     /**
      * Assigns this group to a rank ladder at the given rank.
      *
+     * <p>Mutates stored rank metadata only. For player-facing rank changes, prefer
+     * {@link dev.rono.permissions.api.ladder.LadderManager#promote} /
+     * {@link dev.rono.permissions.api.ladder.LadderManager#demote} — the ladder is the control plane
+     * for validated transitions.</p>
+     *
      * @param rank   numeric rank on the ladder (lower = higher standing)
      * @param ladder rank ladder name
      */
@@ -352,6 +363,73 @@ public interface Group extends PermissionSubject {
 
     /**
      * Returns all descendant groups of this group in the given world.
+     *
+     * <p>Delegates to {@link #children(String, boolean)} with {@code inherit = true}.</p>
+     *
+     * @param world world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @return list of all descendant groups
+     */
+    default List<Group> descendants(String world) {
+        return children(world, true);
+    }
+
+    /**
+     * Returns child group identifiers in the given world.
+     *
+     * @param world   world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @param inherit when {@code true}, includes all descendant groups
+     * @return list of child group identifiers
+     */
+    List<String> childIdentifiers(String world, boolean inherit);
+
+    /**
+     * Returns direct child group identifiers in the given world.
+     *
+     * <p>Delegates to {@link #childIdentifiers(String, boolean)} with {@code inherit = false}.</p>
+     *
+     * @param world world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @return list of direct child group identifiers
+     */
+    default List<String> childIdentifiers(String world) {
+        return childIdentifiers(world, false);
+    }
+
+    /**
+     * Returns direct child group identifiers in the global namespace.
+     *
+     * <p>Delegates to {@link #childIdentifiers(String)} with {@link Worlds#GLOBAL}.</p>
+     *
+     * @return list of direct child group identifiers
+     */
+    default List<String> childIdentifiers() {
+        return childIdentifiers(Worlds.GLOBAL);
+    }
+
+    /**
+     * Returns all descendant group identifiers in the given world.
+     *
+     * <p>Delegates to {@link #childIdentifiers(String, boolean)} with {@code inherit = true}.</p>
+     *
+     * @param world world name, or {@link Worlds#GLOBAL} for the global namespace
+     * @return list of all descendant group identifiers
+     */
+    default List<String> descendantIdentifiers(String world) {
+        return childIdentifiers(world, true);
+    }
+
+    /**
+     * Returns all descendant group identifiers in the global namespace.
+     *
+     * <p>Delegates to {@link #descendantIdentifiers(String)} with {@link Worlds#GLOBAL}.</p>
+     *
+     * @return list of all descendant group identifiers
+     */
+    default List<String> descendantIdentifiers() {
+        return descendantIdentifiers(Worlds.GLOBAL);
+    }
+
+    /**
+     * Returns all descendant groups of this group in the global namespace.
      *
      * <p>Delegates to {@link #children(String, boolean)} with {@code inherit = true}.</p>
      *

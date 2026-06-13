@@ -14,7 +14,7 @@ Policy: **legacy `ru.tehkode.*` stays frozen**. New capabilities belong under `d
 | Promote / demote | `User.promote` / `User.demote` (+ `RankingException`) |
 | Backend admin | `pex.backend().activate`, `createHandle`, `importFrom` |
 | Import / export | `pex.backend().exportData`, `importData(document, ImportMode)` |
-| Hierarchy helpers | `Group.children` / `Group.descendants`, `Group.members(world, inherit)` |
+| Hierarchy helpers | `Group.children` / `Group.descendants`, `Group.childIdentifiers`, `Group.members(world, inherit)` |
 | Flat API | `pex.user()`, `pex.world()`, `pex.users()`, `pex.groups()`, `pex.backend()` |
 | Batch edits | batch `save()` on subjects |
 | Async reload | `pex.reloadAsync()` → `CompletableFuture<Void>` |
@@ -55,6 +55,30 @@ Spigot-only attachment/injection status for support plugins.
 ### Observability
 
 Metrics hooks, structured logging adapters for large networks.
+
+### Typed permission scope (holder bridge)
+
+Today holder checks use `Map<String, String>` context while subject APIs use `String world`. Two parallel scoping systems can diverge.
+
+**Proposed:** sealed scope type replacing null-world overloads on the holder bridge:
+
+```java
+sealed interface PermissionScope permits GlobalScope, WorldScope {}
+record GlobalScope() implements PermissionScope {}
+record WorldScope(String world) implements PermissionScope {}
+```
+
+Then: `hasPermission(holder, node, PermissionScope scope)` and `PermissionAddRequest` carrying `PermissionScope` instead of raw maps where possible. `PermissionContext.resolveWorld` remains for legacy map interop.
+
+### PermissionManager overload consolidation
+
+Deprecate holder `addPermission(holder, string)` / `addPermission(holder, string, duration)` in favor of `PermissionAddRequest` as the single write path. Document `remove` vs `clearUserCache` vs `resetUser` vs `reset()` in modern `PermissionsExApi` cache-control methods.
+
+### Modern cache control on PermissionsExApi
+
+Legacy: `resetUser`, `clearUserCache`, `cacheUser`.
+
+**Proposed:** explicit modern equivalents with threading documented (`@MainThreadOnly` / `@AsyncSafe` in Javadoc).
 
 ---
 

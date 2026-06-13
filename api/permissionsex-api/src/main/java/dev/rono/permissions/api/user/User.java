@@ -16,6 +16,12 @@ import java.util.UUID;
  *
  * <p>Extends {@link PermissionSubject} with group membership and timed group assignment.
  * Rank-ladder promotion/demotion lives on {@link dev.rono.permissions.api.ladder.LadderManager}.</p>
+ *
+ * <p><strong>Identifier vs entity naming:</strong> {@link #groups(String, boolean)} returns group
+ * identifiers ({@code String}). For resolved {@link dev.rono.permissions.api.group.Group} objects,
+ * use {@code getGroupManager().getGroup(name)}. This mirrors {@link dev.rono.permissions.api.group.Group#members(String, boolean)}
+ * returning {@link User} entities while {@link dev.rono.permissions.api.group.Group#memberIdentifiers(String)}
+ * returns identifiers.</p>
  */
 public interface User extends PermissionSubject {
 

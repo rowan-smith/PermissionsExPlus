@@ -467,6 +467,21 @@ public final class SubjectWorldContexts {
             }
 
             @Override
+            public List<String> childIdentifiers() {
+                return group.childIdentifiers(normalized);
+            }
+
+            @Override
+            public List<String> childIdentifiers(boolean inherit) {
+                return group.childIdentifiers(normalized, inherit);
+            }
+
+            @Override
+            public List<String> descendantIdentifiers() {
+                return group.descendantIdentifiers(normalized);
+            }
+
+            @Override
             public List<User> activeMembers() {
                 return group.activeMembers(false);
             }

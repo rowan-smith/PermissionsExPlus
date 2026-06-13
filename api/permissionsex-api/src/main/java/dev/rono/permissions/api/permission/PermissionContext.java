@@ -6,6 +6,10 @@ import java.util.Map;
 /**
  * Standard keys for permission check and grant context maps.
  *
+ * <p>Used by holder-based {@link ru.tehkode.permissions.PermissionManager#hasPermission(PermissionHolder, String, java.util.Map)}
+ * and {@link PermissionAddRequest}. Subject APIs ({@code User} / {@code Group}) use explicit {@code String world}
+ * parameters instead — see {@code docs/api/API_INVARIANTS.md} for the dual scoping model.</p>
+ *
  * <p>Example:</p>
  * <pre>{@code
  * Map<String, String> context = PermissionContext.of(
@@ -68,5 +72,38 @@ public final class PermissionContext {
         if (value != null && !value.isEmpty()) {
             context.put(key, value);
         }
+    }
+
+    /**
+     * Resolves the realm/world name from a holder context map for permission storage and checks.
+     *
+     * <p>Uses {@link #WORLD} when present; otherwise falls back to {@link #SERVER}. Returns {@code null}
+     * when neither is set (global scope, equivalent to {@link dev.rono.permissions.api.world.Worlds#GLOBAL}).</p>
+     *
+     * @param context context map; may be {@code null} or empty
+     * @return resolved world name, or {@code null} for global scope
+     */
+    public static String resolveWorld(Map<String, String> context) {
+        if (context == null || context.isEmpty()) {
+            return null;
+        }
+        String world = context.get(WORLD);
+        if (world != null && !world.isEmpty()) {
+            return world;
+        }
+        String server = context.get(SERVER);
+        if (server != null && !server.isEmpty()) {
+            return server;
+        }
+        return null;
+    }
+
+    /**
+     * Returns an empty immutable context representing the global permission scope.
+     *
+     * @return empty context map (global scope)
+     */
+    public static Map<String, String> global() {
+        return Map.of();
     }
 }

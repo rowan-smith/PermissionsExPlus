@@ -7,6 +7,9 @@ import java.util.Map;
 
 /**
  * Builder request for advanced permission additions (duration, expiry, context, source).
+ *
+ * <p>Preferred holder-based write path — use this instead of shorter {@code addPermission} overloads
+ * when world scope, expiry, or source metadata matter.</p>
  */
 public final class PermissionAddRequest {
 

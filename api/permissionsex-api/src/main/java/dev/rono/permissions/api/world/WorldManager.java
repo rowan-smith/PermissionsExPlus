@@ -15,7 +15,11 @@ public interface WorldManager {
     boolean exists(String name);
 
     /**
-     * Returns the number of registered worlds (platform realms and backend world inheritance entries).
+     * Returns the number of registered worlds.
+     *
+     * <p>Includes both platform-registered realms ({@link World}) and backend world-inheritance
+     * entries that may not correspond to a loaded dimension. Do not assume every counted world is
+     * a live server world — use platform APIs to test whether a dimension is loaded.</p>
      *
      * @return total registered world count
      */

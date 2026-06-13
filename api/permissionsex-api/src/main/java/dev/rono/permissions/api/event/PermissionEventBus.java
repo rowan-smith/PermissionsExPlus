@@ -5,6 +5,19 @@ package dev.rono.permissions.api.event;
  *
  * <p>Obtain via {@link dev.rono.permissions.api.PermissionsExApi#getEventBus()}.</p>
  *
+ * <h2>Threading and lifecycle</h2>
+ * <ul>
+ *   <li><strong>Dispatch:</strong> listeners are invoked synchronously on the thread that publishes the
+ *       dispatch (typically the server main thread on Spigot/Paper).</li>
+ *   <li><strong>Ordering:</strong> listeners run in registration order; no priority tiers.</li>
+ *   <li><strong>Cancellation:</strong> dispatches are informational — listeners cannot cancel engine
+ *       mutations. Use platform permission APIs for cancellable checks.</li>
+ *   <li><strong>Subscriptions:</strong> hold the {@link Subscription} token and call
+ *       {@link #unsubscribe(Subscription)} on plugin disable to avoid leaks.</li>
+ *   <li><strong>Thread-safety:</strong> {@link #subscribe(PermissionEventListener)} and
+ *       {@link #unsubscribe(Subscription)} are safe from any thread; listener callbacks should not block.</li>
+ * </ul>
+ *
  * <p>On Spigot/Paper, dispatches are also translated into legacy {@code ru.tehkode.permissions.events.*}
  * when the platform adapter publishes them.</p>
  */

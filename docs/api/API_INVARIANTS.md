@@ -148,4 +148,151 @@ When adding API or engine features:
 3. Preserve the four invariants above
 4. Route timed expiry through `TimedExpiryCoordinator`
 5. Keep `SubjectWorldContexts` as delegation-only
-6. Update [MODERN_API.md](MODERN_API.md) and this file when behavior or layering changes
+6. Route group graph traversal through `GroupHierarchyEngine` or `DefaultPermissionManager`
+7. Update [MODERN_API.md](MODERN_API.md) and this file when behavior or layering changes
+
+---
+
+## Identifier vs entity APIs
+
+Modern subject APIs follow a naming convention (not always enforced by types alone):
+
+| Returns | Examples | Use when |
+|---------|----------|----------|
+| **Identifiers** (`String`) | `User.groups()`, `Group.memberIdentifiers()`, `Group.childIdentifiers()`, `Group.parents()` | Bulk listing, logging, storage keys |
+| **Entities** (`User`, `Group`) | `Group.members()`, `Group.children()` | Mutations, full subject inspection |
+
+`User.groups()` returns identifiers; `Group.members()` returns `User` adapters. This asymmetry is intentional: users are cheap to name-list; groups are often queried for member objects. When you need group objects from a user’s group list, resolve via `GroupManager.getGroup(name)`.
+
+---
+
+## Hierarchy traversal (internal)
+
+Multiple public methods expose graph walks with an `inherit` flag:
+
+| API | Direction | `inherit = false` | `inherit = true` |
+|-----|-----------|-------------------|------------------|
+| `User.groups(world, inherit)` | user → groups | direct assignments | transitive parents |
+| `Group.members(world, inherit)` | group → users | direct members | members of descendant groups |
+| `Group.children(world, inherit)` | group → groups | direct children | all descendants |
+| `Group.parentTree(world)` | group → parents | — | transitive parents (always expanded) |
+
+**Canonical engine:** `GroupHierarchyEngine` + `DefaultPermissionManager.getUsers` / `getGroups`. API adapters must not reimplement BFS/DFS. The `inherit` flag uses the same semantics everywhere (direct edge vs transitive closure).
+
+Permission *resolution* (inheritance of permissions/options) uses `HierarchyTraverser` separately — do not conflate group-membership graph walks with permission inheritance walks.
+
+---
+
+## Dual scoping: `String world` vs context maps
+
+Two parallel scoping systems coexist:
+
+| System | Where | Primary use |
+|--------|-------|-------------|
+| **`String world`** | `PermissionSubject`, `User`, `Group`, `SubjectWorldContext` | Subject CRUD, checks, meta — first-class in modern API |
+| **`Map<String, String>` context** | `PermissionContext`, `PermissionAddRequest`, holder `hasPermission` | Holder bridge, proxy/server/region/gamemode keys |
+
+Rules today:
+
+- Subject APIs: pass `Worlds.GLOBAL` (or overloads) for global scope — not context maps.
+- Holder APIs: use `PermissionContext.of(...)` or `PermissionContext.resolveWorld(context)`; empty map = global.
+- Do not mix both in one call path.
+
+Future direction (see [FUTURE.md](FUTURE.md)): typed `PermissionScope` / sealed world scope replacing raw maps and null-world overloads on the holder bridge.
+
+---
+
+## Rank ladder dual model
+
+| Layer | Types | Role |
+|-------|-------|------|
+| **State** | `Group.rank()`, `Group.rankLadder()`, `Group.setRank()` | Mutable rank metadata stored on the group |
+| **Control plane** | `LadderManager.promote/demote/rank` | Sole authority for rank *transitions* |
+
+Groups hold rank values; ladders orchestrate movement. Direct `setRank` edits metadata without validation — prefer `LadderManager` for player-facing promote/demote. Engine must not allow a group edit to silently corrupt ladder ordering without going through ladder operations.
+
+---
+
+## WorldManager: logical vs runtime worlds
+
+`WorldManager.count()` includes backend world-inheritance nodes that may not map to a loaded Bukkit/Proxy dimension. **World** in PEX is a permission namespace, not strictly “loaded world.” Document this when exposing world lists to plugin UIs.
+
+---
+
+## Cache, reset, and remove semantics
+
+Legacy `PermissionManager` exposes many reset variants. Map them to three concepts:
+
+| Concept | Operations | Effect |
+|---------|------------|--------|
+| **Remove data** | `subject.delete()`, `removePermission`, backend delete | Persisted data gone |
+| **Invalidate cache** | `clearUserCache` | Keeps in-memory entity; clears resolved permission/meta caches |
+| **Evict + reload** | `resetUser`, `resetGroup` | Drops in-memory entity; next access reloads from backend |
+| **System reset** | `reset()` / `/pex reload` | Clears all entities, reloads backend |
+
+Modern plugins should use `User.delete()` / `Group.delete()` and manager `find`/`get` — not `resetUser` unless integrating with legacy cache control.
+
+---
+
+## Threading expectations
+
+| API area | Expectation |
+|----------|-------------|
+| `UserManager` / `GroupManager` / subjects | Assume **main thread** on Bukkit unless documented otherwise |
+| `PermissionEventBus` | Subscribe/unsubscribe thread-safe; callbacks on publisher thread |
+| `cacheUser` (legacy) | Thread-safe pre-materialization during async login |
+| Backend I/O | May block; avoid on async threads without platform guarantees |
+
+Prefer documenting threading in Javadoc over ad-hoc annotations until a standard annotation module exists.
+
+---
+
+## Holder permission adds
+
+**Preferred:** `PermissionAddRequest.builder()...build()` → `addPermission(request)` — carries world context, expiry, and source.
+
+Shorter overloads (`addPermission(holder, node)`, `addPermission(holder, node, duration)`) are convenience wrappers for global/permanent or simple timed grants. New holder-based features should extend the request object first.
+
+---
+
+## Null and empty semantics
+
+| Context | `null` / empty meaning |
+|---------|------------------------|
+| Modern `world` parameter | {@link Worlds#GLOBAL} — use `Worlds.normalize` |
+| Legacy `PermissionManager.getUser(name)` | {@code null} = not found (classic API) |
+| Modern `UserManager.findUser` | {@code Optional.empty()} = not found |
+| `option(key, world)` | {@code null} value = unset |
+| `PermissionContext` map | empty = global scope |
+| Method parameters | `@NonNull` by convention unless Javadoc says optional |
+
+---
+
+## Collection return types
+
+Modern API methods return **immutable snapshots** (`List.copyOf`, `Set.copyOf`, `Map.copyOf`) at the adapter layer. They are not live views — mutations to returned collections do not affect stored permissions. Legacy `PermissionManager` sets may still be live engine collections; treat modern returns as read-only copies.
+
+---
+
+## Event bus guarantees
+
+See {@link dev.rono.permissions.api.event.PermissionEventBus} Javadoc:
+
+- Synchronous dispatch on publisher thread
+- Registration-order listener invocation
+- Non-cancellable informational dispatches
+- Unsubscribe via `Subscription` token on plugin disable
+
+---
+
+## Known asymmetries and future work
+
+Documented gaps intentionally left for backward compatibility:
+
+- `PermissionManager` overload explosion and null-world holder bridge
+- Context maps vs typed `PermissionScope`
+- Legacy `getGroup(name)` returning null vs modern `Optional`/`find`
+- `getActiveUsers()` live-set semantics on legacy manager vs snapshot lists on modern API
+
+Track API improvements in [FUTURE.md](FUTURE.md).
+

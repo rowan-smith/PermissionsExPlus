@@ -2,7 +2,6 @@ package dev.rono.permissions.core.api.pex;
 
 import dev.rono.permissions.api.permission.PermissionContext;
 import dev.rono.permissions.api.permission.PermissionHolder;
-import dev.rono.permissions.api.world.Worlds;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import dev.rono.permissions.core.api.ModernWorlds;
 import ru.tehkode.permissions.PermissionEntity;
@@ -43,17 +42,6 @@ final class HolderEntityResolver {
      * core realm resolution today.</p>
      */
     String worldContext(Map<String, String> context) {
-        if (context == null || context.isEmpty()) {
-            return null;
-        }
-        String world = context.get(PermissionContext.WORLD);
-        if (!Worlds.isGlobal(world)) {
-            return ModernWorlds.toLegacy(world);
-        }
-        String server = context.get(PermissionContext.SERVER);
-        if (server != null && !server.isEmpty()) {
-            return server;
-        }
-        return null;
+        return ModernWorlds.toLegacy(PermissionContext.resolveWorld(context));
     }
 }

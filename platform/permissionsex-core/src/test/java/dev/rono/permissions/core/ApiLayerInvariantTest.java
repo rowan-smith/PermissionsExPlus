@@ -6,21 +6,22 @@ import dev.rono.permissions.api.subject.PermissionView;
 import dev.rono.permissions.api.subject.SubjectIdentity;
 import dev.rono.permissions.api.subject.SubjectWorldContext;
 import dev.rono.permissions.api.subject.SubjectWorldContexts;
+import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.user.User;
+import dev.rono.permissions.api.world.Worlds;
 import org.junit.jupiter.api.Test;
 import ru.tehkode.permissions.PEXTestBase;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Guards architectural invariants documented in docs/api/API_INVARIANTS.md.
- */
+/** Guards architectural invariants documented in docs/api/API_INVARIANTS.md. */
 class ApiLayerInvariantTest extends PEXTestBase {
 
     @Test
@@ -71,6 +72,21 @@ class ApiLayerInvariantTest extends PEXTestBase {
         assertInstanceOf(User.class, user);
 
         user.delete();
+    }
+
+    @Test
+    void groupHierarchyUsesCanonicalEngine() throws Exception {
+        var parent = ((DefaultPermissionManager) manager).permissionsExApi()
+                .getGroupManager()
+                .createGroup("engine-parent");
+        var child = ((DefaultPermissionManager) manager).permissionsExApi()
+                .getGroupManager()
+                .createGroup("engine-child");
+        child.addParent(parent.getName(), Worlds.GLOBAL);
+        child.save();
+
+        assertEquals(List.of("engine-child"), parent.childIdentifiers());
+        assertEquals(parent.childIdentifiers(), parent.children().stream().map(Group::getName).toList());
     }
 
     private static Set<String> declaredAbstractMethods(Class<?> type) {

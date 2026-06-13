@@ -9,10 +9,7 @@ import dev.rono.permissions.core.api.ModernWorlds;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -76,19 +73,7 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
 
     @Override
     public List<String> parentTree(String world) {
-        var legacyWorld = ModernWorlds.toLegacy(world);
-        var tree = new ArrayList<String>();
-        Deque<String> pending = new ArrayDeque<>(group.getOwnParentIdentifiers(legacyWorld));
-        var seen = new HashSet<String>();
-        while (!pending.isEmpty()) {
-            var parentName = pending.poll();
-            if (!seen.add(parentName)) {
-                continue;
-            }
-            tree.add(parentName);
-            pending.addAll(manager.getGroup(parentName).getOwnParentIdentifiers(legacyWorld));
-        }
-        return List.copyOf(tree);
+        return GroupHierarchyEngine.resolveParentTree(manager, group, ModernWorlds.toLegacy(world));
     }
 
     @Override
@@ -129,11 +114,8 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
 
     @Override
     public Set<String> memberIdentifiers(String world) {
-        var identifiers = new LinkedHashSet<String>();
-        for (PermissionUser member : group.getUsers(ModernWorlds.toLegacy(world))) {
-            identifiers.add(member.getIdentifier());
-        }
-        return Set.copyOf(identifiers);
+        return GroupHierarchyEngine.resolveMemberIdentifiers(
+                manager, group.getIdentifier(), ModernWorlds.toLegacy(world), false);
     }
 
     @Override
@@ -141,10 +123,7 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
         var legacyWorld = ModernWorlds.toLegacy(world);
         var seen = new LinkedHashSet<String>();
         var members = new ArrayList<User>();
-        collectMembers(seen, members, manager.getUsers(group.getIdentifier(), legacyWorld, false));
-        if (inherit) {
-            collectMembers(seen, members, manager.getUsers(group.getIdentifier(), legacyWorld, true));
-        }
+        collectMembers(seen, members, manager.getUsers(group.getIdentifier(), legacyWorld, inherit));
         return List.copyOf(members);
     }
 
@@ -163,6 +142,12 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
             children.add(new GroupImpl(child.getIdentifier(), child, manager));
         }
         return List.copyOf(children);
+    }
+
+    @Override
+    public List<String> childIdentifiers(String world, boolean inherit) {
+        return GroupHierarchyEngine.resolveChildIdentifiers(
+                manager, group.getIdentifier(), ModernWorlds.toLegacy(world), inherit);
     }
 
     @Override

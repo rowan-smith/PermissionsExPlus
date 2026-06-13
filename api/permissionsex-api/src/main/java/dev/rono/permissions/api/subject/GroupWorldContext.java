@@ -164,6 +164,34 @@ public interface GroupWorldContext extends SubjectWorldContext {
     List<Group> descendants();
 
     /**
+     * Returns direct child group identifiers in this context's world.
+     *
+     * <p>Equivalent to {@link Group#childIdentifiers(String)} with {@link #world()}.</p>
+     *
+     * @return list of direct child group identifiers
+     */
+    List<String> childIdentifiers();
+
+    /**
+     * Returns child group identifiers in this context's world.
+     *
+     * <p>Equivalent to {@link Group#childIdentifiers(String, boolean)} with {@link #world()}.</p>
+     *
+     * @param inherit when {@code true}, includes all descendant groups
+     * @return list of child group identifiers
+     */
+    List<String> childIdentifiers(boolean inherit);
+
+    /**
+     * Returns all descendant group identifiers in this context's world.
+     *
+     * <p>Equivalent to {@link Group#descendantIdentifiers(String)} with {@link #world()}.</p>
+     *
+     * @return list of all descendant group identifiers
+     */
+    List<String> descendantIdentifiers();
+
+    /**
      * Returns currently online users with direct membership in this group.
      *
      * <p>Equivalent to {@link Group#activeMembers()}.</p>
