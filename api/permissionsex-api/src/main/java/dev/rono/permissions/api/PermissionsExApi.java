@@ -10,8 +10,8 @@ import ru.tehkode.permissions.PermissionManager;
 /**
  * Primary PermissionsEx hook API entry surface.
  *
- * <p>Resolve via {@link ru.tehkode.permissions.bukkit.PermissionsEx#getApi()} on Spigot/Paper,
- * or {@link dev.rono.permissions.bungee.PermissionsEx#getApi()} on Bungee/Waterfall.</p>
+ * <p>Resolve via {@code ru.tehkode.permissions.bukkit.PermissionsEx.getApi()} on Spigot/Paper,
+ * or {@code dev.rono.permissions.bungee.PermissionsEx.getApi()} on Bungee/Waterfall.</p>
  *
  * <p><strong>API layering:</strong> new plugins should use {@code PermissionsExApi} and its managers
  * ({@link #getUserManager()}, {@link #getGroupManager()}, …). {@link #getPermissionManager()} exposes

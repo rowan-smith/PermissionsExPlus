@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * {@code dev.rono.permissions.core.InternalPermissionManager} and are not part of this surface.</p>
  *
  * <p>Classic methods remain for binary compatibility but are deprecated — use
- * {@link dev.rono.permissions.api.PermissionsExApi} via {@link ru.tehkode.permissions.bukkit.PermissionsEx#getApi()}.</p>
+ * {@code PermissionsExApi} via {@code PermissionsEx.getApi()}.</p>
  *
  * <h2>World scope</h2>
  * <p>A {@code null} world name denotes the <em>global</em> (common) scope shared across worlds unless
@@ -53,9 +53,8 @@ import java.util.logging.Logger;
  * <p>The {@link #addPermission(PermissionHolder, String)}, {@link #removePermission(PermissionHolder, String)},
  * {@link #hasPermission(PermissionHolder, String)}, and {@link #getPermissions(PermissionHolder)} methods operate on
  * {@link PermissionHolder} identities (for example {@code User#asHolder()} from the modern user API, group/world/ladder
- * holders, etc.). Resolve the manager via {@link dev.rono.permissions.api.PermissionsExApi#getPermissionManager()}
- * after {@link ru.tehkode.permissions.bukkit.PermissionsEx#getApi()}. World context for advanced adds is supplied
- * through {@link PermissionAddRequest}.</p>
+ * holders, etc.). Resolve the manager via {@code PermissionsEx.getApi().getPermissionManager()}.
+ * World context for advanced adds is supplied through {@link PermissionAddRequest}.</p>
  *
  * @see PermissionEntity
  * @see PermissionUser

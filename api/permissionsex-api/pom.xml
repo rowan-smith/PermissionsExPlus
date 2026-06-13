@@ -31,4 +31,20 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <!-- PermissionHolder and bus types live in permissionsex-core-api -->
+                    <includeDependencySources>true</includeDependencySources>
+                    <dependencySourceIncludes>
+                        <dependencySourceInclude>dev.rono.permissions:permissionsex-core-api</dependencySourceInclude>
+                    </dependencySourceIncludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

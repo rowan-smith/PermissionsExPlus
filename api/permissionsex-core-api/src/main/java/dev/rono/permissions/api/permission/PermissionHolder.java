@@ -5,8 +5,7 @@ import java.util.UUID;
 /**
  * Permission target identity for holder-based add/remove/has operations.
  *
- * <p>Obtain from {@link dev.rono.permissions.api.user.User#asHolder()},
- * {@link dev.rono.permissions.api.group.Group#asHolder()}, or related entity adapters.</p>
+ * <p>Obtain from {@code User#asHolder()}, {@code Group#asHolder()}, or related entity adapters.</p>
  */
 public interface PermissionHolder {
 

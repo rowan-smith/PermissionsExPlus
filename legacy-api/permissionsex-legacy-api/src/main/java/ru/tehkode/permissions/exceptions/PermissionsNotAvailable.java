@@ -3,8 +3,8 @@ package ru.tehkode.permissions.exceptions;
 /**
  * Unchecked exception thrown when PermissionsEx is not installed, disabled, or not yet initialized.
  *
- * <p>Typically raised by {@link ru.tehkode.permissions.bukkit.PermissionsEx#getPermissionManager()}
- * when the plugin or its {@link ru.tehkode.permissions.PermissionManager} service is unavailable.</p>
+ * <p>Typically raised by {@code PermissionsEx.getPermissionManager()} when the plugin or its
+ * {@link ru.tehkode.permissions.PermissionManager} service is unavailable.</p>
  */
 public class PermissionsNotAvailable extends RuntimeException {
     /**
