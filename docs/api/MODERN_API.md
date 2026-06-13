@@ -261,8 +261,7 @@ Obtain via `subject.inWorld("world_nether")`, `user.global()`, or `pex.world("wo
 | `BackendHandle` | Non-active backend for copy/apply |
 | `ImportMode` | `MERGE` / `REPLACE` for `importData` |
 | `PermissionEventBus` / `PermissionEventListener` | Modern event subscription |
-| `PermissionEditSession` | Batch edit helper |
-| `WorldScope` / `UsersScope` / `GroupsScope` / `WorldsScope` / `BackendScope` / `SessionScope` | Flat API scopes |
+| `PermissionEventBus` / `PermissionEventListener` | Modern event subscription via `PermissionsExApi.getEventBus()` |
 | `FoundUser` / `FoundGroup` | Optional persisted lookups |
 | `SubjectType` | `USER`, `GROUP` |
 
