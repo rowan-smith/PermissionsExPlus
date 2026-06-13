@@ -167,9 +167,9 @@ public interface PermissionManager {
      */
     List<PermissionNode> getPermissions(PermissionHolder holder);
 
-    // |---------------------------------------------|
-    // |  Legacy methods (deprecated)               |
-    // |---------------------------------------------|
+    // |----------------------------------------------------|
+    // |  Legacy methods (deprecated binary compatability)  |
+    // |----------------------------------------------------|
 
     /**
      * Returns whether the engine should create user records automatically when unknown players are resolved.

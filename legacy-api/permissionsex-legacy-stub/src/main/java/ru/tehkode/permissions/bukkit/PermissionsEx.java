@@ -51,10 +51,14 @@ public final class PermissionsEx {
         throw new PermissionsNotAvailable();
     }
 
+    // |----------------------------------------------------|
+    // |  Legacy methods (deprecated binary compatability)  |
+    // |----------------------------------------------------|
+
     /**
      * @deprecated Use {@link #getApi()} and {@link PermissionsExApi#getPermissionManager()}.
      */
-    @Deprecated(forRemoval = false)
+    @Deprecated()
     public static PermissionManager getPermissionManager() {
         return getApi().getPermissionManager();
     }
@@ -62,7 +66,7 @@ public final class PermissionsEx {
     /**
      * @deprecated Use {@link PermissionsExApi#getPermissionManager()}.
      */
-    @Deprecated(forRemoval = false)
+    @Deprecated()
     public static PermissionUser getUser(Player player) {
         return getPermissionManager().getUser(player);
     }
@@ -70,7 +74,7 @@ public final class PermissionsEx {
     /**
      * @deprecated Use {@link PermissionsExApi#getPermissionManager()}.
      */
-    @Deprecated(forRemoval = false)
+    @Deprecated()
     public static PermissionUser getUser(String name) {
         return getPermissionManager().getUser(name);
     }
