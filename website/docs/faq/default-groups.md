@@ -13,7 +13,7 @@ Every player needs a group. The **default group** is assigned automatically to n
 /pex set default group default true
 ```
 
-In `permissions.yml`:
+Example data structure (also valid in a `permissions.yml` import file):
 
 ```yaml
 groups:
@@ -61,4 +61,4 @@ Promote players by moving them to other groups:
 Check they are in a group: `/pex user <name> group list`
 
 **Wrong default group?**
-Run `/pex default group` and verify `default: true` in your YAML.
+Run `/pex default group` and verify the default group flag with `/pex group <name> info`.

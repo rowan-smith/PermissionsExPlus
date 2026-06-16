@@ -41,6 +41,44 @@ public final class EffectiveUser {
         return resolved != null && resolved.isValue();
     }
 
+    public boolean hasPermission(ru.tehkode.permissions.PermissionMatcher matcher,
+                                 String permission,
+                                 String contextKey) {
+        ResolvedPermission resolved = resolveMatching(matcher, permission, contextKey);
+        return resolved != null && resolved.isValue();
+    }
+
+    public ResolvedPermission resolveMatching(ru.tehkode.permissions.PermissionMatcher matcher,
+                                              String permission,
+                                              String contextKey) {
+        ResolvedPermission best = null;
+        for (ResolvedPermission candidate : permissions) {
+            if (!contextMatches(contextKey, candidate.getContextKey())) {
+                continue;
+            }
+            String expression = candidate.isValue()
+                    ? candidate.getPermission()
+                    : "-" + candidate.getPermission();
+            if (!matcher.isMatches(expression, permission)) {
+                continue;
+            }
+            if (best == null || isBetter(candidate, best)) {
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+    private static boolean isBetter(ResolvedPermission candidate, ResolvedPermission existing) {
+        if (candidate.getPriority() != existing.getPriority()) {
+            return candidate.getPriority() > existing.getPriority();
+        }
+        if (candidate.isValue() == existing.isValue()) {
+            return false;
+        }
+        return !candidate.isValue();
+    }
+
     public ResolvedPermission resolve(String permission, String contextKey) {
         ResolvedPermission best = null;
         for (ResolvedPermission candidate : permissions) {

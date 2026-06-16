@@ -47,7 +47,9 @@ Arbitrary key-value pairs for other plugins or your own logic:
 
 Common uses: display names, custom tags, integration metadata.
 
-## In permissions.yml
+## Example data structure
+
+Representative YAML layout (used for import/migration; default storage is H2):
 
 ```yaml
 groups:

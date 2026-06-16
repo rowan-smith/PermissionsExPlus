@@ -35,17 +35,27 @@ public final class YamlToSqlMigrator {
     }
 
     public MigrationResult migrate(File yamlFile, LocalSqlRepository repository) throws Exception {
+        return migrate(yamlFile, repository, false);
+    }
+
+    public MigrationResult repair(File yamlFile, LocalSqlRepository repository) throws Exception {
+        return migrate(yamlFile, repository, true);
+    }
+
+    private MigrationResult migrate(File yamlFile, LocalSqlRepository repository, boolean force) throws Exception {
         if (!yamlFile.isFile()) {
             return MigrationResult.skipped("No YAML file at " + yamlFile.getAbsolutePath());
         }
-        if (repository.isInitialized() && repository.getSchemaVersion() >= 0 && !repository.isEmpty()) {
+        if (!force && repository.isInitialized() && repository.getSchemaVersion() >= 0 && !repository.isEmpty()) {
             return MigrationResult.skipped("Local SQL database already contains data");
         }
 
         repository.deploySchema();
-        repository.setSchemaVersion(LocalSqlRepository.SCHEMA_VERSION);
+        repository.ensureSchemaLatest();
 
         Map<String, Object> root = loadYaml(yamlFile);
+        migrateWorldInheritance(repository, root);
+
         Map<String, Object> groups = YamlMaps.getSection(root, YamlMaps.GROUPS);
         if (groups != null) {
             for (Map.Entry<String, Object> entry : groups.entrySet()) {
@@ -80,9 +90,32 @@ public final class YamlToSqlMigrator {
         }
     }
 
+    private void migrateWorldInheritance(LocalSqlRepository repository, Map<String, Object> root) throws Exception {
+        Map<String, Object> block = YamlMaps.getSection(root, YamlMaps.WORLD_INHERITANCE_LEGACY);
+        if (block != null) {
+            for (Map.Entry<String, Object> entry : block.entrySet()) {
+                if (entry.getValue() instanceof List<?> list) {
+                    repository.setWorldInheritance(entry.getKey(), YamlMaps.coerceToStringList(list));
+                }
+            }
+        }
+        Map<String, Object> worlds = YamlMaps.getSection(root, YamlMaps.WORLDS);
+        if (worlds != null) {
+            for (Map.Entry<String, Object> entry : worlds.entrySet()) {
+                if (entry.getValue() instanceof Map<?, ?> worldNode) {
+                    Object inheritance = cast(worldNode).get("inheritance");
+                    if (inheritance != null) {
+                        repository.setWorldInheritance(entry.getKey(), YamlMaps.coerceToStringList(inheritance));
+                    }
+                }
+            }
+        }
+    }
+
     private void migrateGroup(LocalSqlRepository repository, String name, Map<String, Object> node) throws Exception {
         Map<String, String> options = YamlMaps.collectLeafOptions(YamlMaps.optionsMap(node, null));
-        int groupId = repository.upsertGroup(name, 0, isDefault(options));
+        int weight = parseInt(options.get("weight"), 0);
+        int groupId = repository.upsertGroup(name, weight, isDefault(options));
         repository.clearGroupParents(groupId);
         for (String parent : YamlMaps.getStringList(node, YamlMaps.GROUP_PARENT_LIST)) {
             repository.findGroupId(parent).ifPresent(parentId -> {
@@ -102,27 +135,18 @@ public final class YamlToSqlMigrator {
                     String contextKey = ContextKeyCodec.encodeLegacyWorld(worldEntry.getKey());
                     repository.replaceGroupPermissions(groupId, contextKey,
                             YamlMaps.getStringList(worldMap, YamlMaps.PERMISSIONS));
-                    copyGroupOptions(repository, groupId, worldMap);
+                    copyGroupOptions(repository, groupId, worldMap, contextKey);
                 }
             }
         }
-        copyGroupOptions(repository, groupId, node);
+        copyGroupOptions(repository, groupId, node, null);
         migrateLadder(repository, groupId, options);
     }
 
     private void migrateUser(LocalSqlRepository repository, String name, Map<String, Object> node) throws Exception {
         UUID userId = parseUserId(name);
         repository.upsertUser(userId, name, null, Instant.now());
-        repository.clearUserGroups(userId, null);
-        for (String parent : YamlMaps.getStringList(node, YamlMaps.USER_PARENT_LIST)) {
-            repository.findGroupId(parent).ifPresent(groupId -> {
-                try {
-                    repository.setUserGroup(userId, groupId, null);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        }
+        migrateUserGroups(repository, userId, node, null);
         repository.replaceUserPermissions(userId, null, YamlMaps.getStringList(node, YamlMaps.PERMISSIONS));
         Map<String, Object> worlds = YamlMaps.getSection(node, YamlMaps.WORLDS);
         if (worlds != null) {
@@ -130,12 +154,30 @@ public final class YamlToSqlMigrator {
                 if (worldEntry.getValue() instanceof Map<?, ?> worldNode) {
                     Map<String, Object> worldMap = cast(worldNode);
                     String contextKey = ContextKeyCodec.encodeLegacyWorld(worldEntry.getKey());
+                    migrateUserGroups(repository, userId, worldMap, contextKey);
                     repository.replaceUserPermissions(userId, contextKey,
                             YamlMaps.getStringList(worldMap, YamlMaps.PERMISSIONS));
+                    copyUserOptions(repository, userId, worldMap, contextKey);
                 }
             }
         }
-        copyUserOptions(repository, userId, node);
+        copyUserOptions(repository, userId, node, null);
+    }
+
+    private void migrateUserGroups(LocalSqlRepository repository,
+                                   UUID userId,
+                                   Map<String, Object> node,
+                                   String contextKey) throws Exception {
+        repository.clearUserGroups(userId, contextKey);
+        for (String parent : YamlMaps.getStringList(node, YamlMaps.USER_PARENT_LIST)) {
+            repository.findGroupId(parent).ifPresent(groupId -> {
+                try {
+                    repository.setUserGroup(userId, groupId, contextKey, null);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
     }
 
     private void migrateLadder(LocalSqlRepository repository, int groupId, Map<String, String> options) throws Exception {
@@ -144,28 +186,40 @@ public final class YamlToSqlMigrator {
         if (ladderName == null || rank == null) {
             return;
         }
-        int ladderId = repository.upsertLadder(ladderName);
-        repository.setLadderGroup(ladderId, groupId, Integer.parseInt(rank));
+        repository.setGroupLadderRank(groupId, ladderName, Integer.parseInt(rank));
     }
 
     private static void copyGroupOptions(LocalSqlRepository repository,
                                          int groupId,
-                                         Map<String, Object> node) throws Exception {
+                                         Map<String, Object> node,
+                                         String contextKey) throws Exception {
         Map<String, String> options = YamlMaps.collectLeafOptions(YamlMaps.optionsMap(node, null));
         for (Map.Entry<String, String> entry : options.entrySet()) {
             if ("rank".equals(entry.getKey()) || "rank-ladder".equals(entry.getKey()) || "default".equals(entry.getKey())) {
                 continue;
             }
-            repository.setGroupOption(groupId, entry.getKey(), entry.getValue());
+            repository.setGroupOption(groupId, entry.getKey(), entry.getValue(), contextKey);
         }
     }
 
     private static void copyUserOptions(LocalSqlRepository repository,
                                          UUID userId,
-                                         Map<String, Object> node) throws Exception {
+                                         Map<String, Object> node,
+                                         String contextKey) throws Exception {
         Map<String, String> options = YamlMaps.collectLeafOptions(YamlMaps.optionsMap(node, null));
         for (Map.Entry<String, String> entry : options.entrySet()) {
-            repository.setUserOption(userId, entry.getKey(), entry.getValue());
+            repository.setUserOption(userId, entry.getKey(), entry.getValue(), contextKey);
+        }
+    }
+
+    private static int parseInt(String value, int defaultValue) {
+        if (value == null || value.isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException ex) {
+            return defaultValue;
         }
     }
 
@@ -208,9 +262,6 @@ public final class YamlToSqlMigrator {
         }
     }
 
-    /**
-     * Narrow adapter so {@link BackendDataTransfer} can target a SQL-backed backend during import.
-     */
     public interface LocalSqlBackendAdapter {
         PermissionsGroupData getGroupData(String groupName);
         PermissionsUserData getUserData(String userName);

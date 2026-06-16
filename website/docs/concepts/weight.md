@@ -56,7 +56,9 @@ Chat plugins show **`&c[Admin]`** because admin has higher weight.
 
 Leave gaps between tiers so you can insert new groups later.
 
-## In permissions.yml
+## Example data structure
+
+Representative YAML layout (used for import/migration; default storage is H2):
 
 ```yaml
 groups:

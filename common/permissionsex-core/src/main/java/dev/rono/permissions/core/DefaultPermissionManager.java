@@ -32,6 +32,7 @@ import dev.rono.permissions.core.api.*;
 import dev.rono.permissions.core.api.pex.HolderPermissionService;
 import dev.rono.permissions.core.api.pex.PermissionsExApiImpl;
 import dev.rono.permissions.core.backends.CorePermissionBackendRegistrar;
+import dev.rono.permissions.core.storage.backend.LocalSqlBackend;
 import org.bukkit.entity.Player;
 import ru.tehkode.permissions.*;
 import ru.tehkode.permissions.backends.PermissionBackend;
@@ -729,6 +730,20 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 	}
 
 	/**
+	 * Swaps the active backend instance without re-reading configuration.
+	 * Used by tests and backend import flows that already hold a constructed backend.
+	 */
+	public void adoptBackend(PermissionBackend next) throws PermissionBackendException {
+		Objects.requireNonNull(next, "backend");
+		synchronized (this) {
+			this.clearCache();
+			this.backend = next;
+			this.preloadGroups();
+		}
+		this.publishSystem(SystemMutation.BACKEND_CHANGED);
+	}
+
+	/**
 	 * Creates a backend but does not set it as the active backend. Useful for data transfer &amp; such
 	 * @param backendName Name of the configuration section which describes this backend
 	 */
@@ -792,6 +807,14 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 		this.users.clear();
 		this.groups.clear();
 		groupMembershipIndex.markDirty();
+
+		if (this.backend instanceof LocalSqlBackend local) {
+			try {
+				local.reload();
+			} catch (PermissionBackendException ex) {
+				logger.warning("Failed to reload local backend cache: " + ex.getMessage());
+			}
+		}
 
 		// Close old timed Permission Timer
 		this.initTimer();

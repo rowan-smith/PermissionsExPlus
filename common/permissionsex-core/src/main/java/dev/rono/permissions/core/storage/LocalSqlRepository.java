@@ -27,6 +27,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -37,7 +38,7 @@ import java.util.UUID;
 
 public final class LocalSqlRepository implements AutoCloseable {
 
-    public static final int SCHEMA_VERSION = 1;
+    public static final int SCHEMA_VERSION = LocalSqlSchemaUpgrader.LATEST_VERSION;
 
     private final BasicDataSource dataSource;
 
@@ -52,7 +53,10 @@ public final class LocalSqlRepository implements AutoCloseable {
 
     public static LocalSqlRepository fileDatabase(String path) {
         String normalized = path.replace('\\', '/');
-        return new LocalSqlRepository("jdbc:h2:file:" + normalized + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE", "", "");
+        return new LocalSqlRepository(
+                "jdbc:h2:file:" + normalized
+                        + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_ON_EXIT=FALSE",
+                "", "");
     }
 
     public static LocalSqlRepository inMemory(String name) {
@@ -68,6 +72,26 @@ public final class LocalSqlRepository implements AutoCloseable {
             for (String sql : loadStatements("/sql/local/deploy.sql")) {
                 stmt.execute(sql);
             }
+        }
+    }
+
+    public void ensureSchemaLatest() throws SQLException, IOException {
+        LocalSqlSchemaUpgrader.ensureLatest(this);
+    }
+
+    public Connection openConnection() throws SQLException {
+        return dataSource.getConnection();
+    }
+
+    public boolean tableExistsPublic(String table) throws SQLException {
+        try (Connection conn = dataSource.getConnection()) {
+            return tableExists(conn, table);
+        }
+    }
+
+    public void backupToScript(String filePath) throws SQLException {
+        try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute("SCRIPT TO '" + filePath.replace('\\', '/') + "'");
         }
     }
 
@@ -261,6 +285,25 @@ public final class LocalSqlRepository implements AutoCloseable {
         return out;
     }
 
+    public void setUserGroup(UUID userId, int groupId, String contextKey, Instant expiresAt) throws SQLException {
+        if (tableExistsPublic("user_group_memberships")) {
+            try (Connection conn = dataSource.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "MERGE INTO user_group_memberships (user_id, group_id, context_key, expires_at) "
+                                 + "KEY(user_id, group_id, context_key) VALUES (?, ?, ?, ?)")) {
+                ps.setString(1, userId.toString());
+                ps.setInt(2, groupId);
+                ps.setString(3, normalizeStorageContextKey(contextKey));
+                ps.setTimestamp(4, toTimestamp(expiresAt));
+                ps.executeUpdate();
+            }
+            return;
+        }
+        if (contextKey == null) {
+            setUserGroup(userId, groupId, expiresAt);
+        }
+    }
+
     public void setUserGroup(UUID userId, int groupId, Instant expiresAt) throws SQLException {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
@@ -273,13 +316,21 @@ public final class LocalSqlRepository implements AutoCloseable {
     }
 
     public void clearUserGroups(UUID userId, String contextKey) throws SQLException {
-        if (contextKey != null) {
-            return;
-        }
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM user_groups WHERE user_id = ?")) {
-            ps.setString(1, userId.toString());
-            ps.executeUpdate();
+        String table = tableExistsPublic("user_group_memberships") ? "user_group_memberships" : "user_groups";
+        try (Connection conn = dataSource.getConnection()) {
+            if (contextKey == null) {
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM " + table + " WHERE user_id = ?")) {
+                    ps.setString(1, userId.toString());
+                    ps.executeUpdate();
+                }
+            } else if (tableExistsPublic("user_group_memberships")) {
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "DELETE FROM user_group_memberships WHERE user_id = ? AND context_key = ?")) {
+                    ps.setString(1, userId.toString());
+                    ps.setString(2, normalizeStorageContextKey(contextKey));
+                    ps.executeUpdate();
+                }
+            }
         }
     }
 
@@ -323,8 +374,32 @@ public final class LocalSqlRepository implements AutoCloseable {
         }
     }
 
+    public void setUserOption(UUID userId, String key, String value, String contextKey) throws SQLException {
+        if ("prefix".equals(key) || "suffix".equals(key)) {
+            if (contextKey == null) {
+                setUserOption(userId, key, value);
+            }
+            return;
+        }
+        setEntityOption("user_entity_options", "user_id", userId.toString(), key, value, contextKey);
+    }
+
+    public void setGroupOption(int groupId, String key, String value, String contextKey) throws SQLException {
+        if ("default".equals(key) && contextKey == null) {
+            return;
+        }
+        if ("prefix".equals(key) || "suffix".equals(key)) {
+            if (contextKey == null) {
+                setGroupOption(groupId, key, value);
+            }
+            return;
+        }
+        setEntityOption("group_entity_options", "group_id", Integer.toString(groupId), key, value, contextKey);
+    }
+
     public void setUserOption(UUID userId, String key, String value) throws SQLException {
         if (!"prefix".equals(key) && !"suffix".equals(key)) {
+            setUserOption(userId, key, value, null);
             return;
         }
         try (Connection conn = dataSource.getConnection();
@@ -346,7 +421,13 @@ public final class LocalSqlRepository implements AutoCloseable {
     }
 
     public void setGroupOption(int groupId, String key, String value) throws SQLException {
+        if ("weight".equals(key) && value != null) {
+            upsertGroup(findGroupName(groupId), Integer.parseInt(value),
+                    loadGroup(groupId).isDefaultGroup());
+            return;
+        }
         if (!"prefix".equals(key) && !"suffix".equals(key)) {
+            setGroupOption(groupId, key, value, null);
             return;
         }
         try (Connection conn = dataSource.getConnection();
@@ -473,18 +554,257 @@ public final class LocalSqlRepository implements AutoCloseable {
     }
 
     public List<String> getUserParents(UUID userId) throws SQLException {
+        return getUserParents(userId, null);
+    }
+
+    public List<String> getUserParents(UUID userId, String contextKey) throws SQLException {
         List<String> out = new ArrayList<>();
+        boolean memberships = tableExistsPublic("user_group_memberships");
+        String table = memberships ? "user_group_memberships" : "user_groups";
+        StringBuilder sql = new StringBuilder(
+                "SELECT g.name FROM " + table + " ug JOIN \"groups\" g ON g.id = ug.group_id "
+                        + "WHERE ug.user_id = ?");
+        if (memberships) {
+            if (contextKey == null) {
+                sql.append(" AND (ug.context_key IS NULL OR ug.context_key = '')");
+            } else {
+                sql.append(" AND (ug.context_key IS NULL OR ug.context_key = '' OR ug.context_key = ?)");
+            }
+        }
+        sql.append(" AND (ug.expires_at IS NULL OR ug.expires_at > CURRENT_TIMESTAMP)");
         try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT g.name FROM user_groups ug JOIN \"groups\" g ON g.id = ug.group_id "
-                             + "WHERE ug.user_id = ? AND (ug.expires_at IS NULL OR ug.expires_at > CURRENT_TIMESTAMP)")) {
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             ps.setString(1, userId.toString());
+            if (memberships && contextKey != null) {
+                ps.setString(2, contextKey);
+            }
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 out.add(rs.getString("name"));
             }
         }
         return out;
+    }
+
+    public Map<String, String> getUserEntityOptions(UUID userId, String contextKey) throws SQLException {
+        return getEntityOptions("user_entity_options", "user_id", userId.toString(), contextKey);
+    }
+
+    public Map<String, String> getGroupEntityOptions(int groupId, String contextKey) throws SQLException {
+        return getEntityOptions("group_entity_options", "group_id", Integer.toString(groupId), contextKey);
+    }
+
+    public Optional<LadderRank> findLadderRank(int groupId) throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT l.name, lg.position FROM ladder_groups lg "
+                             + "JOIN ladders l ON l.id = lg.ladder_id WHERE lg.group_id = ?")) {
+            ps.setInt(1, groupId);
+            ResultSet rs = ps.executeQuery();
+            if (!rs.next()) {
+                return Optional.empty();
+            }
+            return Optional.of(new LadderRank(rs.getString("name"), rs.getInt("position")));
+        }
+    }
+
+    public void setGroupLadderRank(int groupId, String ladderName, int position) throws SQLException {
+        int ladderId = upsertLadder(ladderName);
+        setLadderGroup(ladderId, groupId, position);
+    }
+
+    public void clearGroupLadder(int groupId) throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM ladder_groups WHERE group_id = ?")) {
+            ps.setInt(1, groupId);
+            ps.executeUpdate();
+        }
+    }
+
+    public List<String> getWorldInheritance(String world) throws SQLException {
+        List<String> out = new ArrayList<>();
+        if (!tableExistsPublic("world_inheritance")) {
+            return out;
+        }
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT inherited_world FROM world_inheritance WHERE world = ? ORDER BY position")) {
+            ps.setString(1, world);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                out.add(rs.getString("inherited_world"));
+            }
+        }
+        return out;
+    }
+
+    public Map<String, List<String>> getAllWorldInheritance() throws SQLException {
+        Map<String, List<String>> out = new LinkedHashMap<>();
+        if (!tableExistsPublic("world_inheritance")) {
+            return out;
+        }
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT DISTINCT world FROM world_inheritance")) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String world = rs.getString("world");
+                out.put(world, getWorldInheritance(world));
+            }
+        }
+        return out;
+    }
+
+    public void setWorldInheritance(String world, List<String> inheritance) throws SQLException {
+        if (!tableExistsPublic("world_inheritance")) {
+            return;
+        }
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement delete = conn.prepareStatement("DELETE FROM world_inheritance WHERE world = ?")) {
+                delete.setString(1, world);
+                delete.executeUpdate();
+            }
+            if (inheritance == null) {
+                return;
+            }
+            int position = 0;
+            for (String parent : inheritance) {
+                try (PreparedStatement insert = conn.prepareStatement(
+                        "INSERT INTO world_inheritance (world, position, inherited_world) VALUES (?, ?, ?)")) {
+                    insert.setString(1, world);
+                    insert.setInt(2, position++);
+                    insert.setString(3, parent);
+                    insert.executeUpdate();
+                }
+            }
+        }
+    }
+
+    public record LadderRank(String ladderName, int position) {}
+
+    private String findGroupName(int groupId) throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT name FROM \"groups\" WHERE id = ?")) {
+            ps.setInt(1, groupId);
+            ResultSet rs = ps.executeQuery();
+            if (!rs.next()) {
+                throw new SQLException("Unknown group " + groupId);
+            }
+            return rs.getString("name");
+        }
+    }
+
+    private Map<String, String> getEntityOptions(String table,
+                                                 String idColumn,
+                                                 String idValue,
+                                                 String contextKey) throws SQLException {
+        if (!tableExistsPublic(table)) {
+            return Map.of();
+        }
+        Map<String, String> out = new LinkedHashMap<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT option_key, option_value FROM " + table + " WHERE " + idColumn + " = ? AND "
+                             + "(context_key IS NULL AND ? IS NULL OR context_key = ?)")) {
+            ps.setString(1, idValue);
+            ps.setString(2, contextKey);
+            ps.setString(3, contextKey);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                out.put(rs.getString("option_key"), rs.getString("option_value"));
+            }
+        }
+        return out;
+    }
+
+    private void setEntityOption(String table,
+                                 String idColumn,
+                                 String idValue,
+                                 String key,
+                                 String value,
+                                 String contextKey) throws SQLException {
+        if (!tableExistsPublic(table)) {
+            return;
+        }
+        try (Connection conn = dataSource.getConnection()) {
+            if (value == null) {
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "DELETE FROM " + table + " WHERE " + idColumn + " = ? AND option_key = ? AND "
+                                + "(context_key IS NULL AND ? IS NULL OR context_key = ?)")) {
+                    ps.setString(1, idValue);
+                    ps.setString(2, key);
+                    ps.setString(3, contextKey);
+                    ps.setString(4, contextKey);
+                    ps.executeUpdate();
+                }
+                return;
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "MERGE INTO " + table + " (" + idColumn + ", option_key, option_value, context_key) "
+                            + "KEY(" + idColumn + ", option_key, context_key) VALUES (?, ?, ?, ?)")) {
+                ps.setString(1, idValue);
+                ps.setString(2, key);
+                ps.setString(3, value);
+                ps.setString(4, contextKey);
+                ps.executeUpdate();
+            }
+        }
+    }
+
+    public Set<String> listUserOptionWorlds(UUID userId) throws SQLException {
+        return worldsFromContextKeys(listContextKeys("user_entity_options", "user_id", userId.toString()));
+    }
+
+    public Set<String> listUserGroupWorlds(UUID userId) throws SQLException {
+        if (!tableExistsPublic("user_group_memberships")) {
+            return Set.of();
+        }
+        return worldsFromContextKeys(listMembershipContextKeys(userId));
+    }
+
+    public Set<String> listGroupOptionWorlds(int groupId) throws SQLException {
+        return worldsFromContextKeys(listContextKeys("group_entity_options", "group_id", Integer.toString(groupId)));
+    }
+
+    private List<String> listContextKeys(String table, String idColumn, String idValue) throws SQLException {
+        List<String> keys = new ArrayList<>();
+        if (!tableExistsPublic(table)) {
+            return keys;
+        }
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT DISTINCT context_key FROM " + table + " WHERE " + idColumn + " = ?")) {
+            ps.setString(1, idValue);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                keys.add(rs.getString("context_key"));
+            }
+        }
+        return keys;
+    }
+
+    private List<String> listMembershipContextKeys(UUID userId) throws SQLException {
+        List<String> keys = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT DISTINCT context_key FROM user_group_memberships WHERE user_id = ?")) {
+            ps.setString(1, userId.toString());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                keys.add(rs.getString("context_key"));
+            }
+        }
+        return keys;
+    }
+
+    private static Set<String> worldsFromContextKeys(List<String> contextKeys) {
+        Set<String> worlds = new LinkedHashSet<>();
+        for (String key : contextKeys) {
+            String world = ContextKeyCodec.decodeWorld(key);
+            if (world != null) {
+                worlds.add(world);
+            }
+        }
+        return worlds;
     }
 
     public List<String> getGroupParents(int groupId) throws SQLException {
@@ -553,8 +873,10 @@ public final class LocalSqlRepository implements AutoCloseable {
 
     private List<UserGroup> loadUserGroups(Connection conn, UUID userId) throws SQLException {
         List<UserGroup> out = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement(
-                "SELECT group_id, expires_at FROM user_groups WHERE user_id = ?")) {
+        String sql = tableExistsPublic("user_group_memberships")
+                ? "SELECT group_id, expires_at FROM user_group_memberships WHERE user_id = ?"
+                : "SELECT group_id, expires_at FROM user_groups WHERE user_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, userId.toString());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -720,6 +1042,10 @@ public final class LocalSqlRepository implements AutoCloseable {
         }
     }
 
+    static List<String> loadStatementsPublic(String resource) throws IOException {
+        return loadStatements(resource);
+    }
+
     private static List<String> loadStatements(String resource) throws IOException {
         List<String> statements = new ArrayList<>();
         StringBuilder current = new StringBuilder();
@@ -746,6 +1072,10 @@ public final class LocalSqlRepository implements AutoCloseable {
             statements.add(current.toString());
         }
         return statements;
+    }
+
+    private static String normalizeStorageContextKey(String contextKey) {
+        return contextKey == null || contextKey.isEmpty() ? "" : contextKey;
     }
 
     private static Timestamp toTimestamp(Instant instant) {

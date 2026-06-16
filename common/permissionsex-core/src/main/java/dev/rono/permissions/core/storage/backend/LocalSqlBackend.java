@@ -5,6 +5,7 @@ import dev.rono.permissions.api.permission.PermissionContext;
 import dev.rono.permissions.core.InternalPermissionManager;
 import dev.rono.permissions.core.backends.AbstractPermissionBackend;
 import dev.rono.permissions.core.storage.EffectiveUserCache;
+import dev.rono.permissions.core.storage.LocalSqlExporter;
 import dev.rono.permissions.core.storage.LocalSqlRepository;
 import dev.rono.permissions.core.storage.migration.YamlToSqlMigrator;
 import dev.rono.permissions.core.storage.model.Group;
@@ -178,17 +179,47 @@ public final class LocalSqlBackend extends AbstractPermissionBackend
 
     @Override
     public List<String> getWorldInheritance(String world) {
-        return List.of();
+        try {
+            return repository.getWorldInheritance(world);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Map<String, List<String>> getAllWorldInheritance() {
-        return Map.of();
+        try {
+            return repository.getAllWorldInheritance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void setWorldInheritance(String world, List<String> inheritance) {
-        effectiveUserCache.invalidateAll();
+        try {
+            repository.setWorldInheritance(world, inheritance);
+            effectiveUserCache.invalidateAll();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void writeContents(Writer writer) throws IOException {
+        try {
+            LocalSqlExporter.exportYaml(repository, writer);
+        } catch (Exception ex) {
+            throw new IOException("Failed to export local SQL backend", ex);
+        }
+    }
+
+    public void backupDatabase(File target) throws IOException {
+        try {
+            repository.backupToScript(target.getAbsolutePath().replace('\\', '/'));
+        } catch (Exception ex) {
+            throw new IOException("Failed to backup local database", ex);
+        }
     }
 
     @Override
@@ -197,8 +228,9 @@ public final class LocalSqlBackend extends AbstractPermissionBackend
     }
 
     @Override
-    public void writeContents(Writer writer) throws IOException {
-        writer.write("# Local SQL backend export is not supported. Use /pex export with a migration source.\n");
+    protected void backupDatabase() throws IOException {
+        File backup = new File(databaseFile.getParentFile(), databaseFile.getName() + "-backup.sql");
+        backupDatabase(backup);
     }
 
     UUID resolveUserId(String userName) throws Exception {
@@ -218,7 +250,7 @@ public final class LocalSqlBackend extends AbstractPermissionBackend
     }
 
     void markDirty(LocalSqlEntityData entity) {
-        // Persistence is immediate for local SQL mutations.
+        invalidateAfterSave(entity);
     }
 
     void invalidateAfterSave(LocalSqlEntityData entity) {
@@ -241,10 +273,8 @@ public final class LocalSqlBackend extends AbstractPermissionBackend
     private void initializeStorage() throws Exception {
         if (!repository.isInitialized()) {
             repository.deploySchema();
-            repository.setSchemaVersion(LocalSqlRepository.SCHEMA_VERSION);
-        } else if (repository.isEmpty()) {
-            repository.setSchemaVersion(LocalSqlRepository.SCHEMA_VERSION);
         }
+        repository.ensureSchemaLatest();
         YamlToSqlMigrator migrator = new YamlToSqlMigrator(getManager().getLogger());
         migrator.migrate(legacyYamlFile, repository);
     }

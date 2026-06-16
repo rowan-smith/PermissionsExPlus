@@ -7,6 +7,8 @@ import dev.rono.permissions.api.subject.TimedPermissionEntry;
 import dev.rono.permissions.api.world.Worlds;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import dev.rono.permissions.core.api.ContextPermissionEvaluator;
+import dev.rono.permissions.core.storage.resolution.LocalPermissionEvaluator;
+import dev.rono.permissions.api.permission.ResolvedPermissionView;
 import ru.tehkode.permissions.PermissionEntity;
 
 import java.util.ArrayList;
@@ -50,13 +52,32 @@ abstract class AbstractPermissionSubjectAdapter implements PermissionSubject {
     }
 
     @Override
-    public List<String> permissions(PermissionContext context) {
-        return delegate.getOwnPermissions(storageRealm(context));
+    public List<String> effectivePermissions(PermissionContext context) {
+        if (delegate.getType() == ru.tehkode.permissions.PermissionEntity.Type.USER
+                && LocalPermissionEvaluator.usesLocalBackend(manager)) {
+            return LocalPermissionEvaluator.resolvedPermissions(manager, delegate.getIdentifier(), context)
+                    .stream()
+                    .filter(ResolvedPermissionView::value)
+                    .map(ResolvedPermissionView::permission)
+                    .distinct()
+                    .toList();
+        }
+        return delegate.getPermissions(storageRealm(context));
     }
 
     @Override
-    public List<String> effectivePermissions(PermissionContext context) {
-        return delegate.getPermissions(storageRealm(context));
+    public List<ResolvedPermissionView> resolvedPermissions(PermissionContext context) {
+        if (delegate.getType() == ru.tehkode.permissions.PermissionEntity.Type.USER
+                && LocalPermissionEvaluator.usesLocalBackend(manager)) {
+            return List.copyOf(LocalPermissionEvaluator.resolvedPermissions(
+                    manager, delegate.getIdentifier(), context));
+        }
+        return List.of();
+    }
+
+    @Override
+    public List<String> permissions(PermissionContext context) {
+        return delegate.getOwnPermissions(storageRealm(context));
     }
 
     @Override

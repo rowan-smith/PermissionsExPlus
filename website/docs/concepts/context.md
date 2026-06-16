@@ -65,7 +65,9 @@ On BungeeCord or Velocity, permissions can be scoped per backend server. Game-se
 
 For most single-server owners, **world** is the only context you need.
 
-## In permissions.yml
+## Example data structure
+
+Representative YAML layout (used for import/migration; default storage is H2):
 
 ```yaml
 groups:

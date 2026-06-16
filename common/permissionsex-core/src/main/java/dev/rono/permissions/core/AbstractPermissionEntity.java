@@ -20,6 +20,7 @@ package dev.rono.permissions.core;
 
 import dev.rono.permissions.api.bus.EntityMutation;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
+import dev.rono.permissions.core.storage.resolution.LocalPermissionEvaluator;
 import ru.tehkode.permissions.*;
 
 import java.util.*;
@@ -196,6 +197,16 @@ abstract class AbstractPermissionEntity implements PermissionEntity {
 	public boolean has(String permission, String world) {
 		if (permission != null && permission.isEmpty()) { // empty permission for public access :)
 			return true;
+		}
+
+		if (LocalPermissionEvaluator.supportsEntity(this, manager)) {
+			boolean localResult = LocalPermissionEvaluator.hasUserLegacyWorld(
+					manager, getIdentifier(), permission, world);
+			if (this.isDebug()) {
+				manager.getLogger().info("User " + this.getIdentifier() + " [local] checked for \""
+						+ permission + "\" in " + world + " => " + localResult);
+			}
+			return localResult;
 		}
 
 		String expression = getMatchingExpression(permission, world);

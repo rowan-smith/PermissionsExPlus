@@ -76,4 +76,40 @@ class LocalSqlBackendTest extends ru.tehkode.permissions.PEXTestBase {
     void diagnosticLabelIncludesDatabaseName() {
         assertTrue(backend.diagnosticLabel().startsWith("local-h2:"));
     }
+
+    @Test
+    void runtimeHasUsesLocalResolverWithWildcards() throws Exception {
+        assertInstanceOf(dev.rono.permissions.core.DefaultPermissionManager.class, manager);
+        ((dev.rono.permissions.core.DefaultPermissionManager) manager).adoptBackend(backend);
+
+        var group = backend.getGroupData("staff");
+        group.setPermissions(List.of("essentials.*"), null);
+        group.save();
+
+        var user = backend.getUserData("player");
+        user.setParents(List.of("staff"), null);
+        user.setPermissions(List.of("-essentials.ban"), null);
+        user.save();
+
+        var permissionUser = manager.getUser("player");
+        assertFalse(permissionUser.has("essentials.ban", null));
+        assertTrue(permissionUser.has("essentials.home", null));
+
+        assertTrue(dev.rono.permissions.core.storage.resolution.LocalPermissionEvaluator.hasUser(
+                manager, "player", "essentials.home", PermissionContext.global()));
+        assertFalse(dev.rono.permissions.core.storage.resolution.LocalPermissionEvaluator
+                .resolvedPermissions(manager, "player", PermissionContext.global())
+                .isEmpty());
+    }
+
+    @Test
+    void ladderRankSurvivesRoundTrip() throws Exception {
+        var group = backend.getGroupData("vip");
+        group.setOption("rank-ladder", "staff", null);
+        group.setOption("rank", "5", null);
+        group.save();
+
+        assertEquals("5", group.getOption("rank", null));
+        assertEquals("staff", group.getOption("rank-ladder", null));
+    }
 }

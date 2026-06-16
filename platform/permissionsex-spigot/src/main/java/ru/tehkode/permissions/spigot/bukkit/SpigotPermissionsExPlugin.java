@@ -60,6 +60,7 @@ import ru.tehkode.permissions.backends.PermissionBackend;
 import ru.tehkode.permissions.events.PermissionEvent;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 import ru.tehkode.permissions.spigot.backends.MemoryBackend;
+import dev.rono.permissions.core.backends.file.YamlFileBackend;
 import ru.tehkode.permissions.spigot.bukkit.regexperms.RegexPermissions;
 
 import java.lang.reflect.Field;
@@ -100,6 +101,7 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 		}
 
 		PermissionBackend.registerBackendAlias("memory", MemoryBackend.class);
+		PermissionBackend.registerBackendAlias("file", YamlFileBackend.class);
 
 	}
 

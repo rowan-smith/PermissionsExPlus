@@ -20,7 +20,7 @@ slug: /guides/troubleshooting
 |---------|-----|
 | "Unknown command" | PEX not loaded — check console for errors on startup |
 | "You don't have permission" | Grant yourself access: `/pex group admin add permissions.*` (from console) |
-| Changes not visible | Run `/pex reload` after manual file edits |
+| Changes not visible | Run `/pex reload` after manual config edits |
 
 Run from console (bypasses permission checks):
 
@@ -84,9 +84,10 @@ Watch the console while the player triggers the permission check.
 
 | Cause | Fix |
 |-------|-----|
-| File permissions | Check server can write to `plugins/PermissionsEx/` |
+| File permissions | Check server can write to `plugins/PermissionsEx/` (H2 needs write access for `permissions.mv.db`) |
 | SQL connection failed | Check database credentials in `config.yml` |
-| Wrong backend active | `/pex backend` — should show `file` or your SQL alias |
+| Wrong backend active | `/pex backend` — should show `local` or your SQL alias |
+| YAML not imported | Ensure `permissions.yml` exists before first startup with `backend: local`, or use `/pex import yaml-import` |
 
 ```text
 /pex backend

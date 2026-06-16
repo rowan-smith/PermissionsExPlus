@@ -22,7 +22,7 @@ Use this checklist before tagging a release.
 
 ### Scenarios
 
-1. Clean start — default `file` backend creates `permissions.yml`
+1. Clean start — default `local` backend creates `permissions.mv.db` (imports `permissions.yml` if present)
 2. `/pex reload` — no duplicate attachments; permissions still resolve
 3. `/pex user <player> check <node>` — matches superperms bridge
 4. Group prefix/suffix visible to Vault/chat if installed

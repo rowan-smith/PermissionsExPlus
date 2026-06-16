@@ -1,10 +1,9 @@
 package dev.rono.permissions.core.storage.backend;
 
-import dev.rono.permissions.core.storage.LocalSqlRepository;
-
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -44,41 +43,59 @@ public final class LocalSqlUserData extends LocalSqlEntityData implements ru.teh
 
     @Override
     protected Set<String> worldsForEntity() throws Exception {
-        return new HashSet<>(repository.listPermissionWorlds(requireUserId()));
+        Set<String> worlds = new HashSet<>(repository.listPermissionWorlds(requireUserId()));
+        worlds.addAll(repository.listUserOptionWorlds(requireUserId()));
+        worlds.addAll(repository.listUserGroupWorlds(requireUserId()));
+        return worlds;
     }
 
     @Override
     protected String optionForContext(String option, String contextKey) throws Exception {
-        if (contextKey != null) {
-            return null;
+        if ("prefix".equals(option) && contextKey == null) {
+            return repository.loadUser(requireUserId()).getOptions().getPrefix();
         }
-        return switch (option) {
-            case "prefix" -> repository.loadUser(requireUserId()).getOptions().getPrefix();
-            case "suffix" -> repository.loadUser(requireUserId()).getOptions().getSuffix();
-            default -> null;
-        };
+        if ("suffix".equals(option) && contextKey == null) {
+            return repository.loadUser(requireUserId()).getOptions().getSuffix();
+        }
+        return repository.getUserEntityOptions(requireUserId(), contextKey).get(option);
     }
 
     @Override
-    protected void setEntityOption(String option, String value) throws Exception {
+    protected Map<String, String> optionsForContext(String contextKey) throws Exception {
+        Map<String, String> out = new java.util.LinkedHashMap<>(repository.getUserEntityOptions(requireUserId(), contextKey));
+        if (contextKey == null) {
+            String prefix = repository.loadUser(requireUserId()).getOptions().getPrefix();
+            if (prefix != null) {
+                out.putIfAbsent("prefix", prefix);
+            }
+            String suffix = repository.loadUser(requireUserId()).getOptions().getSuffix();
+            if (suffix != null) {
+                out.putIfAbsent("suffix", suffix);
+            }
+        }
+        return out;
+    }
+
+    @Override
+    protected void setEntityOption(String option, String value, String contextKey) throws Exception {
         ensurePersisted();
-        repository.setUserOption(requireUserId(), option, value);
+        repository.setUserOption(requireUserId(), option, value, contextKey);
     }
 
     @Override
-    protected List<String> parentsForEntity() throws Exception {
-        return repository.getUserParents(requireUserId());
+    protected List<String> parentsForContext(String contextKey) throws Exception {
+        return repository.getUserParents(requireUserId(), contextKey);
     }
 
     @Override
-    protected void replaceParents(List<String> parents) throws Exception {
+    protected void replaceParents(String contextKey, List<String> parents) throws Exception {
         ensurePersisted();
         UUID id = requireUserId();
-        repository.clearUserGroups(id, null);
+        repository.clearUserGroups(id, contextKey);
         for (String parent : parents) {
             repository.findGroupId(parent).ifPresent(groupId -> {
                 try {
-                    repository.setUserGroup(id, groupId, null);
+                    repository.setUserGroup(id, groupId, contextKey, null);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

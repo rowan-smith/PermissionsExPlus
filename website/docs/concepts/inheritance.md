@@ -37,7 +37,9 @@ A player in `admin` receives permissions from **all ancestors**, not just the di
 /pex group vip parents remove default
 ```
 
-## In permissions.yml
+## Example data structure
+
+Representative YAML layout (used for import/migration; default storage is H2):
 
 ```yaml
 groups:

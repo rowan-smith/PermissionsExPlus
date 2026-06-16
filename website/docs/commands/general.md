@@ -8,6 +8,41 @@ Commands for server-wide PEX management. Requires `permissions.*` or `*`.
 
 ---
 
+## Command framework
+
+PEX registers one of two command trees at startup, controlled by `permissions.command-framework` in `config.yml`:
+
+| Setting | Framework | Example |
+|---------|-----------|---------|
+| `modern` (default) | Cloud-based structured subcommands | `/pex user Steve permissions add essentials.home` |
+| `classic`, `legacy`, or `old` | Original PEX syntax | `/pex user Steve add essentials.home` |
+
+Check which tree is active:
+
+```text
+/pex config permissions.command-framework
+```
+
+Switch in `config.yml` and reload (or restart):
+
+```yaml
+permissions:
+  command-framework: classic   # or modern
+```
+
+### Modern vs classic examples
+
+| Task | Modern | Classic |
+|------|--------|---------|
+| Add permission | `/pex user Steve permissions add essentials.home` | `/pex user Steve add essentials.home` |
+| List permissions | `/pex user Steve permissions list` | `/pex user Steve list` |
+| Add to group | `/pex user Steve groups add vip` | `/pex user Steve group add vip` |
+| Import backend | `/pex backend import yaml-import` | `/pex import yaml-import` |
+
+Command reference pages document **both** frameworks. **Modern** syntax is the default for new servers; classic examples are shown in a second column where helpful. See [Configuration — command framework](/configuration/#command-framework).
+
+---
+
 ## `/pex`
 
 **Syntax:** `/pex [help] [page] [count]`
@@ -28,13 +63,13 @@ Shows the command help menu. Without arguments, displays the first page.
 
 Reloads `config.yml`, the active backend, and all in-memory permission data.
 
-**When to use:** After editing `permissions.yml` or `config.yml` by hand.
+**When to use:** After editing `config.yml` by hand.
 
 ```text
 /pex reload
 ```
 
-> Changes made with `/pex` commands in-game are saved immediately. Reload is mainly for manual file edits.
+> Changes made with `/pex` commands in-game are saved immediately. Reload is mainly for manual config edits.
 
 ---
 
@@ -67,10 +102,11 @@ View or change a config node from `config.yml`.
 /pex config permissions.debug
 /pex config permissions.debug true
 /pex config permissions.backend
+/pex config permissions.command-framework
 /pex reload
 ```
 
-Common nodes: `permissions.debug`, `permissions.backend`, `permissions.allowOps`, `permissions.createUserRecords`.
+Common nodes: `permissions.debug`, `permissions.backend`, `permissions.command-framework`, `permissions.allowOps`, `permissions.createUserRecords`.
 
 ---
 
@@ -82,29 +118,32 @@ Show or switch the active storage backend.
 
 | Backend | Description |
 |---------|-------------|
-| `file` | YAML files (default) |
-| `sql` | MySQL/MariaDB |
+| `local` | H2 file database (default) — `permissions.mv.db` under `basedir` |
+| `sql` | MySQL / PostgreSQL / SQLite (shared networks) |
 | `memory` | In-memory (testing) |
+| `yaml-import` / `file` | Legacy YAML import only — **deprecated** |
 
 ```text
 /pex backend
-/pex backend file
+/pex backend local
 /pex backend sql
 ```
 
-Switching backends does not migrate data automatically. Use `/pex import` after switching.
+Switching backends does not migrate data automatically. Use `/pex import` (classic) or `/pex backend import` (modern) after switching.
 
 ---
 
 ## `/pex import`
 
-**Syntax:** `/pex import <backend>`
+**Syntax (classic):** `/pex import <backend>`
+
+**Syntax (modern):** `/pex backend import <backend>`
 
 Import permission data from another configured backend into the current one.
 
 ```text
 /pex backend sql
-/pex import file
+/pex import yaml-import
 ```
 
 Ensure the source backend is configured in `config.yml` under `permissions.backends`.

@@ -315,19 +315,27 @@ public class ErrorReport {
 					// Continue
 				}
 			}
-			if (permissionsDb == null && pexConfig.getString("permissions.backends." + pexConfig.getString("permissions.backend", "file") + ".type", "file").equalsIgnoreCase("file")) {
-				File file = new File(pexPlugin.getDataFolder(), pexConfig.getString("permissions.backends.file.file", "permissions.yml"));
-				if (file.exists()) {
-					try {
-						permissionsDb = StringUtils.readStream(new FileInputStream(file));
-						activeBackend = "file";
-					} catch (IOException ignore) {
+			if (permissionsDb == null) {
+				String backendName = pexConfig.getString("permissions.backend", "local");
+				String backendType = pexConfig.getString("permissions.backends." + backendName + ".type", backendName);
+				if ("file".equalsIgnoreCase(backendType) || "yaml-import".equalsIgnoreCase(backendType)) {
+					File file = new File(pexPlugin.getDataFolder(),
+							pexConfig.getString("permissions.backends." + backendName + ".file", "permissions.yml"));
+					if (!file.exists()) {
+						file = new File(pexPlugin.getDataFolder(), "permissions.yml.migrated");
+					}
+					if (file.exists()) {
+						try {
+							permissionsDb = StringUtils.readStream(new FileInputStream(file));
+							activeBackend = backendType;
+						} catch (IOException ignore) {
+						}
 					}
 				}
 			}
 		}
 		if (permissionsDb == null) {
-			permissionsDb = "Backend is not file or plugin was not accessible, see configuration file for details";
+			permissionsDb = "Backend export unavailable; see configuration file for backend details";
 		}
 
 		builder.addHeading("Permissions database");

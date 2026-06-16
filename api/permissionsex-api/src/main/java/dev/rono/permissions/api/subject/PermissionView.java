@@ -1,6 +1,7 @@
 package dev.rono.permissions.api.subject;
 
 import dev.rono.permissions.api.permission.PermissionContext;
+import dev.rono.permissions.api.permission.ResolvedPermissionView;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,18 @@ public interface PermissionView {
 
     default List<String> effectivePermissions() {
         return effectivePermissions(PermissionContext.global());
+    }
+
+    /**
+     * Returns fully resolved permission entries with source and priority metadata.
+     * Only populated when the active storage backend supports resolution snapshots.
+     */
+    default List<ResolvedPermissionView> resolvedPermissions(PermissionContext context) {
+        return List.of();
+    }
+
+    default List<ResolvedPermissionView> resolvedPermissions() {
+        return resolvedPermissions(PermissionContext.global());
     }
 
     List<String> timedPermissions(PermissionContext context);

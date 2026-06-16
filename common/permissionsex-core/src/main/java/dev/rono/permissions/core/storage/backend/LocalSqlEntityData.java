@@ -2,18 +2,14 @@ package dev.rono.permissions.core.storage.backend;
 
 import dev.rono.permissions.core.storage.ContextKeyCodec;
 import dev.rono.permissions.core.storage.LocalSqlRepository;
-import ru.tehkode.permissions.PermissionsData;
-import ru.tehkode.permissions.PermissionsGroupData;
-import ru.tehkode.permissions.PermissionsUserData;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
-abstract class LocalSqlEntityData implements PermissionsData {
+abstract class LocalSqlEntityData implements ru.tehkode.permissions.PermissionsData {
 
     protected final LocalSqlBackend backend;
     protected final LocalSqlRepository repository;
@@ -97,11 +93,8 @@ abstract class LocalSqlEntityData implements PermissionsData {
     @Override
     public void setOption(String option, String value, String world) {
         ensureLoaded();
-        if (world != null) {
-            return;
-        }
         try {
-            setEntityOption(option, value);
+            setEntityOption(option, value, ContextKeyCodec.encodeLegacyWorld(world));
             dirty = true;
             backend.markDirty(this);
         } catch (Exception e) {
@@ -112,16 +105,11 @@ abstract class LocalSqlEntityData implements PermissionsData {
     @Override
     public Map<String, String> getOptions(String worldName) {
         ensureLoaded();
-        Map<String, String> out = new HashMap<>();
-        String prefix = getOption("prefix", worldName);
-        if (prefix != null) {
-            out.put("prefix", prefix);
+        try {
+            return optionsForContext(ContextKeyCodec.encodeLegacyWorld(worldName));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        String suffix = getOption("suffix", worldName);
-        if (suffix != null) {
-            out.put("suffix", suffix);
-        }
-        return out;
     }
 
     @Override
@@ -137,11 +125,8 @@ abstract class LocalSqlEntityData implements PermissionsData {
     @Override
     public List<String> getParents(String worldName) {
         ensureLoaded();
-        if (worldName != null) {
-            return List.of();
-        }
         try {
-            return parentsForEntity();
+            return parentsForContext(ContextKeyCodec.encodeLegacyWorld(worldName));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -150,11 +135,8 @@ abstract class LocalSqlEntityData implements PermissionsData {
     @Override
     public void setParents(List<String> parents, String worldName) {
         ensureLoaded();
-        if (worldName != null) {
-            return;
-        }
         try {
-            replaceParents(parents);
+            replaceParents(ContextKeyCodec.encodeLegacyWorld(worldName), parents);
             dirty = true;
             backend.markDirty(this);
         } catch (Exception e) {
@@ -177,6 +159,9 @@ abstract class LocalSqlEntityData implements PermissionsData {
     public Map<String, List<String>> getParentsMap() {
         Map<String, List<String>> out = new HashMap<>();
         out.put(null, getParents(null));
+        for (String world : getWorlds()) {
+            out.put(world, getParents(world));
+        }
         return out;
     }
 
@@ -214,9 +199,10 @@ abstract class LocalSqlEntityData implements PermissionsData {
     protected abstract void replacePermissions(String contextKey, List<String> permissions) throws Exception;
     protected abstract Set<String> worldsForEntity() throws Exception;
     protected abstract String optionForContext(String option, String contextKey) throws Exception;
-    protected abstract void setEntityOption(String option, String value) throws Exception;
-    protected abstract List<String> parentsForEntity() throws Exception;
-    protected abstract void replaceParents(List<String> parents) throws Exception;
+    protected abstract Map<String, String> optionsForContext(String contextKey) throws Exception;
+    protected abstract void setEntityOption(String option, String value, String contextKey) throws Exception;
+    protected abstract List<String> parentsForContext(String contextKey) throws Exception;
+    protected abstract void replaceParents(String contextKey, List<String> parents) throws Exception;
     protected abstract boolean entityExists() throws Exception;
     protected abstract void deleteEntity() throws Exception;
     protected abstract void persist() throws Exception;

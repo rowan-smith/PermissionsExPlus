@@ -27,7 +27,7 @@ class EffectiveUserCacheTest {
     void setUp() throws Exception {
         repository = LocalSqlRepository.inMemory("cache-test-" + UUID.randomUUID());
         repository.deploySchema();
-        repository.setSchemaVersion(LocalSqlRepository.SCHEMA_VERSION);
+        repository.ensureSchemaLatest();
         cache = new EffectiveUserCache();
         userId = UUID.randomUUID();
         repository.upsertUser(userId, "player", Instant.now(), Instant.now());

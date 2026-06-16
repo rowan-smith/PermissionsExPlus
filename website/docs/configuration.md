@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Configure PermissionsExPlus with config.yml and permissions.yml.
+description: Configure PermissionsExPlus with config.yml and storage backends.
 slug: /configuration
 ---
 
@@ -10,25 +10,28 @@ Place in `plugins/PermissionsEx/config.yml`:
 
 ```yaml
 permissions:
+  command-framework: modern
   debug: false
   allowOps: false
   createUserRecords: true
-  backend: file
+  backend: local
   basedir: plugins/PermissionsEx
   backends:
-    file:
-      type: file
-      file: permissions.yml
+    local:
+      type: local
+      database: permissions
+      migration-source: permissions.yml
 ```
 
 ### Common options
 
 | Option | What it does |
 |--------|--------------|
+| `command-framework` | Command syntax tree: `modern` (default) or `classic` / `legacy` — see [Command framework](#command-framework) |
 | `debug` | Extra logging for troubleshooting |
 | `allowOps` | Whether server ops bypass PEX |
 | `createUserRecords` | Auto-create a user entry when someone joins |
-| `backend` | Active storage backend (`file`, `sql`, `memory`) |
+| `backend` | Active storage backend (`local`, `sql`, `memory`; `file` / `yaml-import` deprecated) |
 | `basedir` | Folder for config and data files |
 
 Change a setting in-game:
@@ -38,9 +41,60 @@ Change a setting in-game:
 /pex reload
 ```
 
-## permissions.yml
+## Command framework
 
-This file holds your groups and users:
+Config key: `permissions.command-framework`
+
+| Value | Syntax | Notes |
+|-------|--------|-------|
+| `modern` (default) | Cloud-based `/pex` subcommands with structured flags | e.g. `/pex user Steve permissions add essentials.home` |
+| `classic`, `legacy`, or `old` | Original PEX command tree | e.g. `/pex user Steve add essentials.home` |
+
+Both frameworks use the [Cloud Command Framework](https://github.com/incendo/cloud-minecraft) under the hood; only the registered command tree differs.
+
+Check your active setting:
+
+```text
+/pex config permissions.command-framework
+```
+
+Switch to classic syntax (requires restart or reload that re-registers commands):
+
+```yaml
+permissions:
+  command-framework: classic
+```
+
+See [General commands — command framework](/commands/general/#command-framework) for side-by-side examples.
+
+## Storage backends
+
+### local (default)
+
+Embedded H2 database at `{basedir}/{database}.mv.db` — by default `plugins/PermissionsEx/permissions.mv.db`.
+
+| Option | What it does |
+|--------|--------------|
+| `database` | Base filename without extension (default: `permissions`) |
+| `migration-source` | YAML file to import on first startup if the database is empty (default: `permissions.yml`) |
+
+On first startup, if `migration-source` exists and the database is empty, PEX imports the YAML and renames it to `permissions.yml.migrated`.
+
+### sql
+
+Shared database for proxy networks. Configure under `permissions.backends.<alias>` with `type: sql` and JDBC settings. See [Common Setups — network proxy](/guides/recipes/#network-proxy-bungee--backend).
+
+### memory
+
+In-memory store for testing. Data is lost on restart.
+
+### file / yaml-import (deprecated)
+
+Legacy YAML read-only import. Use only to pull data from an old `permissions.yml` via `/pex import yaml-import` (classic) or `/pex backend import yaml-import` (modern). Do not use as the active backend for new servers.
+
+## Permission data
+
+Groups and users are stored in the active backend (H2 by default). Example structure — useful when reading migrated YAML or writing import files:
 
 ```yaml
 schema-version: 1
@@ -77,7 +131,7 @@ users:
 | `-node.name` | Explicitly deny a permission |
 | `permissions.*` | All PEX admin commands |
 
-### Reload after edits
+### Reload after config edits
 
 ```text
 /pex reload
@@ -85,20 +139,20 @@ users:
 
 ## Example: starter server
 
-```yaml
-groups:
-  default:
-    default: true
-    permissions:
-      - modifyworld
-  vip:
-    inheritance: [default]
-    prefix: '&6[VIP] '
-    permissions:
-      - essentials.fly
+Create groups and assign a player (modern syntax):
+
+```text
+/pex group default create
+/pex group default permissions add modifyworld
+/pex set default group default true
+/pex group vip create
+/pex group vip parents add default
+/pex group vip prefix &6[VIP]
+/pex group vip permissions add essentials.fly
+/pex user Steve groups set vip
 ```
 
-Then assign a player:
+Classic syntax equivalent:
 
 ```text
 /pex user Steve group add vip
@@ -108,5 +162,5 @@ Then assign a player:
 
 Full starter files are in the repository [`examples/`](https://github.com/rowan-smith/PermissionsExPlus/tree/main/examples) directory:
 
-- [`config.yml`](https://github.com/rowan-smith/PermissionsExPlus/blob/main/examples/config.yml) — plugin settings
-- [`permissions.yml`](https://github.com/rowan-smith/PermissionsExPlus/blob/main/examples/permissions.yml) — groups and users
+- [`config.yml`](https://github.com/rowan-smith/PermissionsExPlus/blob/main/examples/config.yml) — plugin settings (update `backend: local` for current defaults)
+- [`permissions.yml`](https://github.com/rowan-smith/PermissionsExPlus/blob/main/examples/permissions.yml) — sample groups/users for YAML migration or import

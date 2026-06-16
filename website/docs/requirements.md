@@ -35,12 +35,14 @@ PEX is tested against current Spigot/Paper APIs. Always verify on your exact ser
 
 ## Disk space
 
-Minimal. Default file storage uses two small YAML files in `plugins/PermissionsEx/`:
+Minimal. Default **`local`** storage uses a small H2 database in `plugins/PermissionsEx/`:
 
 - `config.yml` — settings
-- `permissions.yml` — groups and users
+- `permissions.mv.db` — groups and users (embedded H2)
 
-SQL backends need a MySQL/MariaDB database (optional, for large networks).
+Existing `permissions.yml` files are imported once on first startup and renamed to `permissions.yml.migrated`.
+
+SQL backends need a MySQL/MariaDB/PostgreSQL database (optional, for large networks).
 
 ## Permissions to run PEX commands
 

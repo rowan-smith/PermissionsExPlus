@@ -34,16 +34,16 @@ See [Requirements](/requirements) for Java and platform details.
 /pex user Steve group set admin
 ```
 
-**Give one player a single permission:**
+**Give one player a single permission** (modern syntax; see [command framework](/commands/general/#command-framework) for classic):
 
 ```text
-/pex user Alex add essentials.home
+/pex user Alex permissions add essentials.home
 ```
 
 **Grant a temporary permission (7 days):**
 
 ```text
-/pex user Alex timed add essentials.fly 7d
+/pex user Alex permissions timed add essentials.fly 7d
 ```
 
 ## Core ideas
@@ -61,7 +61,7 @@ See [Requirements](/requirements) for Java and platform details.
 |------------|-------|
 | Set up a staff hierarchy | [Common Setups](/guides/recipes) |
 | Learn every command | [Commands](/commands) |
-| Edit config files | [Configuration](/configuration) |
+| Edit config or storage | [Configuration](/configuration) · [Storage](/storage) |
 | Fix something broken | [Troubleshooting](/guides/troubleshooting) |
 | Integrate my plugin | [API Cookbook](/developers/cookbook) |
 | Browse API classes | [Javadoc](/developers/reference) |

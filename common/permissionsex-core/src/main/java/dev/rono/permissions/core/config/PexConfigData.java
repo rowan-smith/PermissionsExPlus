@@ -37,12 +37,15 @@ public record PexConfigData(
     public static final String KEY_INFORM_CHANGES = "changes";
     public static final String KEY_BACKENDS = "backends";
     public static final String FILE_BACKEND = "file";
+    public static final String LOCAL_BACKEND = "local";
     public static final String KEY_BACKEND_TYPE = "type";
     /** Path leaf inside {@code backends.file}. */
     public static final String KEY_BACKEND_FILE_LEAF = "file";
+    public static final String KEY_DATABASE = "database";
+    public static final String KEY_MIGRATION_SOURCE = "migration-source";
     public static final String KEY_COMMAND_FRAMEWORK = CommandFramework.CONFIG_KEY;
 
-    private static final String FALLBACK_BACKEND = "file";
+    private static final String FALLBACK_BACKEND = LOCAL_BACKEND;
 
     public PexConfigData {
         Objects.requireNonNull(informPlayers, "informPlayers");
@@ -164,6 +167,33 @@ public record PexConfigData(
     }
 
     public String storeRelative() {
+        Map<String, Object> active = backends.get(backend);
+        if (active != null) {
+            String type = stringify(active.get(KEY_BACKEND_TYPE), backend);
+            if (LOCAL_BACKEND.equals(type)) {
+                Object migration = active.get(KEY_MIGRATION_SOURCE);
+                if (migration != null) {
+                    String s = String.valueOf(migration).trim();
+                    if (!s.isEmpty()) {
+                        return s;
+                    }
+                }
+                Object database = active.get(KEY_DATABASE);
+                if (database != null) {
+                    String db = String.valueOf(database).trim();
+                    if (!db.isEmpty()) {
+                        return db + ".mv.db";
+                    }
+                }
+            }
+            Object leaf = active.get(KEY_BACKEND_FILE_LEAF);
+            if (leaf != null) {
+                String s = String.valueOf(leaf).trim();
+                if (!s.isEmpty()) {
+                    return s;
+                }
+            }
+        }
         Map<String, Object> fileBk = backends.get(FILE_BACKEND);
         if (fileBk == null) {
             return PexPermissionsData.DEFAULT_STORE_FILE;
