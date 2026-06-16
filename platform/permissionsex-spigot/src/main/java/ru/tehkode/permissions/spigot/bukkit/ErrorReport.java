@@ -318,7 +318,7 @@ public class ErrorReport {
 			if (permissionsDb == null) {
 				String backendName = pexConfig.getString("permissions.backend", "local");
 				String backendType = pexConfig.getString("permissions.backends." + backendName + ".type", backendName);
-				if ("file".equalsIgnoreCase(backendType) || "yaml-import".equalsIgnoreCase(backendType)) {
+				if ("file".equalsIgnoreCase(backendType)) {
 					File file = new File(pexPlugin.getDataFolder(),
 							pexConfig.getString("permissions.backends." + backendName + ".file", "permissions.yml"));
 					if (!file.exists()) {

@@ -80,6 +80,9 @@ public record PexConfigData(
         if (bk.isBlank()) {
             bk = flavor.defaultBackend();
         }
+        LinkedHashMap<String, Map<String, Object>> backends =
+                new LinkedHashMap<>(coerceBackendMap(copy.get(KEY_BACKENDS)));
+        bk = normalizeActiveBackendAlias(bk, backends);
 
         String basedirLocal = stringify(copy.get(KEY_BASEDIR), "");
         if (basedirLocal.isBlank()) {
@@ -100,7 +103,7 @@ public record PexConfigData(
                 bk,
                 inform,
                 basedirLocal,
-                coerceBackendMap(copy.get(KEY_BACKENDS)),
+                backends,
                 commandFramework);
     }
 
@@ -228,6 +231,29 @@ public record PexConfigData(
             shallow.put(e.getKey(), Collections.unmodifiableMap(new LinkedHashMap<>(e.getValue())));
         }
         return Collections.unmodifiableMap(shallow);
+    }
+
+    /**
+     * Maps legacy active {@code backend: file} configs to {@code local} while preserving the YAML path
+     * for one-time import via {@code migration-source}.
+     */
+    private static String normalizeActiveBackendAlias(
+            String backend, LinkedHashMap<String, Map<String, Object>> backends) {
+        if (!FILE_BACKEND.equalsIgnoreCase(backend)) {
+            return backend;
+        }
+        Map<String, Object> local = backends.computeIfAbsent(LOCAL_BACKEND, ignored -> new LinkedHashMap<>());
+        local.putIfAbsent(KEY_BACKEND_TYPE, LOCAL_BACKEND);
+        local.putIfAbsent(KEY_DATABASE, "permissions");
+        Map<String, Object> fileSection = backends.get(FILE_BACKEND);
+        if (fileSection != null) {
+            Object yamlPath = fileSection.get(KEY_BACKEND_FILE_LEAF);
+            if (yamlPath != null && !String.valueOf(yamlPath).isBlank()) {
+                local.putIfAbsent(KEY_MIGRATION_SOURCE, String.valueOf(yamlPath).trim());
+            }
+        }
+        local.putIfAbsent(KEY_MIGRATION_SOURCE, PexPermissionsData.DEFAULT_STORE_FILE);
+        return LOCAL_BACKEND;
     }
 
     private static void applyYamlDefaults(Map<String, Object> permissionsMap, PexConfigFlavor flavor) {

@@ -37,7 +37,7 @@ permissions:
 | Add permission | `/pex user Steve permissions add essentials.home` | `/pex user Steve add essentials.home` |
 | List permissions | `/pex user Steve permissions list` | `/pex user Steve list` |
 | Add to group | `/pex user Steve groups add vip` | `/pex user Steve group add vip` |
-| Import backend | `/pex backend import yaml-import` | `/pex import yaml-import` |
+| Import backend | `/pex backend import file` | `/pex import file` |
 
 Command reference pages document **both** frameworks. **Modern** syntax is the default for new servers; classic examples are shown in a second column where helpful. See [Configuration — command framework](/configuration/#command-framework).
 
@@ -121,7 +121,7 @@ Show or switch the active storage backend.
 | `local` | H2 file database (default) — `permissions.mv.db` under `basedir` |
 | `sql` | MySQL / PostgreSQL / SQLite (shared networks) |
 | `memory` | In-memory (testing) |
-| `yaml-import` / `file` | Legacy YAML import only — **deprecated** |
+| `file` | YAML import only (not for active storage) |
 
 ```text
 /pex backend
@@ -143,7 +143,7 @@ Import permission data from another configured backend into the current one.
 
 ```text
 /pex backend sql
-/pex import yaml-import
+/pex import file
 ```
 
 Ensure the source backend is configured in `config.yml` under `permissions.backends`.

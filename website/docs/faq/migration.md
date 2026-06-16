@@ -24,7 +24,7 @@ PermissionsExPlus no longer uses YAML as the default store. On first startup:
 2. Use the default `backend: local` — PEX creates `permissions.mv.db` and migrates the YAML
 3. The original file becomes `permissions.yml.migrated`
 
-To import YAML later without switching backends permanently, configure a `yaml-import` backend and run `/pex import yaml-import` (classic) or `/pex backend import yaml-import` (modern).
+To import YAML later without switching backends permanently, configure a `file` backend section and run `/pex import file` (classic) or `/pex backend import file` (modern).
 
 ## From GroupManager / bPermissions
 
@@ -51,7 +51,7 @@ There is no automatic LuckPerms → PEX converter yet.
 
 ## From file backend configs
 
-Older configs with `backend: file` should be updated to `backend: local`. The `local` backend reads `permissions.yml` once via `migration-source`, then stores data in H2.
+Configs with `backend: file` are **automatically normalized to `local`** at load time. The YAML path from `permissions.backends.file.file` is copied to `permissions.backends.local.migration-source` so existing `permissions.yml` files still import on first startup. You can update `config.yml` to `backend: local` explicitly when convenient.
 
 ## UUID migration
 

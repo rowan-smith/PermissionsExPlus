@@ -31,7 +31,7 @@ permissions:
 | `debug` | Extra logging for troubleshooting |
 | `allowOps` | Whether server ops bypass PEX |
 | `createUserRecords` | Auto-create a user entry when someone joins |
-| `backend` | Active storage backend (`local`, `sql`, `memory`; `file` / `yaml-import` deprecated) |
+| `backend` | Active storage backend (`local`, `sql`, `memory`; legacy `file` is normalized to `local`) |
 | `basedir` | Folder for config and data files |
 
 Change a setting in-game:
@@ -88,9 +88,9 @@ Shared database for proxy networks. Configure under `permissions.backends.<alias
 
 In-memory store for testing. Data is lost on restart.
 
-### file / yaml-import (deprecated)
+### file (import only)
 
-Legacy YAML read-only import. Use only to pull data from an old `permissions.yml` via `/pex import yaml-import` (classic) or `/pex backend import yaml-import` (modern). Do not use as the active backend for new servers.
+YAML import backend for pulling data from `permissions.yml` via `/pex import file` (classic) or `/pex backend import file` (modern). Setting `backend: file` in config is automatically normalized to `local` with the YAML path preserved as `migration-source`.
 
 ## Permission data
 

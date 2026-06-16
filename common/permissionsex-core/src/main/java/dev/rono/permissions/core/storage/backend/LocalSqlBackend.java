@@ -32,8 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Default H2-backed permissions store. YAML is supported only through one-time migration.
  */
-public final class LocalSqlBackend extends AbstractPermissionBackend
-        implements YamlToSqlMigrator.LocalSqlBackendAdapter {
+public final class LocalSqlBackend extends AbstractPermissionBackend {
 
     private final LocalSqlRepository repository;
     private final EffectiveUserCache effectiveUserCache = new EffectiveUserCache();

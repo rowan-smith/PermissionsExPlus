@@ -120,7 +120,7 @@ Engine wiring reuses `ProxyPlatformInitializer` for config/backends/API registry
 | Alias | Implementation | Registered in |
 |-------|----------------|---------------|
 | `local` (default) | `LocalSqlBackend` — H2 file store + one-time YAML migration | `CorePermissionBackendRegistrar` |
-| `yaml-import` / `file` | `YamlFileBackend` — legacy YAML import only | `CorePermissionBackendRegistrar` |
+| `file` | `YamlFileBackend` — YAML import via `/pex import file` | `CorePermissionBackendRegistrar` |
 | `memory` | Platform memory backends | Spigot / Bungee plugin constructors |
 | `sql` | `SQLBackend` | `CorePermissionBackendRegistrar` |
 | `multi` | `MultiBackend` | `CorePermissionBackendRegistrar` |
