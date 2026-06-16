@@ -143,7 +143,7 @@ Import permission data from another configured backend into the current one.
 
 ```text
 /pex backend sql
-/pex import file
+/pex import yaml-import
 ```
 
 Ensure the source backend is configured in `config.yml` under `permissions.backends`.
