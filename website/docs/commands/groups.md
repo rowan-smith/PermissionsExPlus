@@ -31,29 +31,32 @@ Classic: `/pex groups list [world]`
 
 **Syntax:** `/pex group <group>` · `/pex group <group> info`
 
-Shows group details: parents, weight, prefix, member count.
+Shows group details: weight, prefix, parents, member count, and effective global permissions.
 
 ```text
 /pex group admin
 /pex group vip info
 ```
 
+For realm-scoped permissions or options, use the `permissions` or `options` subcommands with `--world` / `--server`.
+
 ---
 
 ## `/pex group <group> create`
 
-**Syntax:** `/pex group <group> create [parents...]`
+**Syntax:** `/pex group <group> create [parents]`
 
-Creates a new group. Optionally specify parent groups for [inheritance](/concepts/inheritance/).
+Creates a new group. Optionally specify parent groups for [inheritance](/concepts/inheritance/). Use **comma-separated** names for multiple parents.
 
 ```text
 /pex group vip create
 /pex group vip create default
 /pex group admin create vip
-/pex group builder create default creative
+/pex group builder create default,creative
+/pex group special create default,vip
 ```
 
-Multiple parents: `/pex group special create default vip`
+Multiple parents can also be added after create with `parents add`.
 
 ---
 
@@ -94,6 +97,8 @@ Deletes the group. Users in this group are **not** deleted but lose this members
 /pex group vip permissions check essentials.fly
 /pex group event permissions timed add modifyworld.* 4h
 ```
+
+Modern `check` returns an **effective boolean** (`Has 'node' in realm: true/false`), matching user permission checks.
 
 Classic: `/pex group <group> list|add|remove|timed … [world]`
 

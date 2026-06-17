@@ -77,7 +77,7 @@ class CoreCommandServiceTest extends PEXTestBase {
         assertEquals("Permissions swapped!", service.userSwapPermission("Rono", "one", "two", null));
 
         assertEquals("User groups set!", service.userSetGroups("Rono", "admin,mod", null));
-        assertEquals("User \"Rono\" @null currently in:", service.userGroupListLines("Rono", null).getFirst());
+        assertEquals("User \"Rono\" @ global currently in:", service.userGroupListLines("Rono", null).getFirst());
 
         assertEquals("Timed permission added!", service.groupAddTimedPermission("default", "g.perm", "30", null));
         assertEquals("Timed permission \"g.perm\" removed!", service.groupRemoveTimedPermission("default", "g.perm", null));

@@ -22,7 +22,7 @@ public final class PexCloudContextParser<C> {
     @Suggestions("pex-flags")
     public List<String> suggestFlags(CommandContext<C> commandContext, String input) {
         if (input == null || input.isBlank() || input.startsWith("-")) {
-            return List.of("--world", "--server", "--region", "--gamemode");
+            return List.of("--world", "--server");
         }
         return List.of();
     }

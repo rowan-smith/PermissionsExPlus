@@ -50,6 +50,11 @@ public interface InternalPermissionManager extends PermissionManager {
 
     Set<PermissionUser> getActiveUsers(String groupName, boolean inheritance);
 
+    /** Ladder names registered via {@link dev.rono.permissions.api.ladder.LadderManager#createLadder}. */
+    Set<String> explicitLadderNames();
+
+    void registerExplicitLadder(String name);
+
     static InternalPermissionManager require(PermissionManager manager) {
         if (manager instanceof InternalPermissionManager internal) {
             return internal;

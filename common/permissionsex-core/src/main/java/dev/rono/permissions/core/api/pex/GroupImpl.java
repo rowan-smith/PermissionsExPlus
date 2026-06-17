@@ -38,7 +38,8 @@ public final class GroupImpl extends AbstractPermissionSubjectAdapter implements
 
     @Override
     public String name() {
-        return name;
+        String displayName = group.getName();
+        return displayName != null && !displayName.isBlank() ? displayName : name;
     }
 
     @Override

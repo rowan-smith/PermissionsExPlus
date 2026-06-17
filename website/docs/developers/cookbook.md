@@ -124,7 +124,7 @@ user.save();
 ```java
 import dev.rono.permissions.api.permission.PermissionContext;
 
-var ctx = PermissionContext.of(player.getWorld().getName());
+var ctx = PermissionContext.world(player.getWorld().getName());
 var scoped = user.inContext(ctx);
 if (scoped.has("myplugin.nether-only")) {
     // ...
@@ -170,8 +170,11 @@ public void onChange(PermissionEntityEvent event) {
 Modern event bus:
 
 ```java
-api.getEventBus().subscribe(dispatch -> {
-    getLogger().info("Dispatch: " + dispatch);
+api.getEventBus().subscribe(new PermissionEventListener() {
+    @Override
+    public void onEntity(EntityDispatch dispatch) {
+        getLogger().info("Dispatch: " + dispatch);
+    }
 });
 ```
 

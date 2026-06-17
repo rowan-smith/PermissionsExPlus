@@ -28,13 +28,15 @@ Lists every user record stored in the backend.
 
 **Syntax:** `/pex user <user>` · `/pex user <user> info`
 
-Shows a summary: groups, prefix, suffix, and key options.
+Shows a summary: identifier, prefix, suffix, groups, and effective global permissions.
 
 ```text
 /pex user Steve
 /pex user Steve info
 /pex user 069a79f4-44e9-4726-a5be-fca90e38aaf5
 ```
+
+For realm-scoped details, use `permissions list`, `groups list`, or `options list` with `--world` / `--server`.
 
 ---
 
@@ -85,6 +87,8 @@ Classic: `/pex user Steve add|remove <permission> [world]`
 /pex user Steve permissions check essentials.fly --world world_nether
 /pex user Steve permissions trace essentials.fly
 ```
+
+Modern `check` returns an **effective boolean** (`Has 'node' in realm: true/false`). Classic `check` shows the matching permission expression instead. Use `trace` for resolution detail.
 
 `trace` is **modern only** — shows how PEX resolved the node.
 
@@ -138,7 +142,7 @@ Classic: `/pex user Steve timed add|remove <permission> … [world]`
 /pex user Steve groups remove vip
 ```
 
-`groups set` **replaces** all memberships with a single group — the most common way to assign a rank.
+`groups set` **replaces** all memberships. Pass one group name, or comma-separated names (`admin,mod`) to assign multiple groups at once.
 
 Classic: `/pex user Steve group list|add|remove|set … [world]`
 

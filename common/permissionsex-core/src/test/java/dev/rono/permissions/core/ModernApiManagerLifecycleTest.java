@@ -70,6 +70,9 @@ class ModernApiManagerLifecycleTest extends ModernApiTestSupport {
         assertThrows(LadderNotFoundException.class, () -> api().getLadderManager().getLadder("missing-ladder-xyz"));
 
         api().getLadderManager().createLadder("lifecycle-ladder");
+        assertTrue(api().getLadderManager().exists("lifecycle-ladder"));
+        assertEquals("lifecycle-ladder", api().getLadderManager().getLadder("lifecycle-ladder").getName());
+
         var group = api().getGroupManager().createGroup("ladder-ref-group");
         group.setRank(1, "lifecycle-ladder");
         group.save();

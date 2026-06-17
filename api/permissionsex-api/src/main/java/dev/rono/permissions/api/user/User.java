@@ -81,6 +81,14 @@ public interface User extends PermissionSubject {
         removeTimedGroup(groupName, PermissionContext.global());
     }
 
+    default boolean hasTimedGroupMembership(String groupName, PermissionContext context) {
+        return groupMembershipRemainingSeconds(groupName, context) > 0;
+    }
+
+    default boolean hasTimedGroupMembership(String groupName) {
+        return hasTimedGroupMembership(groupName, PermissionContext.global());
+    }
+
     List<TimedGroupMembership> timedGroupMemberships(PermissionContext context);
 
     default List<TimedGroupMembership> timedGroupMemberships() {

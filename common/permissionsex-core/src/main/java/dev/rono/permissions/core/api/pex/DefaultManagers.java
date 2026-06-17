@@ -9,6 +9,7 @@ import dev.rono.permissions.api.user.UserAlreadyExistsException;
 import dev.rono.permissions.api.user.UserManager;
 import dev.rono.permissions.api.user.UserNotFoundException;
 import dev.rono.permissions.core.DefaultPermissionManager;
+import dev.rono.permissions.core.InternalPermissionManager;
 import dev.rono.permissions.core.commands.CoreCommandService;
 import ru.tehkode.permissions.PermissionUser;
 
@@ -307,6 +308,7 @@ final class DefaultLadderManager implements dev.rono.permissions.api.ladder.Ladd
         if (exists(name)) {
             throw new dev.rono.permissions.api.ladder.LadderAlreadyExistsException(name);
         }
+        InternalPermissionManager.require(manager).registerExplicitLadder(name);
         return new LadderImpl(name);
     }
 

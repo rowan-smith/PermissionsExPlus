@@ -97,23 +97,23 @@ Requirements:
 
 ```text
 /pex group trainee create default
-/pex group trainee options set weight 20 --world global
-/pex group trainee options set prefix "&7[Trainee]" --world global
+/pex group trainee options set weight 20
+/pex group trainee options set prefix "&7[Trainee]"
 /pex group trainee permissions add essentials.help
 
 /pex group helper create trainee
-/pex group helper options set weight 40 --world global
-/pex group helper options set prefix "&a[Helper]" --world global
+/pex group helper options set weight 40
+/pex group helper options set prefix "&a[Helper]"
 /pex group helper permissions add essentials.tp
 
 /pex group moderator create helper
-/pex group moderator options set weight 60 --world global
-/pex group moderator options set prefix "&9[Mod]" --world global
+/pex group moderator options set weight 60
+/pex group moderator options set prefix "&9[Mod]"
 /pex group moderator permissions add essentials.kick
 
 /pex group admin create moderator
-/pex group admin options set weight 100 --world global
-/pex group admin options set prefix "&c[Admin]" --world global
+/pex group admin options set weight 100
+/pex group admin options set prefix "&c[Admin]"
 /pex group admin permissions add permissions.*
 
 /pex ladder staff groups add trainee

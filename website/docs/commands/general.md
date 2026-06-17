@@ -51,14 +51,13 @@ See also [Configuration — command framework](/configuration/#command-framework
 
 ## `/pex`
 
-**Syntax:** `/pex [help] [page] [count]`
+**Syntax:** `/pex` · `/pex help`
 
-Shows the command help menu. Without arguments, displays the first page.
+Shows the command summary for the active framework. Paginated help (`/pex help 2`) is not supported in the modern framework.
 
 ```text
 /pex
 /pex help
-/pex help 2
 ```
 
 ---
@@ -83,13 +82,15 @@ Reloads `config.yml`, the active backend, and all in-memory permission data.
 
 **Syntax:** `/pex report`
 
-Generates a diagnostic report (PEX version, backend, config snapshot) for bug reports.
+Shows where to report issues (typically a link to the GitHub issue tracker). For version and backend details, use `/pex version` and `/pex backend`.
 
 ```text
 /pex report
+/pex version
+/pex backend
 ```
 
-Paste the output when opening a [GitHub issue](https://github.com/%%site.repo%%/issues).
+Include `/pex version` output when opening a [GitHub issue](https://github.com/%%site.repo%%/issues).
 
 ---
 

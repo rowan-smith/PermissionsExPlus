@@ -70,6 +70,7 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 	private final DefaultPermissionEventBus eventBus = new DefaultPermissionEventBus();
 	private final PermissionsExApiImpl permissionsExApi;
 	private final HolderPermissionService holderPermissions;
+	private final Set<String> explicitLadderNames = ConcurrentHashMap.newKeySet();
 
 	public DefaultPermissionManager(PermissionsExConfig config, Logger logger, PlatformRuntime platformRuntime) throws PermissionBackendException {
 		CorePermissionBackendRegistrar.ensureRegistered();
@@ -393,6 +394,19 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 	public Set<PermissionUser> getActiveUsers(String groupName) {
 		return getActiveUsers(groupName, false);
 	}
+
+	@Override
+	public Set<String> explicitLadderNames() {
+		return Collections.unmodifiableSet(explicitLadderNames);
+	}
+
+	@Override
+	public void registerExplicitLadder(String name) {
+		if (name != null && !name.isBlank()) {
+			explicitLadderNames.add(name);
+		}
+	}
+
 	/**
 	 * Return all users in group
 	 *

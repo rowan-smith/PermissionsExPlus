@@ -205,9 +205,19 @@ public final class ModernUserCommand<C> extends AbstractModernPexCloudCommand<C>
     }
 
     private void showInfo(C sender, String user) {
-        var view = ctx.commandService().userView(user);
-        reply(sender, "User " + view.identifier() + "/" + view.name());
-        reply(sender, "Groups: " + view.groups());
-        reply(sender, "Permissions: " + view.permissions());
+        try {
+            var view = ctx.commandService().userView(user);
+            reply(sender, "User " + view.identifier() + "/" + view.name());
+            reply(sender, "Prefix: " + displayOrNone(view.prefix()));
+            reply(sender, "Suffix: " + displayOrNone(view.suffix()));
+            reply(sender, "Groups: " + view.groups());
+            reply(sender, "Effective permissions (global): " + view.permissions());
+        } catch (IllegalArgumentException ex) {
+            reply(sender, ex.getMessage());
+        }
+    }
+
+    private static String displayOrNone(String value) {
+        return value == null || value.isBlank() ? "(none)" : value;
     }
 }

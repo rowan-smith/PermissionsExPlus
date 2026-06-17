@@ -1,6 +1,5 @@
 package dev.rono.permissions.core.commands.cloud.modern;
 
-import cloud.commandframework.annotations.Argument;
 import cloud.commandframework.annotations.CommandMethod;
 import dev.rono.permissions.core.commands.CoreCloudCommandContext;
 
@@ -21,13 +20,13 @@ public final class ModernRootCommand<C> extends AbstractModernPexCloudCommand<C>
     }
 
     @CommandMethod("pex help <page>")
-    public void helpPage(C sender, @Argument("page") String page) {
-        reply(sender, ctx.senderAdapter().helpText());
+    public void helpPage(C sender) {
+        reply(sender, "Paginated help is not available. Use /pex help for the command summary.");
     }
 
     @CommandMethod("pex help <page> <count>")
-    public void helpPaged(C sender, @Argument("page") String page, @Argument("count") String count) {
-        reply(sender, ctx.senderAdapter().helpText());
+    public void helpPaged(C sender) {
+        reply(sender, "Paginated help is not available. Use /pex help for the command summary.");
     }
 
     @CommandMethod("pex report")

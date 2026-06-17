@@ -91,7 +91,9 @@ public final class UserImpl extends AbstractPermissionSubjectAdapter implements 
 
     @Override
     public void removeGroup(String groupName, PermissionContext context) {
-        user.removeGroup(groupName, storageRealm(context));
+        var legacyWorld = storageRealm(context);
+        user.setOption("group-" + groupName + "-until", null, legacyWorld);
+        user.removeGroup(groupName, legacyWorld);
     }
 
     @Override

@@ -57,6 +57,7 @@ public class CoreCommandService {
 
     public List<String> knownLadders() {
         Set<String> ladders = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        ladders.addAll(InternalPermissionManager.require(manager).explicitLadderNames());
         for (PermissionGroup group : manager.getGroupList()) {
             String ladder = group.getRankLadder();
             if (ladder != null && !ladder.isBlank()) {
@@ -203,7 +204,13 @@ public class CoreCommandService {
 
     public UserView userView(String userIdentifier) {
         PermissionUser user = manager.getUser(userIdentifier);
-        return new UserView(user.getIdentifier(), user.getName(), user.getParentIdentifiers(), user.getPermissions(null));
+        return new UserView(
+                user.getIdentifier(),
+                user.getName(),
+                user.getParentIdentifiers(),
+                user.getPermissions(null),
+                user.getPrefix(),
+                user.getSuffix());
     }
 
     public List<String> userPermissionsLines(String userIdentifier, String world) {
@@ -507,7 +514,8 @@ public class CoreCommandService {
     public String userGetOption(String userIdentifier, String option, String world) {
         PermissionUser user = manager.getUser(userIdentifier);
         String value = user.getOption(option, world, null);
-        return "Player \"" + user.getName() + "\" @ " + world + " option \"" + option + "\" = \"" + value + "\"";
+        return "Player \"" + user.getName() + "\" @ " + PexCommandContexts.displayRealm(world)
+                + " option \"" + option + "\" = \"" + value + "\"";
     }
 
     public String userPrefix(String userIdentifier, String newPrefix, String world) {
@@ -603,7 +611,7 @@ public class CoreCommandService {
     public List<String> userGroupListLines(String userIdentifier, String world) {
         PermissionUser user = manager.getUser(userIdentifier);
         List<String> lines = new ArrayList<>();
-        lines.add("User \"" + user.getName() + "\" @" + world + " currently in:");
+        lines.add("User \"" + user.getName() + "\" @ " + PexCommandContexts.displayRealm(world) + " currently in:");
         for (PermissionGroup group : user.getParents(world)) {
             lines.add("  " + group.getIdentifier());
         }
@@ -618,7 +626,13 @@ public class CoreCommandService {
         if (group == null) {
             throw new IllegalArgumentException("Group \"" + groupIdentifier + "\" not found");
         }
-        return new GroupView(group.getIdentifier(), group.getPermissions(null));
+        return new GroupView(
+                group.getIdentifier(),
+                group.getPermissions(null),
+                group.getParentIdentifiers(),
+                group.getWeight(),
+                group.getPrefix(),
+                group.getUsers().size());
     }
 
     public List<String> groupPermissionsLines(String groupIdentifier, String world) {
@@ -985,7 +999,19 @@ public class CoreCommandService {
         String importIntoPex(String source) throws PermissionBackendException;
     }
 
-    public record UserView(String identifier, String name, List<String> groups, List<String> permissions) {}
+    public record UserView(
+            String identifier,
+            String name,
+            List<String> groups,
+            List<String> permissions,
+            String prefix,
+            String suffix) {}
 
-    public record GroupView(String name, List<String> permissions) {}
+    public record GroupView(
+            String name,
+            List<String> permissions,
+            List<String> parents,
+            int weight,
+            String prefix,
+            int memberCount) {}
 }

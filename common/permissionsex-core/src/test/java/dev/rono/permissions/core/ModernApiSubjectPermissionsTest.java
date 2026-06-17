@@ -101,4 +101,14 @@ class ModernApiSubjectPermissionsTest extends ModernApiTestSupport {
         assertFalse(user.virtual());
         assertEquals(dev.rono.permissions.api.permission.HolderType.USER, user.asHolder().getType());
     }
+
+    @Test
+    void groupDisplayNameMatchesNameOption() {
+        var group = api().getGroupManager().createGroup("display-group");
+        group.setOption("name", "Display Name");
+        group.save();
+
+        assertEquals("Display Name", group.getName());
+        assertEquals("Display Name", group.name());
+    }
 }
