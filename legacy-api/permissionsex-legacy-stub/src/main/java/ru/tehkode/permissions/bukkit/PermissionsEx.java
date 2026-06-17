@@ -58,7 +58,7 @@ public final class PermissionsEx {
     /**
      * @deprecated Use {@link #getApi()} and {@link PermissionsExApi#getPermissionManager()}.
      */
-    @Deprecated(since = "1.24.x")
+    @Deprecated(since = "3.0.0")
     public static PermissionManager getPermissionManager() {
         return getApi().getPermissionManager();
     }
@@ -66,7 +66,7 @@ public final class PermissionsEx {
     /**
      * @deprecated Use {@link PermissionsExApi#getPermissionManager()}.
      */
-    @Deprecated(since = "1.24.x")
+    @Deprecated(since = "3.0.0")
     public static PermissionUser getUser(Player player) {
         return getPermissionManager().getUser(player);
     }
@@ -74,7 +74,7 @@ public final class PermissionsEx {
     /**
      * @deprecated Use {@link PermissionsExApi#getPermissionManager()}.
      */
-    @Deprecated(since = "1.24.x")
+    @Deprecated(since = "3.0.0")
     public static PermissionUser getUser(String name) {
         return getPermissionManager().getUser(name);
     }

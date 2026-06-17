@@ -1,6 +1,6 @@
 # PermissionsExPlus
 
-PermissionsExPlus is a maintained fork of the original PermissionsEx (PEX) plugin for Bukkit/Spigot servers.
+PermissionsExPlus is a maintained fork of [PermissionsEx](https://github.com/PEXPlugins/PermissionsEx) (last upstream release **1.23.4**). Upgrade path: **PermissionsEx 1.23.4 → PermissionsExPlus 3.0.0-SNAPSHOT**. See the [migration guide](https://permissionsexplus.rono.dev/faq/migrate-from-v1) on the docs site.
 
 **Documentation website:** [permissionsexplus.rono.dev](https://permissionsexplus.rono.dev/)
 

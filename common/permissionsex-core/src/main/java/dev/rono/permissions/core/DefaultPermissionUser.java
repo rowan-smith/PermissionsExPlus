@@ -126,7 +126,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	}
 
 	@Override
-	@Deprecated(since = "1.24.x")	public Map<String, List<PermissionGroup>> getAllGroups() {
+	@Deprecated(since = "3.0.0")	public Map<String, List<PermissionGroup>> getAllGroups() {
 		return getAllParents();
 	}
 
@@ -318,7 +318,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 * @param ladderName Ladder name
 	 * @throws RankingException
 	 */
-	@Deprecated(since = "1.24.x")
+	@Deprecated(since = "3.0.0")
 	public PermissionGroup promote(PermissionUser promoter, String ladderName) throws RankingException {
 		if (ladderName == null || ladderName.isEmpty()) {
 			ladderName = "default";
@@ -369,7 +369,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 * @param ladderName
 	 * @throws RankingException
 	 */
-	@Deprecated(since = "1.24.x")
+	@Deprecated(since = "3.0.0")
 	public PermissionGroup demote(PermissionUser demoter, String ladderName) throws RankingException {
 		if (ladderName == null || ladderName.isEmpty()) {
 			ladderName = "default";
@@ -644,11 +644,11 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	}
 
 	// Compatibility methods
-	@Deprecated(since = "1.24.x")	public String[] getGroupsNames() {
+	@Deprecated(since = "3.0.0")	public String[] getGroupsNames() {
 		return getGroupsNames(null);
 	}
 
-	@Deprecated(since = "1.24.x")	public String[] getGroupsNames(String world) {
+	@Deprecated(since = "3.0.0")	public String[] getGroupsNames(String world) {
 		return getParentIdentifiers(world).toArray(new String[0]);
 	}
 
@@ -658,7 +658,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 *
 	 * @return
 	 */
-	@Deprecated(since = "1.24.x")	public PermissionGroup[] getGroups() {
+	@Deprecated(since = "3.0.0")	public PermissionGroup[] getGroups() {
 		return getParents().toArray(new PermissionGroup[0]);
 	}
 
@@ -668,7 +668,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 * @param worldName Name of world
 	 * @return PermissionGroup groups
 	 */
-	@Deprecated(since = "1.24.x")	public PermissionGroup[] getGroups(String worldName) {
+	@Deprecated(since = "3.0.0")	public PermissionGroup[] getGroups(String worldName) {
 		return getParents(worldName).toArray(new PermissionGroup[0]);
 	}
 
@@ -677,7 +677,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 *
 	 * @return
 	 */
-	@Deprecated(since = "1.24.x")	public String[] getGroupNames() {
+	@Deprecated(since = "3.0.0")	public String[] getGroupNames() {
 		return getParentIdentifiers().toArray(new String[0]);
 	}
 
@@ -686,7 +686,7 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 *
 	 * @return String array of user's group names
 	 */
-	@Deprecated(since = "1.24.x")	public String[] getGroupNames(String worldName) {
+	@Deprecated(since = "3.0.0")	public String[] getGroupNames(String worldName) {
 		return getParentIdentifiers(worldName).toArray(new String[0]);
 	}
 
@@ -695,11 +695,11 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 *
 	 * @param groups array of parent group names
 	 */
-	@Deprecated(since = "1.24.x")	public void setGroups(String[] groups, String worldName) {
+	@Deprecated(since = "3.0.0")	public void setGroups(String[] groups, String worldName) {
 		setParentsIdentifier(Arrays.asList(groups), worldName);
 	}
 
-	@Deprecated(since = "1.24.x")	public void setGroups(String[] groups) {
+	@Deprecated(since = "3.0.0")	public void setGroups(String[] groups) {
 		setParentsIdentifier(Arrays.asList(groups));
 	}
 
@@ -708,11 +708,11 @@ public class DefaultPermissionUser extends AbstractPermissionEntity implements P
 	 *
 	 * @param parentGroups array of parent group objects
 	 */
-	@Deprecated(since = "1.24.x")	public void setGroups(PermissionGroup[] parentGroups, String worldName) {
+	@Deprecated(since = "3.0.0")	public void setGroups(PermissionGroup[] parentGroups, String worldName) {
 		setParents(Arrays.asList(parentGroups), worldName);
 	}
 
-	@Deprecated(since = "1.24.x")	public void setGroups(PermissionGroup[] parentGroups) {
+	@Deprecated(since = "3.0.0")	public void setGroups(PermissionGroup[] parentGroups) {
 		setParents(Arrays.asList(parentGroups));
 	}
 }

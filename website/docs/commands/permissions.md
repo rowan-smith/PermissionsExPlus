@@ -6,57 +6,65 @@ slug: /commands/permissions
 
 Permission **nodes** are strings like `essentials.fly` that plugins check. This page covers assigning them — see [How Permissions Work](/concepts/permissions/) for resolution rules.
 
+PEX registers **`modern`** (default) or **`classic`** command trees. Examples below use **modern** syntax; classic equivalents are in [Command mapping](/commands/command-mapping).
+
+**Context flags (modern):** use `--world <world>` instead of a trailing world argument.
+
 ---
 
 ## Assign to a group (recommended)
 
 ```text
-/pex group <group> add <permission> [world]
+/pex group <group> permissions add <permission> [--world <world>]
 ```
 
 Grants a node to every member of the group.
 
 ```text
-/pex group default add modifyworld
-/pex group vip add essentials.fly
-/pex group vip add essentials.hat
-/pex group admin add permissions.*
-/pex group admin add '*'
-/pex group builder add worldedit.* world_creative
+/pex group default permissions add modifyworld
+/pex group vip permissions add essentials.fly
+/pex group vip permissions add essentials.hat
+/pex group admin permissions add permissions.*
+/pex group admin permissions add '*'
+/pex group builder permissions add worldedit.* --world world_creative
 ```
 
 **Why groups?** One command updates every member. Easier to audit and maintain.
+
+Classic: `/pex group <group> add <permission> [world]`
 
 ---
 
 ## Assign to a user (exceptions)
 
 ```text
-/pex user <user> add <permission> [world]
+/pex user <user> permissions add <permission> [--world <world>]
 ```
 
 Direct assignment overrides or supplements group permissions.
 
 ```text
-/pex user Steve add essentials.home
-/pex user Steve add -essentials.ban
-/pex user Alex add essentials.fly world_nether
+/pex user Steve permissions add essentials.home
+/pex user Steve permissions add -essentials.ban
+/pex user Alex permissions add essentials.fly --world world_nether
 ```
 
 Use for per-player exceptions, not your main permission structure.
+
+Classic: `/pex user <user> add <permission> [world]`
 
 ---
 
 ## Remove permissions
 
 ```text
-/pex group <group> remove <permission> [world]
-/pex user <user> remove <permission> [world]
+/pex group <group> permissions remove <permission> [--world <world>]
+/pex user <user> permissions remove <permission> [--world <world>]
 ```
 
 ```text
-/pex group vip remove essentials.hat
-/pex user Steve remove essentials.home
+/pex group vip permissions remove essentials.hat
+/pex user Steve permissions remove essentials.home
 ```
 
 Removing from a group affects all members. Removing from a user only affects that player.
@@ -66,8 +74,8 @@ Removing from a group affects all members. Removing from a user only affects tha
 ## Temporary permissions
 
 ```text
-/pex user <user> timed add <permission> <lifetime> [world]
-/pex group <group> timed add <permission> <lifetime> [world]
+/pex user <user> permissions timed add <permission> <duration> [--world <world>]
+/pex group <group> permissions timed add <permission> <duration> [--world <world>]
 ```
 
 | Unit | Example |
@@ -78,15 +86,15 @@ Removing from a group affects all members. Removing from a user only affects tha
 | Days | `7d`, `30d` |
 
 ```text
-/pex user Steve timed add essentials.fly 7d
-/pex user Trial timed add essentials.fly 1h
-/pex group weekend timed add essentials.kit 2d
+/pex user Steve permissions timed add essentials.fly 7d
+/pex user Trial permissions timed add essentials.fly 1h
+/pex group weekend permissions timed add essentials.kit 2d
 ```
 
 Remove early:
 
 ```text
-/pex user Steve timed remove essentials.fly
+/pex user Steve permissions timed remove essentials.fly
 ```
 
 ---
@@ -94,28 +102,32 @@ Remove early:
 ## Check permissions
 
 ```text
-/pex user <user> check <permission> [world]
-/pex user <user> list [world]
-/pex group <group> list [world]
+/pex user <user> permissions check <permission> [--world <world>]
+/pex user <user> permissions list [--world <world>]
+/pex group <group> permissions list [--world <world>]
+/pex user <user> permissions trace <permission> [--world <world>]
+/pex hierarchy [--world <world>]
 ```
 
 ```text
-/pex user Steve check essentials.fly
-/pex user Steve check essentials.fly world_nether
-/pex user Steve list
-/pex hierarchy
+/pex user Steve permissions check essentials.fly
+/pex user Steve permissions check essentials.fly --world world_nether
+/pex user Steve permissions list
+/pex user Steve permissions trace essentials.fly
+/pex hierarchy --world world_nether
 ```
+
+`trace` is **modern only**.
 
 ---
 
-## Swap permissions
+## Swap permissions (classic only)
 
 ```text
-/pex user <user> swap <permission> <targetPermission> [world]
 /pex group <group> swap <permission> <targetPermission> [world]
 ```
 
-Replaces one node with another in a single step.
+Replaces one node with another in a single step. Not available in the modern framework — use remove + add instead.
 
 ```text
 /pex group vip swap essentials.fly essentials.fly.unlimited
@@ -141,41 +153,41 @@ Replaces one node with another in a single step.
 
 **Survival default:**
 ```text
-/pex group default add modifyworld
-/pex group default add essentials.help
-/pex group default add essentials.list
+/pex group default permissions add modifyworld
+/pex group default permissions add essentials.help
+/pex group default permissions add essentials.list
 ```
 
 **VIP package:**
 ```text
-/pex group vip add essentials.fly
-/pex group vip add essentials.hat
-/pex group vip add essentials.feed
-/pex group vip add essentials.sethome.multiple
+/pex group vip permissions add essentials.fly
+/pex group vip permissions add essentials.hat
+/pex group vip permissions add essentials.feed
+/pex group vip permissions add essentials.sethome.multiple
 ```
 
 **Moderator:**
 ```text
-/pex group mod add essentials.kick
-/pex group mod add essentials.mute
-/pex group mod add essentials.tp
+/pex group mod permissions add essentials.kick
+/pex group mod permissions add essentials.mute
+/pex group mod permissions add essentials.tp
 ```
 
 **Admin:**
 ```text
-/pex group admin add permissions.*
-/pex group admin add '*'
+/pex group admin permissions add permissions.*
+/pex group admin permissions add '*'
 ```
 
 ---
 
 ## World-scoped permissions
 
-Add the world name as the last argument. See [Context](/concepts/context/).
+Modern: append `--world <world>`. Classic: trailing world argument. See [Context](/concepts/context/).
 
 ```text
-/pex group vip add essentials.fly
-/pex group vip add essentials.godmode world_nether
+/pex group vip permissions add essentials.fly
+/pex group vip permissions add essentials.godmode --world world_nether
 ```
 
 ---
@@ -187,5 +199,7 @@ Add the world name as the last argument. See [Context](/concepts/context/).
 | `permissionsex.disabled` | Disables regex matching for that player |
 
 ```text
-/pex user Griefer add permissionsex.disabled
+/pex user Griefer permissions add permissionsex.disabled
 ```
+
+Classic: `/pex user Griefer add permissionsex.disabled`

@@ -27,6 +27,9 @@ import com.mojang.api.profiles.Profile;
 import com.mojang.api.profiles.ProfileRepository;
 import dev.rono.permissions.api.PermissionsExApi;
 import dev.rono.permissions.api.runtime.PlatformRuntime;
+import dev.rono.permissions.api.runtime.SwitchablePlatformEventBus;
+import dev.rono.permissions.spigot.legacy.LegacyBridgeController;
+import dev.rono.permissions.spigot.legacy.LegacyHookPluginDetector;
 import dev.rono.permissions.core.commands.CoreCloudCommandRegistrar;
 import dev.rono.permissions.core.commands.CoreCloudPlatform;
 import dev.rono.permissions.core.commands.CoreCommandService;
@@ -34,7 +37,6 @@ import dev.rono.permissions.core.commands.PexCloudCommands;
 import dev.rono.permissions.runtime.startup.BukkitPermissionBootstrapReporter;
 import dev.rono.permissions.spigot.platform.BukkitPlatformAdapter;
 import dev.rono.permissions.spigot.platform.BukkitPlatformScheduler;
-import dev.rono.permissions.spigot.platform.SpigotEventPublisher;
 import dev.rono.permissions.spigot.platform.SpigotPlatformBridge;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -44,6 +46,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -87,7 +90,8 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 	private SpigotPlatformBridge platformBridge;
 	private BukkitPlatformAdapter platformAdapter;
 	private BukkitPlatformScheduler platformScheduler;
-	private SpigotEventPublisher eventPublisher;
+	private SwitchablePlatformEventBus switchableEventBus;
+	private LegacyBridgeController legacyBridge;
 	private PlatformRuntime platformRuntime;
 
 	public SpigotPermissionsExPlugin() {
@@ -193,8 +197,9 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 			platformBridge = new SpigotPlatformBridge(this);
 			platformAdapter = new BukkitPlatformAdapter(platformBridge);
 			platformScheduler = new BukkitPlatformScheduler(this);
-			eventPublisher = new SpigotEventPublisher(this, () -> permissionsManager);
-			platformRuntime = PlatformRuntime.of(platformAdapter, eventPublisher, platformScheduler);
+			switchableEventBus = new SwitchablePlatformEventBus();
+			legacyBridge = new LegacyBridgeController(this, switchableEventBus, getLogger());
+			platformRuntime = PlatformRuntime.of(platformAdapter, switchableEventBus, platformScheduler);
 			if (!dev.rono.permissions.spigot.compat.ServerVersions.isWithinSupportedRange(getServer())) {
 				getLogger().warning("Minecraft version " + dev.rono.permissions.spigot.compat.ServerVersions.minecraftVersion(getServer())
 						+ " is outside the tested range "
@@ -247,12 +252,13 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 
 			var permissionsExApi =
 					((SpigotPermissionManager) this.permissionsManager).permissionsExApi();
-			this.getServer().getServicesManager().register(PermissionManager.class, this.permissionsManager, this, ServicePriority.Normal);
 			this.getServer().getServicesManager().register(
 					PermissionsExApi.class,
 					permissionsExApi,
 					this,
 					ServicePriority.Normal);
+			maybeActivateLegacyBridge("startup scan");
+			this.getServer().getPluginManager().registerEvents(new LegacyBridgeLoadListener(), this);
 			regexPerms = new RegexPermissions(this);
 			superms = new SuperpermsListener(this);
 			this.getServer().getPluginManager().registerEvents(superms, this);
@@ -281,9 +287,13 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 						((SpigotPermissionManager) this.permissionsManager).permissionsExApi();
 				this.permissionsManager.end();
 				this.getServer().getServicesManager().unregister(PermissionsExApi.class, permissionsExApi);
-				this.getServer().getServicesManager().unregister(PermissionManager.class, this.permissionsManager);
+				if (legacyBridge != null && legacyBridge.isActive()) {
+					this.getServer().getServicesManager().unregister(PermissionManager.class, this.permissionsManager);
+				}
 				this.permissionsManager = null;
 			}
+			this.legacyBridge = null;
+			this.switchableEventBus = null;
             this.cloudManager = null;
             this.coreCommandService = null;
 
@@ -429,7 +439,9 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 
 	@Override
 	public void callEvent(PermissionEvent event) {
-		eventPublisher.callEvent(event);
+		if (legacyBridge != null && legacyBridge.isActive()) {
+			getServer().getPluginManager().callEvent(event);
+		}
 	}
 
 	public PlatformRuntime getPlatformRuntime() {
@@ -438,6 +450,32 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 
 	public PermissionManager getPermissionsManager() {
 		return permissionsManager;
+	}
+
+	/**
+	 * Activates legacy hook compatibility when a classic plugin is present or reaches legacy entry points.
+	 */
+	public void ensureLegacyBridgeForHook(String reason) {
+		if (legacyBridge != null) {
+			legacyBridge.activate(reason);
+		}
+	}
+
+	private void maybeActivateLegacyBridge(String scanContext) {
+		var hookPlugin = LegacyHookPluginDetector.findHookPlugin(getServer().getPluginManager(), this);
+		if (hookPlugin != null) {
+			legacyBridge.activate("detected hook plugin '" + hookPlugin.getName() + "' (" + scanContext + ")");
+		}
+	}
+
+	private final class LegacyBridgeLoadListener implements Listener {
+		@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+		public void onPluginEnable(PluginEnableEvent event) {
+			if (event.getPlugin() == SpigotPermissionsExPlugin.this) {
+				return;
+			}
+			maybeActivateLegacyBridge("plugin enable: " + event.getPlugin().getName());
+		}
 	}
 
 	public boolean has(Player player, String permission) {

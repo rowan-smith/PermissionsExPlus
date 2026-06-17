@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Service registry for Bungee/Waterfall (no Bukkit {@code ServicesManager}).
  *
- * <p>Hook plugins should use {@link PermissionsEx#getApi()}.</p>
+ * <p>Hook plugins should use {@link PermissionsEx#getApi()}. Legacy {@link PermissionManager}
+ * registration is deferred until a hook plugin is detected or legacy entry points are used.</p>
  */
 public final class ProxyPermissionServices {
     private static final AtomicReference<PermissionsExApi> PERMISSIONS_EX_API = new AtomicReference<>();
@@ -17,9 +18,18 @@ public final class ProxyPermissionServices {
 
     private ProxyPermissionServices() {}
 
-    public static void register(PermissionsExApi api, PermissionManager manager) {
+    public static void registerModern(PermissionsExApi api) {
         PERMISSIONS_EX_API.set(Objects.requireNonNull(api, "api"));
+    }
+
+    public static void activateLegacy(PermissionManager manager) {
         PERMISSION_MANAGER.set(Objects.requireNonNull(manager, "manager"));
+    }
+
+    /** Registers both modern and legacy surfaces (tests and forced compatibility). */
+    public static void register(PermissionsExApi api, PermissionManager manager) {
+        registerModern(api);
+        activateLegacy(manager);
     }
 
     public static void unregister() {
@@ -28,7 +38,11 @@ public final class ProxyPermissionServices {
     }
 
     public static boolean isRegistered() {
-        return PERMISSIONS_EX_API.get() != null && PERMISSION_MANAGER.get() != null;
+        return PERMISSIONS_EX_API.get() != null;
+    }
+
+    public static boolean isLegacyActive() {
+        return PERMISSION_MANAGER.get() != null;
     }
 
     public static PermissionsExApi permissionsExApi() {

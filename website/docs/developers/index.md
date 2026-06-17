@@ -38,7 +38,7 @@ The website is intentionally thin — detailed API signatures live in Javadoc. T
 | API | Package | When | Reference |
 |-----|---------|------|-----------|
 | **Modern** | `dev.rono.permissions.api.*` | New plugins | [Modern API](/developers/api/modern) |
-| **Legacy** | `ru.tehkode.permissions.*` | Existing PEX 1.x plugins | [Legacy API](/developers/api/legacy) |
+| **Legacy** | `ru.tehkode.permissions.*` | PermissionsEx 1.23.4 hook plugins | [Legacy API](/developers/api/legacy) |
 
 Both talk to the same runtime manager on game servers.
 

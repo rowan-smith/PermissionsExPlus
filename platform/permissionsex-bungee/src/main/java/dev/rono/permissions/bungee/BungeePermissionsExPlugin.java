@@ -11,6 +11,7 @@ import dev.rono.permissions.core.commands.CoreCloudPlatform;
 import dev.rono.permissions.core.commands.CoreCommandService;
 import dev.rono.permissions.core.commands.PexCloudCommands;
 import dev.rono.permissions.proxy.commands.ProxyConfigBridge;
+import dev.rono.permissions.runtime.legacy.ProxyLegacyBridgeController;
 import dev.rono.permissions.runtime.startup.BungeePermissionBootstrapReporter;
 import dev.rono.permissions.runtime.startup.ProxyPlatformInitializer;
 import net.md_5.bungee.api.CommandSender;
@@ -33,12 +34,13 @@ import java.util.function.Function;
 /**
  * Bungee bootstrap wiring the permission engine through {@link PlatformRuntime}.
  */
-public class BungeePermissionsExPlugin extends Plugin {
+public class BungeePermissionsExPlugin extends Plugin implements PermissionsEx.ProxyLegacyBridgeHost {
     private PermissionManager manager;
     private BungeePermissionsExConfig config;
     private CoreCommandService commandService;
     private StrippingBungeeCommandManager<CommandSender> cloudManager;
     private PlatformRuntime platformRuntime;
+    private ProxyLegacyBridgeController legacyBridge;
 
     @Override
     public void onEnable() {
@@ -49,6 +51,9 @@ public class BungeePermissionsExPlugin extends Plugin {
             var startup = ProxyPlatformInitializer.start(getDataFolder(), getLogger(), platformRuntime);
             this.config = startup.config();
             this.manager = startup.manager();
+            this.legacyBridge = startup.legacyBridge();
+            PermissionsEx.registerBridgeHost(this);
+            maybeActivateLegacyBridge("startup scan");
             getProxy().getPluginManager().registerListener(this, new BungeePexPermissionBridge(manager));
             this.cloudManager = new StrippingBungeeCommandManager<>(
                     this,
@@ -75,8 +80,10 @@ public class BungeePermissionsExPlugin extends Plugin {
 
     @Override
     public void onDisable() {
+        PermissionsEx.clearBridgeHost();
         ProxyPlatformInitializer.shutdown(manager instanceof DefaultPermissionManager dpm ? dpm : null);
         manager = null;
+        legacyBridge = null;
         commandService = null;
         cloudManager = null;
         platformRuntime = null;
@@ -89,6 +96,20 @@ public class BungeePermissionsExPlugin extends Plugin {
 
     public PlatformRuntime getPlatformRuntime() {
         return platformRuntime;
+    }
+
+    @Override
+    public void ensureLegacyBridgeForHook(String reason) {
+        if (legacyBridge != null) {
+            legacyBridge.activate(reason, getLogger());
+        }
+    }
+
+    private void maybeActivateLegacyBridge(String scanContext) {
+        var hook = BungeeLegacyHookPluginDetector.findHook(getProxy().getPluginManager(), this);
+        if (hook != null) {
+            legacyBridge.activate("detected hook plugin '" + hook.name() + "' (" + scanContext + ")", getLogger());
+        }
     }
 
     private final class BungeeSenderAdapter implements CoreCloudCommandRegistrar.SenderAdapter<CommandSender> {

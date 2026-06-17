@@ -1,141 +1,170 @@
 ---
 title: Rank Commands
-description: Promote and demote players on rank ladders in PermissionsExPlus.
+description: Manage rank ladders and promote or demote players in PermissionsExPlus.
 slug: /commands/ranks
 ---
 
 **Rank ladders** move players between groups in a defined order — ideal for staff progression, RPG ranks, or automated promotions.
 
+PEX registers **`modern`** (default) or **`classic`** command trees. This page documents **modern ladder commands first**; [classic shortcuts](#classic-promote-and-demote) remain available when `command-framework: classic`.
+
 ---
 
 ## How ladders work
 
-1. Assign each group a **rank number** on a named **ladder**
-2. Lower number = lower rank
-3. `/pex promote` moves the player to the **next higher** group on the ladder
-4. `/pex demote` moves them **down**
+1. Each group on a ladder has a **rank number** (lower = lower rank).
+2. **`/pex ladder <ladder> promote <user>`** moves the player to the **next higher** group on that ladder.
+3. **`/pex ladder <ladder> demote <user>`** moves them **down**.
 
 ```
 Ladder "staff":  trainee (1) → helper (2) → moderator (3) → admin (4)
 ```
 
+Hook plugins should use [`LadderManager`](/developers/api/modern#laddermanager) (`promote` / `demote`) — not top-level `/pex promote` commands.
+
 ---
 
-## `/pex group <group> rank`
+## Modern: list ladders
 
-**Syntax:** `/pex group <group> rank [rank] [ladder]`
+**Syntax:** `/pex ladders` · `/pex ladder`
 
-Assign or view a group's position on a ladder.
-
-| Argument | Description |
-|----------|-------------|
-| `rank` | Integer position (1 = lowest) |
-| `ladder` | Ladder name (any string) |
+Lists every known rank ladder.
 
 ```text
-/pex group trainee rank 1 staff
-/pex group helper rank 2 staff
-/pex group moderator rank 3 staff
-/pex group admin rank 4 staff
-
-/pex group trainee rank staff
-```
-
-You can have multiple ladders:
-
-```text
-/pex group wood rank 1 gathering
-/pex group stone rank 2 gathering
-/pex group iron rank 3 gathering
+/pex ladders
+/pex ladder
 ```
 
 ---
 
-## `/pex promote`
+## Modern: ladder info
 
-**Syntax:** `/pex promote <user> [ladder]`
+**Syntax:** `/pex ladder <ladder>` · `/pex ladder <ladder> info`
 
-Promotes the user to the next group on the ladder.
-
-```text
-/pex promote Steve staff
-/pex promote NewMod staff
-```
-
-If `ladder` is omitted, uses the default ladder.
-
-**Shortcut** (no `/pex` prefix):
+Shows groups and ranks on a ladder.
 
 ```text
-/promote Steve
-/promote Steve staff
+/pex ladder staff
+/pex ladder staff info
 ```
 
 ---
 
-## `/pex demote`
+## Modern: manage ladder groups
 
-**Syntax:** `/pex demote <user> [ladder]`
-
-Demotes the user to the previous group on the ladder.
-
-```text
-/pex demote Steve staff
-```
-
-**Shortcut:**
+| Task | Command |
+|------|---------|
+| List groups on ladder | `/pex ladder <ladder> groups list` |
+| Add group to ladder | `/pex ladder <ladder> groups add <group>` |
+| Remove group from ladder | `/pex ladder <ladder> groups remove <group>` |
+| Move group to rank | `/pex ladder <ladder> groups move <group> <rank>` |
 
 ```text
-/demote Steve
-/demote Steve staff
+/pex ladder staff groups list
+/pex ladder staff groups add helper
+/pex ladder staff groups move helper 2
+/pex ladder staff groups remove trainee
 ```
+
+Adding a group assigns the next free rank automatically. Use **move** to reorder.
 
 ---
 
-## Full staff ladder setup
+## Modern: promote and demote
+
+**Syntax:**
+
+```text
+/pex ladder <ladder> promote <user>
+/pex ladder <ladder> demote <user>
+```
+
+```text
+/pex ladder staff promote Steve
+/pex ladder staff demote Steve
+```
+
+Requirements:
+
+- The player must already belong to a group on the ladder.
+- Promote fails at the highest rank; demote fails at the lowest.
+
+> **Modern framework does not register** `/pex promote`, `/pex demote`, `/promote`, or `/demote`. Use the ladder subcommands above. See [Command mapping — ranks](/commands/command-mapping#ranks--ladders).
+
+---
+
+## Full staff ladder setup (modern)
 
 ```text
 /pex group trainee create default
-/pex group trainee rank 1 staff
-/pex group trainee weight 20
-/pex group trainee prefix &7[Trainee]
-/pex group trainee add essentials.help
+/pex group trainee options set weight 20 --world global
+/pex group trainee options set prefix "&7[Trainee]" --world global
+/pex group trainee permissions add essentials.help
 
 /pex group helper create trainee
-/pex group helper rank 2 staff
-/pex group helper weight 40
-/pex group helper prefix &a[Helper]
-/pex group helper add essentials.tp
+/pex group helper options set weight 40 --world global
+/pex group helper options set prefix "&a[Helper]" --world global
+/pex group helper permissions add essentials.tp
 
 /pex group moderator create helper
-/pex group moderator rank 3 staff
-/pex group moderator weight 60
-/pex group moderator prefix &9[Mod]
-/pex group moderator add essentials.kick
-/pex group moderator add essentials.mute
+/pex group moderator options set weight 60 --world global
+/pex group moderator options set prefix "&9[Mod]" --world global
+/pex group moderator permissions add essentials.kick
 
 /pex group admin create moderator
-/pex group admin rank 4 staff
-/pex group admin weight 100
-/pex group admin prefix &c[Admin]
-/pex group admin add permissions.*
-/pex group admin add '*'
+/pex group admin options set weight 100 --world global
+/pex group admin options set prefix "&c[Admin]" --world global
+/pex group admin permissions add permissions.*
 
-/pex user NewHire group set trainee
-/pex promote NewHire staff
+/pex ladder staff groups add trainee
+/pex ladder staff groups add helper
+/pex ladder staff groups add moderator
+/pex ladder staff groups add admin
+
+/pex user NewHire groups set trainee
+/pex ladder staff promote NewHire
 ```
 
 ---
 
-## Notes
+## Classic: group rank
 
-- A player must already be on a group that has a rank on the ladder
-- Promote fails if the player is already at the highest rank
-- Demote fails at the lowest rank
-- Rank changes **replace** the player's group on the ladder (via group set internally)
+When using **`command-framework: classic`**, assign ranks with:
+
+**Syntax:** `/pex group <group> rank [rank] [ladder]`
+
+```text
+/pex group trainee rank 1 staff
+/pex group helper rank 2 staff
+/pex group trainee rank staff
+```
+
+---
+
+## Classic promote and demote
+
+Available only with **`command-framework: classic`** (or `legacy` / `old`):
+
+```text
+/pex promote <user> [ladder]
+/pex demote <user> [ladder]
+/promote <user> [ladder]
+/demote <user> [ladder]
+```
+
+If `ladder` is omitted, the **default** ladder is used.
+
+```text
+/pex promote Steve staff
+/promote Steve staff
+/pex demote Steve
+```
+
+---
 
 ## Related
 
-- [Group commands](/commands/groups/) — `rank` subcommand
+- [Command mapping](/commands/command-mapping) — full modern ↔ classic table
+- [Group commands](/commands/groups/) — create groups and options
 - [Common Setups](/guides/recipes/) — staff hierarchy recipe
-- [Inheritance](/concepts/inheritance/) — groups still inherit permissions
+- [Modern API — LadderManager](/developers/api/modern#laddermanager) — programmatic promote/demote

@@ -43,7 +43,6 @@ public final class BukkitPermissionBootstrapReporter {
                 + InternalPermissionManager.require(manager).getPlatform().getClass().getSimpleName());
         log.info(PREFIX + "Core engine: started");
         logModernApi(plugin, log);
-        log.info(PREFIX + "API: legacy v1 compatibility enabled");
         log.info(PREFIX + "Context resolvers: world, server, static");
         log.info(PREFIX + "Storage: " + manager.getBackend().diagnosticLabel());
         logConsumerScan(plugin, log);

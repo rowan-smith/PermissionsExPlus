@@ -65,7 +65,7 @@ export default function CommandSearch(): JSX.Element {
           ref={inputRef}
           className={styles.input}
           type="search"
-          placeholder="e.g. group add, user check, reload, promote…"
+          placeholder="e.g. ladder promote, user permissions add, backend export…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search commands"
@@ -110,7 +110,7 @@ export default function CommandSearch(): JSX.Element {
 
       {!query.trim() && (
         <div className={styles.quickTags}>
-          {['reload', 'group create', 'user add', 'promote', 'worlds', 'import', 'export'].map((tag) => (
+          {['reload', 'group create', 'user permissions add', 'ladder promote', 'backend export', 'hierarchy'].map((tag) => (
             <button
               key={tag}
               type="button"

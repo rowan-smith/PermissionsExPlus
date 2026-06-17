@@ -49,6 +49,5 @@ final class CoreCloudAnnotationCommands {
         parser.parse(new ModernSystemCommand<>(context));
         parser.parse(new ModernBackendCommand<>(context));
         parser.parse(new ModernContextCommand<>(context));
-        parser.parse(new ModernPromotionCommand<>(context));
     }
 }

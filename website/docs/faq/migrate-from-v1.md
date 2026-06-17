@@ -1,31 +1,31 @@
 ---
-title: Migrating from Version 1
-description: Upgrade from PermissionsExPlus 1.24.x to 3.0.0-SNAPSHOT — a new major line with full backwards compatibility.
+title: Migrating from PermissionsEx 1.23.4
+description: Upgrade from PermissionsEx 1.23.4 to PermissionsExPlus 3.0.0-SNAPSHOT — full backwards compatibility for data, commands, and hook plugins.
 slug: /faq/migrate-from-v1
 ---
 
-PermissionsExPlus **3.0.0-SNAPSHOT** begins a **new major version line**. It is a deliberate fresh start for the project — new defaults, documentation, and API investment — while keeping **full backwards compatibility** with Version 1 servers, data, commands, and hook plugins.
+PermissionsExPlus **3.0.0-SNAPSHOT** is the first release line of this fork. The supported upgrade path is from the last upstream **PermissionsEx 1.23.4** release to **PermissionsExPlus 3.0.0-SNAPSHOT** (then `3.0.0` stable when published).
 
-If you are on **1.24.x** (the last Version 1 release), you can upgrade in place. No permission data rewrite is required.
+If you are on **PermissionsEx 1.23.4**, you can upgrade in place. No permission data rewrite is required.
 
-> **Not on PermissionsExPlus yet?** See [Migrate from other plugins](/faq/migration) for original PEX, LuckPerms, GroupManager, and similar.
+> **Not on PermissionsEx yet?** See [Migrate from other plugins](/faq/migration) for LuckPerms, GroupManager, and similar.
 
 ---
 
 ## Version numbering
 
-| Line | Maven / jar versions | Status |
-|------|----------------------|--------|
-| **Version 1** | `1.23.x` – **`1.24.x`** (latest: `1.24.0`) | Maintenance ended — upgrade to Version 3 |
-| **Version 3** | **`3.0.0-SNAPSHOT`** → `3.0.0` (stable) | Current — new start |
+| Project | Last release | Next release | Notes |
+|---------|--------------|--------------|-------|
+| **PermissionsEx** (upstream) | **`1.23.4`** | — | Original project; unmaintained |
+| **PermissionsExPlus** (this fork) | — | **`3.0.0-SNAPSHOT`** → `3.0.0` | New major line; not a `1.24` or `2.0` continuation |
 
-The jump **`1.24.x` → `3.0.0-SNAPSHOT`** is intentional. Version 3 resets the major number to signal a new chapter for PermissionsExPlus — not a missing `1.25` or `2.0` release. Earlier `1.23.x` builds are part of the same Version 1 line and follow the same upgrade path.
+The jump **`PermissionsEx 1.23.4` → `PermissionsExPlus 3.0.0-SNAPSHOT`** is intentional. PermissionsExPlus resets the major version to mark a new maintained chapter — not a missing upstream release.
 
 ---
 
 ## Backwards compatibility promise
 
-Version 3 is a **new start**, not a breaking rewrite. The following carry over from 1.24.x without conversion:
+PermissionsExPlus 3.0.0 is a **new start**, not a breaking rewrite. The following carry over from **PermissionsEx 1.23.4** without conversion:
 
 | Area | Compatible? | Notes |
 |------|-------------|-------|
@@ -39,51 +39,53 @@ Version 3 is a **new start**, not a breaking rewrite. The following carry over f
 | Modern `dev.rono.*` hook plugins | **Yes** | Active API surface |
 | Vault consumers | **Yes** | Unchanged integration |
 
-What changes is the **version label**, **documentation focus**, and **new Version 3 features** — not your existing permission data.
+What changes is the **project name**, **version label**, **documentation focus**, and **new PermissionsExPlus features** — not your existing permission data.
 
 ---
 
-## What is new in Version 3
+## What is new in PermissionsExPlus 3.0
 
 ### Philosophy
 
-- **New major line** — `3.0.0-SNAPSHOT` is the development baseline; `3.0.0` will be the first stable Version 3 release
-- **Backwards compatible by default** — 1.24.x servers upgrade without data migration
+- **New major line** — `3.0.0-SNAPSHOT` is the development baseline; `3.0.0` will be the first stable PermissionsExPlus release
+- **Backwards compatible by default** — PermissionsEx 1.23.4 servers upgrade without data migration
 - **Modern-first** — structured commands, export/import workflows, and `dev.rono.permissions.api` are the documented path forward
 - **Legacy preserved** — classic commands and `ru.tehkode.*` hooks remain for existing ecosystems
 
-### Defaults (unchanged from late 1.x, now documented as Version 3 baseline)
+### Defaults (PermissionsEx 1.23.4 vs PermissionsExPlus 3.0.0-SNAPSHOT)
 
-| Area | Version 1 (`1.24.x`) | Version 3 (`3.0.0-SNAPSHOT`) |
-|------|----------------------|------------------------------|
-| Storage backend | H2 `local` | **`local` (H2)** |
-| Command framework | `modern` + `classic` | **`modern`** default |
-| YAML day-to-day storage | Import/migration only | **Import/migration only** |
-| Java runtime | Java 21+ | **Java 21+** |
+| Area | PermissionsEx `1.23.4` | PermissionsExPlus `3.0.0-SNAPSHOT` |
+|------|------------------------|-------------------------------------|
+| Storage backend | YAML / file typical | **`local` (H2)** default |
+| Command framework | Classic only | **`modern`** default (+ classic) |
+| YAML day-to-day storage | Common | **Import/migration** into H2 |
+| Java runtime | Java 8+ historically | **Java 21+** required |
 
-### New in Version 3
+### New in PermissionsExPlus 3.0
 
 - Comprehensive documentation site (commands, import/export, command mapping)
 - **`/pex backend export`** — YAML snapshot of the active backend (modern framework)
 - **`/pex backend list`**, **`switch`**, **`import`** — explicit backend admin
 - [Import & Export](/guides/import-export) and [Command mapping](/commands/command-mapping) guides
 - **`dev.rono.permissions.api`** as the primary integration surface for new plugins
+- Lazy legacy hook API activation (only when hook plugins need it)
 
 ---
 
 ## Breaking changes
 
-Version 3 intentionally minimizes breaks. The items below are administrative, not data-format changes:
+PermissionsExPlus 3.0 intentionally minimizes breaks. The items below are administrative, not data-format changes:
 
 | Change | Impact | What to do |
 |--------|--------|------------|
-| Jar version in filename | `PermissionsExPlus-1.24.x.jar` → `PermissionsExPlus-3.0.0-SNAPSHOT.jar` | Remove old jars; keep one PEX jar |
+| Jar / project name | `PermissionsEx-1.23.4.jar` → `PermissionsExPlus-3.0.0-SNAPSHOT.jar` | Remove old jars; keep one PEX jar |
 | SNAPSHOT builds | Pre-release identifier in version string | Use for testing; pin to `3.0.0` stable when released |
 | `backend: file` in config | Normalized to `local` at load time | Set `backend: local` explicitly when convenient |
 | Framework-specific admin commands | `config`, `convert uuid` = classic; `export` = modern | See [Command mapping](/commands/command-mapping) |
-| `@Deprecated(since = "1.24.x")` on select legacy methods | Compile-time warnings only | Adopt [Modern API](/developers/api/modern) for new code |
+| `@Deprecated(since = "3.0.0")` on select legacy methods | Compile-time warnings only | Adopt [Modern API](/developers/api/modern) for new code |
+| Java 21+ required | PermissionsEx 1.23.4 ran on older Java | Upgrade server JVM before installing PEX+ |
 
-**No permission data format break** between `1.24.x` and `3.0.0-SNAPSHOT`. Your H2 database, SQL data, and YAML imports remain valid.
+**No permission data format break** between **PermissionsEx 1.23.4** and **PermissionsExPlus 3.0.0-SNAPSHOT**. Your H2 database, SQL data, and YAML imports remain valid.
 
 ---
 
@@ -91,30 +93,30 @@ Version 3 intentionally minimizes breaks. The items below are administrative, no
 
 ### Server platforms
 
-| Platform | 1.24.x | 3.0.0-SNAPSHOT |
-|----------|--------|----------------|
+| Platform | PermissionsEx 1.23.4 | PermissionsExPlus 3.0.0-SNAPSHOT |
+|----------|------------------------|----------------------------------|
 | Spigot / Paper | Yes | Yes |
 | BungeeCord / Waterfall | Yes | Yes |
-| Velocity | Yes | Yes |
-| Sponge | Yes | Yes |
-| Minecraft `1.8.8` – `1.26.1` | Yes | Yes |
+| Velocity | — | Yes |
+| Sponge | — | Yes |
+| Minecraft `1.8.8` – `1.26.1` | Limited by upstream | Yes |
 
 Details: [Platform Compatibility](/developers/compatibility)
 
 ### Hook plugins
 
-| Plugin type | 1.24.x | 3.0.0-SNAPSHOT |
-|-------------|--------|----------------|
+| Plugin type | PermissionsEx 1.23.4 | PermissionsExPlus 3.0.0-SNAPSHOT |
+|-------------|------------------------|----------------------------------|
 | Legacy `ru.tehkode.*` | Works | Works — [Legacy API](/developers/api/legacy) |
-| Modern `dev.rono.*` | Works | Works — [Modern API](/developers/api/modern) |
+| Modern `dev.rono.*` | — | Works — [Modern API](/developers/api/modern) |
 | Vault consumers | Works | Works |
 
 ### Command frameworks
 
-| Framework | 1.24.x | 3.0.0-SNAPSHOT |
-|-----------|--------|----------------|
-| `modern` (default) | Yes | Yes |
-| `classic` / `legacy` / `old` | Yes | Yes — `config.yml` |
+| Framework | PermissionsEx 1.23.4 | PermissionsExPlus 3.0.0-SNAPSHOT |
+|-----------|----------------------|----------------------------------|
+| Classic | Yes (only) | Yes — `config.yml` |
+| `modern` (default) | — | Yes |
 
 ---
 
@@ -125,8 +127,8 @@ Details: [Platform Compatibility](/developers/compatibility)
 ```text
 plugins/PermissionsEx/
 ├── config.yml
-├── permissions.mv.db
-└── permissions.yml        # only if not yet migrated
+├── permissions.yml        # typical on 1.23.4
+└── permissions.mv.db        # if you already migrated to H2 locally
 ```
 
 For SQL backends, dump the database too.
@@ -134,9 +136,10 @@ For SQL backends, dump the database too.
 ### 2. Replace the jar
 
 1. Stop the server
-2. Remove **all** old PEX jars (`PermissionsEx.jar`, `PermissionsExPlus-1.24.*.jar`, `PermissionsExPlus-1.23.*.jar`, module-specific jars)
+2. Remove **all** old PEX jars (`PermissionsEx.jar`, `PermissionsEx-1.23.*.jar`, module-specific jars)
 3. Install **`PermissionsExPlus-3.0.0-SNAPSHOT.jar`** (build from source or CI artifact until a GitHub Release is published)
-4. Start the server
+4. Ensure the server runs **Java 21+**
+5. Start the server
 
 ### 3. Verify
 
@@ -147,7 +150,7 @@ For SQL backends, dump the database too.
 /pex hierarchy
 ```
 
-`/pex version` should report **3.0.0-SNAPSHOT**. `/pex backend` should show your expected backend.
+`/pex version` should report **3.0.0-SNAPSHOT**. `/pex backend` should show your expected backend (`local` after YAML import, or your SQL backend).
 
 ### 4. Review config (optional)
 
@@ -171,30 +174,26 @@ See [Configuration](/configuration) and [Example files](/guides/example-configs)
 | Groups intact | `/pex groups list` |
 | Users intact | `/pex users list` |
 | Permissions resolve | `/pex user <name> check essentials.home` |
-| Prefixes / weight | `/pex user <name> group list` |
+| Prefixes / weight | `/pex user <name> groups list` |
 | UUID keys (if needed) | `/pex convert uuid` (classic framework) |
 
 ---
 
 ## Common scenarios
 
-### Upgrading from 1.23.x (earlier Version 1)
+### I used YAML (`permissions.yml` only)
 
-Same process as 1.24.x. The Version 1 line includes all `1.23.x` and `1.24.x` builds. Back up, replace the jar, verify with `/pex hierarchy`.
-
-### I used YAML (`backend: file`)
-
-Configs with `backend: file` are normalized to `local` automatically. YAML path is preserved as `migration-source`.
+Leave your data in `plugins/PermissionsEx/permissions.yml`. On first startup with default `backend: local`, PEX+ imports it into H2 and renames the file to **`permissions.yml.migrated`**.
 
 ### I already use H2 (`permissions.mv.db`)
 
-No data migration. Drop in the Version 3 jar and start.
+No data migration. Drop in the PermissionsExPlus jar and start.
 
 ### My staff know classic `/pex` syntax
 
-Keep `command-framework: classic` in `config.yml`. Version 3 features like `/pex backend export` require `modern` — switch temporarily or see [Import & Export](/guides/import-export).
+Keep `command-framework: classic` in `config.yml`. PermissionsExPlus features like `/pex backend export` require `modern` — switch temporarily or see [Import & Export](/guides/import-export).
 
-### I maintain a hook plugin from 1.24.x
+### I maintain a hook plugin from PermissionsEx 1.23.4
 
 Typical legacy plugins work without recompile. New development should use [Modern API](/developers/api/modern):
 
@@ -204,7 +203,7 @@ Typical legacy plugins work without recompile. New development should use [Moder
 
 ### I run a proxy network
 
-Upgrade **every** backend and proxy to Version 3. Use a shared **`sql`** backend. See [Network proxy setup](/guides/recipes/#network-proxy-bungee--backend).
+Upgrade **every** backend and proxy to PermissionsExPlus 3.0. Use a shared **`sql`** backend. See [Network proxy setup](/guides/recipes/#network-proxy-bungee--backend).
 
 ---
 
@@ -212,7 +211,7 @@ Upgrade **every** backend and proxy to Version 3. Use a shared **`sql`** backend
 
 1. Stop the server
 2. Restore backed-up `plugins/PermissionsEx/`
-3. Reinstall your last **1.24.x** jar (e.g. `PermissionsExPlus-1.24.0.jar`)
+3. Reinstall **`PermissionsEx-1.23.4.jar`** from the [original PermissionsEx project](https://github.com/PEXPlugins/PermissionsEx)
 4. Start the server
 
 > Run only one PEX version per server process.

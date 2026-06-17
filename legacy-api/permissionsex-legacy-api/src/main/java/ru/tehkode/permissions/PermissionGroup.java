@@ -338,7 +338,7 @@ public interface PermissionGroup extends PermissionEntity, Comparable<Permission
      * @return array of own parent group names
      * @deprecated Use {@link PermissionEntity#getOwnParentIdentifiers(String)} instead.
      */
-    @Deprecated(since = "1.24.x")    String[] getParentGroupsNames(String worldName);
+    @Deprecated(since = "3.0.0")    String[] getParentGroupsNames(String worldName);
 
     /**
      * Returns direct parent group names in the global context.
@@ -346,7 +346,7 @@ public interface PermissionGroup extends PermissionEntity, Comparable<Permission
      * @return array of own parent group names
      * @deprecated Use {@link PermissionEntity#getOwnParentIdentifiers()} instead.
      */
-    @Deprecated(since = "1.24.x")    String[] getParentGroupsNames();
+    @Deprecated(since = "3.0.0")    String[] getParentGroupsNames();
 
     /**
      * Replaces direct parent groups by name in the given world context.
@@ -355,7 +355,7 @@ public interface PermissionGroup extends PermissionEntity, Comparable<Permission
      * @param worldName    world context, or {@code null} for the global context
      * @deprecated Use {@link PermissionEntity#setParentsIdentifier(List, String)} instead.
      */
-    @Deprecated(since = "1.24.x")    void setParentGroups(List<String> parentGroups, String worldName);
+    @Deprecated(since = "3.0.0")    void setParentGroups(List<String> parentGroups, String worldName);
 
     /**
      * Replaces direct parent groups by name in the global context.
@@ -363,7 +363,7 @@ public interface PermissionGroup extends PermissionEntity, Comparable<Permission
      * @param parentGroups new parent group names
      * @deprecated Use {@link PermissionEntity#setParentsIdentifier(List)} instead.
      */
-    @Deprecated(since = "1.24.x")    void setParentGroups(List<String> parentGroups);
+    @Deprecated(since = "3.0.0")    void setParentGroups(List<String> parentGroups);
 
     /**
      * Replaces direct parent groups in the given world context.
@@ -372,7 +372,7 @@ public interface PermissionGroup extends PermissionEntity, Comparable<Permission
      * @param worldName    world context, or {@code null} for the global context
      * @deprecated Use {@link PermissionEntity#setParents(List, String)} instead.
      */
-    @Deprecated(since = "1.24.x")    void setParentGroupObjects(List<PermissionGroup> parentGroups, String worldName);
+    @Deprecated(since = "3.0.0")    void setParentGroupObjects(List<PermissionGroup> parentGroups, String worldName);
 
     /**
      * Replaces direct parent groups in the global context.
@@ -380,7 +380,7 @@ public interface PermissionGroup extends PermissionEntity, Comparable<Permission
      * @param parentGroups new parent group objects
      * @deprecated Use {@link PermissionEntity#setParents(List)} instead.
      */
-    @Deprecated(since = "1.24.x")    void setParentGroupObjects(List<PermissionGroup> parentGroups);
+    @Deprecated(since = "3.0.0")    void setParentGroupObjects(List<PermissionGroup> parentGroups);
 
     /**
      * Returns parent groups in the given world context, including inherited parents.
@@ -389,7 +389,7 @@ public interface PermissionGroup extends PermissionEntity, Comparable<Permission
      * @return list of parent groups
      * @deprecated Use {@link PermissionEntity#getParents(String)} instead.
      */
-    @Deprecated(since = "1.24.x")    List<PermissionGroup> getParentGroups(String worldName);
+    @Deprecated(since = "3.0.0")    List<PermissionGroup> getParentGroups(String worldName);
 
     /**
      * Returns parent groups in the global context, including inherited parents.
@@ -397,7 +397,7 @@ public interface PermissionGroup extends PermissionEntity, Comparable<Permission
      * @return list of parent groups
      * @deprecated Use {@link PermissionEntity#getParents()} instead.
      */
-    @Deprecated(since = "1.24.x")    List<PermissionGroup> getParentGroups();
+    @Deprecated(since = "3.0.0")    List<PermissionGroup> getParentGroups();
 
     /**
      * Returns all parent groups keyed by world name, including inherited parents.
@@ -405,5 +405,5 @@ public interface PermissionGroup extends PermissionEntity, Comparable<Permission
      * @return map of world name to parent group lists
      * @deprecated Use {@link PermissionEntity#getAllParents()} instead.
      */
-    @Deprecated(since = "1.24.x")    Map<String, List<PermissionGroup>> getAllParentGroups();
+    @Deprecated(since = "3.0.0")    Map<String, List<PermissionGroup>> getAllParentGroups();
 }

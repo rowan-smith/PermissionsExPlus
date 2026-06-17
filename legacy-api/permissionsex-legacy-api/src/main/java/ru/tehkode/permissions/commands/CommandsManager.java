@@ -22,7 +22,7 @@ public interface CommandsManager {
      * @return the no-op {@link Noop#INSTANCE}; never {@code null}
      * @deprecated Compatibility no-op; PEXPlus does not expose a live {@code CommandsManager}.
      */
-    @Deprecated(since = "1.24.x")    static CommandsManager getInstance() {
+    @Deprecated(since = "3.0.0")    static CommandsManager getInstance() {
         return Noop.INSTANCE;
     }
 }

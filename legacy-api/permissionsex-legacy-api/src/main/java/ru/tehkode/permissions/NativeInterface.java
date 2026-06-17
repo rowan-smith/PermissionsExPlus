@@ -5,7 +5,7 @@ import ru.tehkode.permissions.events.PermissionEvent;
 import java.util.UUID;
 
 /**
- * Classic PermissionsEx host SPI ({@code 1.23.x}-era surface).
+ * Classic PermissionsEx host SPI ({@code PermissionsEx 1.23.4}-era surface).
  *
  * <p>Platform integrations implement this interface to bridge player identity, online status, and
  * event dispatch to the permission engine. Proxy hosts may implement only

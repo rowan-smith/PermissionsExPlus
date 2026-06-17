@@ -34,6 +34,9 @@ public final class SpigotEventPublisher implements PlatformEventBus {
     @Override
     public void publish(PermissionDispatch dispatch) {
         if (dispatch instanceof EntityDispatch ed) {
+            if (!hasEntityListeners()) {
+                return;
+            }
             PermissionEntity entity = resolveEntity(ed.entityIdentifier(), ed.entityType());
             callEvent(new PermissionEntityEvent(
                     ed.sourceId(),
@@ -42,12 +45,23 @@ public final class SpigotEventPublisher implements PlatformEventBus {
             return;
         }
         if (dispatch instanceof SystemDispatch sd) {
+            if (!hasSystemListeners()) {
+                return;
+            }
             callEvent(new PermissionSystemEvent(
                     sd.sourceId(),
                     PermissionSystemEvent.Action.valueOf(sd.mutation().name())));
             return;
         }
         throw new IllegalArgumentException("Unknown dispatch: " + dispatch.getClass().getName());
+    }
+
+    static boolean hasEntityListeners() {
+        return PermissionEntityEvent.getHandlerList().getRegisteredListeners().length > 0;
+    }
+
+    static boolean hasSystemListeners() {
+        return PermissionSystemEvent.getHandlerList().getRegisteredListeners().length > 0;
     }
 
     private PermissionEntity resolveEntity(String identifier, String entityType) {

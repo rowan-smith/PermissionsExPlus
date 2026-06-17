@@ -21,6 +21,8 @@ import dev.rono.permissions.core.commands.CoreCloudPlatform;
 import dev.rono.permissions.core.commands.CoreCommandService;
 import dev.rono.permissions.core.commands.PexCloudCommands;
 import dev.rono.permissions.proxy.commands.ProxyConfigBridge;
+import dev.rono.permissions.bungee.PermissionsEx;
+import dev.rono.permissions.runtime.legacy.ProxyLegacyBridgeController;
 import dev.rono.permissions.runtime.startup.ProxyPlatformInitializer;
 import dev.rono.permissions.runtime.startup.VelocityPermissionBootstrapReporter;
 import dev.rono.permissions.velocity.platform.VelocityPlatformAdapter;
@@ -36,7 +38,7 @@ import java.util.function.Function;
 /**
  * Velocity proxy entry point. Shared proxy bootstrap lives in {@link ProxyPlatformInitializer}.
  */
-public final class VelocityPermissionsExPlugin {
+public final class VelocityPermissionsExPlugin implements PermissionsEx.ProxyLegacyBridgeHost {
     private final ProxyServer server;
     private final PluginContainer pluginContainer;
     private final Logger logger;
@@ -46,6 +48,7 @@ public final class VelocityPermissionsExPlugin {
     private PlatformRuntime platformRuntime;
     private CoreCommandService commandService;
     private StrippingVelocityCommandManager<CommandSource> cloudManager;
+    private ProxyLegacyBridgeController legacyBridge;
 
     @Inject
     public VelocityPermissionsExPlugin(
@@ -74,6 +77,9 @@ public final class VelocityPermissionsExPlugin {
                 platformRuntime);
         config = startup.config();
         manager = startup.manager();
+        legacyBridge = startup.legacyBridge();
+        PermissionsEx.registerBridgeHost(this);
+        maybeActivateLegacyBridge("startup scan");
         cloudManager = new StrippingVelocityCommandManager<>(
                 pluginContainer,
                 server,
@@ -91,6 +97,22 @@ public final class VelocityPermissionsExPlugin {
                 CoreCloudPlatform.PROXY,
                 config.options().current().commandFramework()));
         VelocityPermissionBootstrapReporter.log(this, manager, logger);
+    }
+
+    @Override
+    public void ensureLegacyBridgeForHook(String reason) {
+        if (legacyBridge != null) {
+            legacyBridge.activate(reason, java.util.logging.Logger.getLogger(logger.getName()));
+        }
+    }
+
+    private void maybeActivateLegacyBridge(String scanContext) {
+        var hook = VelocityLegacyHookPluginDetector.findHook(server.getPluginManager(), pluginContainer);
+        if (hook != null) {
+            legacyBridge.activate(
+                    "detected hook plugin '" + hook.name() + "' (" + scanContext + ")",
+                    java.util.logging.Logger.getLogger(logger.getName()));
+        }
     }
 
     @Subscribe
@@ -116,8 +138,10 @@ public final class VelocityPermissionsExPlugin {
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
+        PermissionsEx.clearBridgeHost();
         ProxyPlatformInitializer.shutdown(manager);
         manager = null;
+        legacyBridge = null;
         config = null;
         commandService = null;
         cloudManager = null;

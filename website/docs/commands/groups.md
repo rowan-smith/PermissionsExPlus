@@ -6,30 +6,36 @@ slug: /commands/groups
 
 Groups bundle permissions together. Players inherit a group's permissions when they belong to it. See [Inheritance](/concepts/inheritance/) for parent chains.
 
+PEX registers **`modern`** (default) or **`classic`** command trees. This page documents **modern syntax first**; classic equivalents are in [Command mapping — groups](/commands/command-mapping#group-permissions).
+
+**Context flags (modern):** append `--world <world>` or `--server <name>` where applicable.
+
 ---
 
 ## `/pex groups list`
 
-**Syntax:** `/pex groups list [world]`
+**Syntax:** `/pex groups list [--world <world>]`
 
-Lists all defined groups. Add a world for world-scoped listing.
+Lists all defined groups. Add `--world` for world-scoped listing.
 
 ```text
 /pex groups list
-/pex groups list world_nether
+/pex groups list --world world_nether
 ```
+
+Classic: `/pex groups list [world]`
 
 ---
 
-## `/pex group <group>`
+## `/pex group <group>` / `info`
 
-**Syntax:** `/pex group <group>`
+**Syntax:** `/pex group <group>` · `/pex group <group> info`
 
 Shows group details: parents, weight, prefix, member count.
 
 ```text
 /pex group admin
-/pex group vip
+/pex group vip info
 ```
 
 ---
@@ -65,172 +71,134 @@ Deletes the group. Users in this group are **not** deleted but lose this members
 
 ---
 
-## `/pex group <group> list`
+## Permissions
 
-**Syntax:** `/pex group <group> list [world]`
-
-Lists all permissions assigned to the group (not inherited — use `/pex hierarchy` for the full tree).
+**Syntax:**
 
 ```text
-/pex group admin list
-/pex group vip list world_nether
+/pex group <group> permissions list [--world <world>]
+/pex group <group> permissions add <permission> [--world <world>]
+/pex group <group> permissions remove <permission> [--world <world>]
+/pex group <group> permissions check <permission> [--world <world>]
+/pex group <group> permissions trace <permission> [--world <world>]
+/pex group <group> permissions timed list [--world <world>]
+/pex group <group> permissions timed add <permission> <duration> [--world <world>]
+/pex group <group> permissions timed remove <permission> [--world <world>]
 ```
+
+```text
+/pex group vip permissions add essentials.fly
+/pex group admin permissions add permissions.*
+/pex group builder permissions add worldedit.* --world world_creative
+/pex group vip permissions remove essentials.fly
+/pex group vip permissions check essentials.fly
+/pex group event permissions timed add modifyworld.* 4h
+```
+
+Classic: `/pex group <group> list|add|remove|timed … [world]`
 
 ---
 
-## `/pex group <group> add`
+## Options (weight, prefix, suffix)
 
-**Syntax:** `/pex group <group> add <permission> [world]`
-
-Grants a permission to the group. All members (and child groups via inheritance) receive it.
+**Syntax:**
 
 ```text
-/pex group vip add essentials.fly
-/pex group admin add permissions.*
-/pex group admin add '*'
-/pex group builder add worldedit.* world_creative
-/pex group muted add -chat.use
+/pex group <group> options list [--world <world>]
+/pex group <group> options get <option> [--world <world>]
+/pex group <group> options set <option> <value> [--world <world>]
+/pex group <group> options unset <option> [--world <world>]
 ```
+
+```text
+/pex group admin options set weight 100
+/pex group vip options set weight 10
+/pex group admin options set prefix "&c[Admin]"
+/pex group vip options set prefix "&6[VIP]"
+/pex group staff options set display "Staff Team"
+```
+
+Classic: `/pex group <group> weight|prefix|suffix|set … [world]`
+
+See [Prefix & Meta](/concepts/meta/) and [Weight](/concepts/weight/).
 
 ---
 
-## `/pex group <group> remove`
+## Members
 
-**Syntax:** `/pex group <group> remove <permission> [world]`
-
-Removes a permission from the group's direct list.
+**Syntax:**
 
 ```text
-/pex group vip remove essentials.fly
+/pex group <group> members list
+/pex group <group> members add <user> [--world <world>]
+/pex group <group> members remove <user> [--world <world>]
 ```
-
----
-
-## `/pex group <group> timed add` / `timed remove`
-
-**Syntax:** `/pex group <group> timed add <permission> <lifetime> [world]`
-
-Temporary group-level permission. Expires for the group definition (affects all members).
 
 ```text
-/pex group event timed add modifyworld.* 4h
-/pex group event timed remove modifyworld.*
+/pex group admin members list
+/pex group admin members add Steve
+/pex group admin members remove Steve
 ```
 
----
-
-## `/pex group <group> weight`
-
-**Syntax:** `/pex group <group> weight [value]`
-
-Get or set the group's [weight](/concepts/weight/) (priority for prefix resolution).
-
-```text
-/pex group admin weight
-/pex group admin weight 100
-/pex group vip weight 10
-/pex group default weight 0
-```
-
----
-
-## `/pex group <group> prefix` / `suffix`
-
-**Syntax:** `/pex group <group> prefix [newprefix] [world]`
-
-Set or read the group's chat prefix.
-
-```text
-/pex group admin prefix &c[Admin]
-/pex group vip prefix &6[VIP]
-/pex group mod prefix &7[Mod] &f
-```
-
-See [Prefix & Meta](/concepts/meta/).
-
----
-
-## `/pex group <group> set`
-
-**Syntax:** `/pex group <group> set <option> <value> [world]`
-
-Set a custom option on the group.
-
-```text
-/pex group staff set display "Staff Team"
-```
-
----
-
-## `/pex group <group> users`
-
-**Syntax:** `/pex group <group> users`
-
-Lists all users who belong to this group.
-
-```text
-/pex group admin users
-/pex group vip users
-```
+Classic: `/pex group <group> users` · `/pex group <group> user add <user>`
 
 ---
 
 ## `/pex group <group> parents`
 
-**Syntax:** `/pex group <group> parents [subcommand] [world]`
+**Syntax:** `/pex group <group> parents <subcommand> [--world <world>]`
 
 Manage [inheritance](/concepts/inheritance/) parents.
 
 | Subcommand | Syntax | Action |
 |------------|--------|--------|
-| (none) | `parents` | Show current parents |
 | `list` | `parents list` | List parents |
 | `add` | `parents add <parents...>` | Add parent(s) |
 | `set` | `parents set <parents...>` | Replace all parents |
 | `remove` | `parents remove <parents...>` | Remove parent(s) |
 
 ```text
-/pex group vip parents
 /pex group vip parents list
 /pex group vip parents add default
 /pex group admin parents set vip
 /pex group builder parents remove creative
+/pex group builder parents add creative --world world_creative
 ```
+
+Classic: trailing `[world]` instead of `--world`.
 
 ---
 
-## `/pex group <group> rank`
+## Rank ladders
 
-**Syntax:** `/pex group <group> rank [rank] [ladder]`
-
-Assign a rank number on a [rank ladder](/commands/ranks/).
+Modern framework manages ladder membership via [Rank commands](/commands/ranks):
 
 ```text
-/pex group trainee rank 1 staff
-/pex group helper rank 2 staff
-/pex group moderator rank 3 staff
-/pex group admin rank 4 staff
+/pex ladder staff groups add trainee
+/pex ladder staff groups move helper 2
+/pex ladder staff promote Steve
 ```
+
+Classic shortcut: `/pex group <group> rank [rank] [ladder]`
 
 ---
 
-## Full setup example
+## Full setup example (modern)
 
 ```text
 /pex group default create
-/pex group default weight 0
-/pex group default add modifyworld
-/pex set default group default true
+/pex group default options set weight 0
+/pex group default permissions add modifyworld
 
 /pex group member create default
-/pex group member weight 10
-/pex group member add essentials.sethome
+/pex group member options set weight 10
+/pex group member permissions add essentials.sethome
 
 /pex group admin create member
-/pex group admin weight 100
-/pex group admin add permissions.*
-/pex group admin add '*'
-/pex group admin prefix &c[Admin]
+/pex group admin options set weight 100
+/pex group admin permissions add permissions.*
+/pex group admin permissions add '*'
+/pex group admin options set prefix "&c[Admin]"
 
-/pex user Steve group set admin
+/pex user Steve groups set admin
 ```

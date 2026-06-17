@@ -312,11 +312,11 @@ public class DefaultPermissionGroup extends AbstractPermissionEntity implements 
 	 * @return array of parents group names
 	 * @deprecated See {@link #getParentIdentifiers(String)}
 	 */
-	@Deprecated(since = "1.24.x")	public String[] getParentGroupsNames(String worldName) {
+	@Deprecated(since = "3.0.0")	public String[] getParentGroupsNames(String worldName) {
 		return getParentIdentifiers(worldName).toArray(new String[0]);
 	}
 
-	@Deprecated(since = "1.24.x")	public String[] getParentGroupsNames() {
+	@Deprecated(since = "3.0.0")	public String[] getParentGroupsNames() {
 		return getParentIdentifiers().toArray(new String[0]);
 	}
 
@@ -326,11 +326,11 @@ public class DefaultPermissionGroup extends AbstractPermissionEntity implements 
 	 * @param parentGroups Array of parent groups names to set
 	 * @deprecated See {@link #setParentsIdentifier(List, String)}
 	 */
-	@Deprecated(since = "1.24.x")	public void setParentGroups(List<String> parentGroups, String worldName) {
+	@Deprecated(since = "3.0.0")	public void setParentGroups(List<String> parentGroups, String worldName) {
 		setParentsIdentifier(parentGroups, worldName);
 	}
 
-	@Deprecated(since = "1.24.x")	public void setParentGroups(List<String> parentGroups) {
+	@Deprecated(since = "3.0.0")	public void setParentGroups(List<String> parentGroups) {
 		this.setParentsIdentifier(parentGroups);
 	}
 
@@ -339,11 +339,11 @@ public class DefaultPermissionGroup extends AbstractPermissionEntity implements 
 	 *
 	 * @param parentGroups Array of parent groups objects to set
 	 */
-	@Deprecated(since = "1.24.x")	public void setParentGroupObjects(List<PermissionGroup> parentGroups, String worldName) {
+	@Deprecated(since = "3.0.0")	public void setParentGroupObjects(List<PermissionGroup> parentGroups, String worldName) {
 		setParents(parentGroups, worldName);
 	}
 
-	@Deprecated(since = "1.24.x")	public void setParentGroupObjects(List<PermissionGroup> parentGroups) {
+	@Deprecated(since = "3.0.0")	public void setParentGroupObjects(List<PermissionGroup> parentGroups) {
 		this.setParents(parentGroups);
 	}
 
@@ -354,15 +354,15 @@ public class DefaultPermissionGroup extends AbstractPermissionEntity implements 
 	 * @return unmodifiable list of parent group objects
 	 * @deprecated Use {@link #getParents(String)} instead
 	 */
-	@Deprecated(since = "1.24.x")	public List<PermissionGroup> getParentGroups(String worldName) {
+	@Deprecated(since = "3.0.0")	public List<PermissionGroup> getParentGroups(String worldName) {
 		return getParents(worldName);
 	}
 
-	@Deprecated(since = "1.24.x")	public List<PermissionGroup> getParentGroups() {
+	@Deprecated(since = "3.0.0")	public List<PermissionGroup> getParentGroups() {
 		return this.getParentGroups(null);
 	}
 
-	@Deprecated(since = "1.24.x")	public Map<String, List<PermissionGroup>> getAllParentGroups() {
+	@Deprecated(since = "3.0.0")	public Map<String, List<PermissionGroup>> getAllParentGroups() {
 		return getAllParents();
 	}
 

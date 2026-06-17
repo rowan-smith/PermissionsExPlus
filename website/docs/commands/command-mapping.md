@@ -8,8 +8,10 @@ PEX registers one of two command trees at startup, controlled by `permissions.co
 
 | Value | Framework |
 |-------|-----------|
-| `modern` (default) | Structured subcommands (`permissions`, `groups`, `options`, …) |
+| **`modern` (default)** | Structured subcommands (`permissions`, `groups`, `options`, `ladder`, …) |
 | `classic`, `legacy`, `old` | Original PEX syntax |
+
+The tables below list **modern commands first** in the left column. See [Rank commands](/commands/ranks) for ladder-specific syntax (modern uses `/pex ladder …`, not `/pex promote`).
 
 Check your active framework:
 
@@ -70,10 +72,13 @@ On proxy installs, modern commands also accept `--server <name>` where applicabl
 
 | Task | Modern | Classic |
 |------|--------|---------|
+| List options | `/pex user Steve options list` | — |
 | Set option | `/pex user Steve options set nickname "Big S"` | `/pex user Steve set nickname "Big S"` |
 | Get option | `/pex user Steve options get nickname` | `/pex user Steve get nickname` |
+| Unset option | `/pex user Steve options unset nickname` | — |
 | Set prefix | `/pex user Steve options set prefix "&b[Builder]"` | `/pex user Steve prefix &b[Builder]` |
 | Set suffix | `/pex user Steve options set suffix "&7"` | `/pex user Steve suffix &7` |
+| Delete user | `/pex user Steve delete` | `/pex user Steve delete` |
 
 ---
 
@@ -102,9 +107,12 @@ On proxy installs, modern commands also accept `--server <name>` where applicabl
 | Set parents | `/pex group admin parents set vip` | `/pex group admin parents set vip` |
 | List members | `/pex group admin members list` | `/pex group admin users` |
 | Add member | `/pex group admin members add Steve` | `/pex group admin user add Steve` |
+| Remove member | `/pex group admin members remove Steve` | — |
+| Group info | `/pex group vip info` | `/pex group vip` |
+| Trace permission | `/pex group vip permissions trace essentials.fly` | — |
 | Set weight | `/pex group admin options set weight 100` | `/pex group admin weight 100` |
 | Set prefix | `/pex group admin options set prefix "&c[Admin]"` | `/pex group admin prefix &c[Admin]` |
-| Set rank | `/pex ladder staff groups add admin` (see [Ranks](/commands/ranks)) | `/pex group admin rank 4 staff` |
+| Set rank on ladder | `/pex ladder staff groups add admin` | `/pex group admin rank 4 staff` |
 
 ---
 
@@ -136,21 +144,29 @@ See [Import & Export](/guides/import-export) for full workflows.
 | UUID conversion (force) | — | `/pex convert uuid force` |
 | Hierarchy | `/pex hierarchy` | `/pex hierarchy` |
 | World hierarchy | `/pex hierarchy --world world_nether` | `/pex hierarchy world_nether` |
+| List contexts | `/pex contexts` | — |
 | Report | `/pex report` | `/pex report` |
 
 ---
 
 ## Ranks & ladders
 
-| Task | Modern | Classic |
-|------|--------|---------|
-| Promote | `/pex promote Steve staff` | `/pex promote Steve staff` |
-| Demote | `/pex demote Steve staff` | `/pex demote Steve staff` |
+| Task | Modern (default) | Classic |
+|------|------------------|---------|
 | List ladders | `/pex ladders` | — |
 | Ladder info | `/pex ladder staff info` | — |
+| List ladder groups | `/pex ladder staff groups list` | — |
 | Add group to ladder | `/pex ladder staff groups add helper` | `/pex group helper rank 2 staff` |
+| Remove from ladder | `/pex ladder staff groups remove helper` | clear rank manually |
+| Move group rank | `/pex ladder staff groups move helper 3` | `/pex group helper rank 3 staff` |
+| Promote player | `/pex ladder staff promote Steve` | `/pex promote Steve staff` |
+| Demote player | `/pex ladder staff demote Steve` | `/pex demote Steve staff` |
 
-Shortcut commands (both frameworks): `/promote Steve` · `/demote Steve`
+Modern framework **does not** register `/pex promote`, `/pex demote`, `/promote`, or `/demote`. Use **`/pex ladder <ladder> promote|demote <user>`** instead.
+
+Classic-only shortcuts: `/promote Steve` · `/demote Steve` (default ladder)
+
+See [Rank commands](/commands/ranks) for setup walkthroughs.
 
 ---
 

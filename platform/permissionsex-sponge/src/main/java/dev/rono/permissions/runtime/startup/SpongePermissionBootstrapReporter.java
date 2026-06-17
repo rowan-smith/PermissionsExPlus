@@ -24,7 +24,6 @@ public final class SpongePermissionBootstrapReporter {
                 + InternalPermissionManager.require(manager).getPlatform().getClass().getSimpleName());
         logger.info(PREFIX + "Core engine: started");
         logger.info(PREFIX + "API: modern v2 (PermissionsExApi via PermissionsEx.getApi())");
-        logger.info(PREFIX + "API: legacy v1 compatibility enabled");
         logger.info(PREFIX + "Context resolvers: world, static");
         logger.info(PREFIX + "Storage: " + manager.getBackend().diagnosticLabel());
         logger.info(PREFIX + "Plugins loaded: " + server.game().pluginManager().plugins().size());

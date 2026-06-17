@@ -10,7 +10,7 @@ import ru.tehkode.permissions.PermissionUser;
  *
  * @deprecated Prefer {@link org.bukkit.Server#getPlayer(java.util.UUID)} with the user's UUID.
  */
-@Deprecated(since = "1.24.x", forRemoval = false)
+@Deprecated(since = "3.0.0", forRemoval = false)
 public final class LegacyBukkitUser {
     private LegacyBukkitUser() {}
 

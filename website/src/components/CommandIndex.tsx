@@ -32,7 +32,7 @@ const CATEGORIES = [
   {
     slug: '/commands/ranks',
     label: 'Ranks',
-    description: 'Promotion ladders, rank metadata, promote, and demote.',
+    description: 'Rank ladders — modern `/pex ladder` subcommands; classic promote/demote shortcuts.',
   },
 ] as const;
 
