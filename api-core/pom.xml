@@ -13,4 +13,12 @@
     <artifactId>permissionsex-core-api</artifactId>
     <name>PermissionsEx Core API (platform-neutral SPI)</name>
     <description>Internal contracts between the permission engine and the public API: bus dispatches and permission holder types.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
