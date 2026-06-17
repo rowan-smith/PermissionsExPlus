@@ -95,13 +95,25 @@ public class PermissionList extends HashMap<String, Permission> {
 		return list;
 	}
 
+	public void trackPermission(Permission permission) {
+		for (Map.Entry<String, Boolean> ent : permission.getChildren().entrySet()) {
+			childParentMapping.put(ent.getKey(), new SimpleEntry<>(permission.getName(), ent.getValue()));
+		}
+		getFieldReplacer(permission).set(permission, new NotifyingChildrenMap(permission));
+	}
+
+	public void untrackPermission(Permission permission) {
+		removeAllChildren(permission.getName());
+		getFieldReplacer(permission).set(permission, new LinkedHashMap<>(permission.getChildren()));
+	}
+
+	public void clearTracking() {
+		childParentMapping.clear();
+	}
+
 	@Override
 	public Permission put(String k, Permission v) {
-		for (Map.Entry<String, Boolean> ent : v.getChildren().entrySet()) {
-			childParentMapping.put(ent.getKey(), new SimpleEntry<>(v.getName(), ent.getValue()));
-		}
-		FieldReplacer<Permission, Map> repl = getFieldReplacer(v);
-		repl.set(v, new NotifyingChildrenMap(v));
+		trackPermission(v);
 		return super.put(k, v);
 	}
 
@@ -109,15 +121,14 @@ public class PermissionList extends HashMap<String, Permission> {
 	public Permission remove(Object k) {
 		Permission ret = super.remove(k);
 		if (ret != null) {
-			removeAllChildren(k.toString());
-			getFieldReplacer(ret).set(ret, new LinkedHashMap<>(ret.getChildren()));
+			untrackPermission(ret);
 		}
 		return ret;
 	}
 
 	@Override
 	public void clear() {
-		childParentMapping.clear();
+		clearTracking();
 		super.clear();
 	}
 

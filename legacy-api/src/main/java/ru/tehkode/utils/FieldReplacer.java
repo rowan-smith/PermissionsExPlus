@@ -1,6 +1,9 @@
 package ru.tehkode.utils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Type-safe read/write accessor for a declared field on an object instance.
@@ -14,8 +17,12 @@ import java.lang.reflect.Field;
  * @author zml2008
  */
 public class FieldReplacer<Instance, Type> {
+	private static final Logger LOGGER = Logger.getLogger(FieldReplacer.class.getName());
+	private static volatile boolean FINAL_FIELD_MUTATION_NOTIFIED;
+
 	private final Class<Type> requiredType;
 	private final Field field;
+	private final boolean finalInstanceField;
 
 	/**
 	 * Locates and prepares a field for reflective access.
@@ -36,6 +43,7 @@ public class FieldReplacer<Instance, Type> {
 		if (!requiredType.isAssignableFrom(field.getType())) {
 			throw new ExceptionInInitializerError("Field of wrong type");
 		}
+		finalInstanceField = Modifier.isFinal(field.getModifiers()) && !Modifier.isStatic(field.getModifiers());
 	}
 
 	/**
@@ -56,16 +64,45 @@ public class FieldReplacer<Instance, Type> {
 	/**
 	 * Writes a new value to the bound field on an instance.
 	 *
+	 * <p>When the field is {@code final}, the write is skipped if the current value is already
+	 * {@code newValue}. Mutating final fields may emit JDK warnings on Java 26+; prefer avoiding
+	 * final field replacement when a supported platform hook exists.</p>
+	 *
 	 * @param instance  object whose field should be updated; must not be {@code null}
 	 * @param newValue  new field value; may be {@code null} if the field type allows it
 	 * @throws Error if reflective access is unexpectedly denied
 	 */
 	public void set(Instance instance, Type newValue) {
 		try {
+			Type currentValue = get(instance);
+			if (currentValue == newValue) {
+				return;
+			}
+			if (finalInstanceField) {
+				notifyFinalFieldMutationOnce();
+			}
 			field.set(instance, newValue);
 		} catch (IllegalAccessException e) {
 			throw new Error(e); // This shouldn't happen because we call setAccessible in the constructor
 		}
+	}
+
+	/**
+	 * Whether the bound field is a non-static {@code final} instance field.
+	 */
+	public boolean isFinalInstanceField() {
+		return finalInstanceField;
+	}
+
+	private static void notifyFinalFieldMutationOnce() {
+		if (FINAL_FIELD_MUTATION_NOTIFIED) {
+			return;
+		}
+		FINAL_FIELD_MUTATION_NOTIFIED = true;
+		LOGGER.log(Level.INFO,
+				"PermissionsEx is replacing a final Bukkit field via reflection. "
+						+ "On Java 26+ this may log JVM warnings; Paper servers use a hook that avoids this when available. "
+						+ "On pure Spigot, add --enable-final-field-mutation=ALL-UNNAMED to the server JVM flags if warnings persist.");
 	}
 
 	private static Field getField(Class<?> clazz, String fieldName) {

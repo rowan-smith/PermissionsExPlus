@@ -1,5 +1,6 @@
 package ru.tehkode.permissions.spigot.bukkit.regexperms;
 
+import dev.rono.permissions.paper.PaperPermissionBridge;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -26,12 +27,18 @@ public class RegexPermissions {
 	private PermissionList permsList;
 	// Permissions subscriptions handling
 	private PEXPermissionSubscriptionMap subscriptionHandler;
+	private PaperPermissionBridge paperPermissionBridge;
 	private final Map<UUID, PermissiblePEX> injectedPermissibles = new ConcurrentHashMap<>();
 
 	public RegexPermissions(SpigotPermissionsExPlugin plugin) {
 		this.plugin = plugin;
-		subscriptionHandler = PEXPermissionSubscriptionMap.inject(plugin, plugin.getServer().getPluginManager());
-		permsList = PermissionList.inject(plugin.getServer().getPluginManager());
+		permsList = new PermissionList();
+		paperPermissionBridge = new PaperPermissionBridge(plugin, permsList);
+		if (!paperPermissionBridge.install()) {
+			paperPermissionBridge = null;
+			subscriptionHandler = PEXPermissionSubscriptionMap.inject(plugin, plugin.getServer().getPluginManager());
+			permsList = PermissionList.inject(plugin.getServer().getPluginManager());
+		}
 		plugin.getServer().getPluginManager().registerEvents(new EventListener(), plugin);
 		injectAllPermissibles();
 	}
@@ -44,7 +51,13 @@ public class RegexPermissions {
 	};
 
 	public void onDisable() {
-		subscriptionHandler.uninject();
+		if (paperPermissionBridge != null) {
+			paperPermissionBridge.uninstall();
+			paperPermissionBridge = null;
+		} else if (subscriptionHandler != null) {
+			subscriptionHandler.uninject();
+			subscriptionHandler = null;
+		}
 		uninjectAllPermissibles();
 	}
 
