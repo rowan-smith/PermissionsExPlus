@@ -43,4 +43,13 @@ class UniversalJarContentsTest {
             assertTrue(jarFile.stream().anyMatch(entry -> entry.getName().contains("sponge_plugins.json")));
         }
     }
+
+    @Test
+    void containsLicenseAndThirdPartyNotices() throws IOException {
+        try (JarFile jarFile = new JarFile(jar.toFile())) {
+            assertNotNull(jarFile.getEntry("LICENSE"), "GPL license text must ship with the universal jar");
+            assertNotNull(jarFile.getEntry("THIRD-PARTY-NOTICES.txt"),
+                    "Third-party attribution must ship with the universal jar");
+        }
+    }
 }

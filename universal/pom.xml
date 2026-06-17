@@ -47,6 +47,19 @@
     <build>
         <!-- Simple runtime name: PermissionsExPlus-3.0.0-SNAPSHOT.jar (no module id suffix) -->
         <finalName>PermissionsExPlus-${project.version}</finalName>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/..</directory>
+                <includes>
+                    <include>LICENSE</include>
+                    <include>THIRD-PARTY-NOTICES.txt</include>
+                </includes>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
