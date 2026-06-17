@@ -105,6 +105,13 @@ public final class LocalSqlUserData extends LocalSqlEntityData implements ru.teh
 
     @Override
     protected boolean entityExists() throws Exception {
+        try {
+            UUID id = UUID.fromString(identifier);
+            if (repository.userExists(id)) {
+                return true;
+            }
+        } catch (IllegalArgumentException ignored) {
+        }
         return repository.userExistsByName(identifier);
     }
 

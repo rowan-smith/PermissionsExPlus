@@ -232,10 +232,18 @@ public final class LocalSqlBackend extends AbstractPermissionBackend {
         backupDatabase(backup);
     }
 
-    UUID resolveUserId(String userName) throws Exception {
-        return repository.findUserByName(userName)
-                .map(user -> user.getId())
-                .orElseGet(() -> UUID.nameUUIDFromBytes(("OfflinePlayer:" + userName).getBytes(StandardCharsets.UTF_8)));
+    UUID resolveUserId(String identifier) throws Exception {
+        try {
+            UUID parsed = UUID.fromString(identifier);
+            if (repository.userExists(parsed)) {
+                return parsed;
+            }
+            return repository.findUserIdByName(identifier).orElse(parsed);
+        } catch (IllegalArgumentException ex) {
+            return repository.findUserIdByName(identifier)
+                    .orElseGet(() -> UUID.nameUUIDFromBytes(
+                            ("OfflinePlayer:" + identifier).getBytes(StandardCharsets.UTF_8)));
+        }
     }
 
     int resolveGroupId(String groupName) throws Exception {

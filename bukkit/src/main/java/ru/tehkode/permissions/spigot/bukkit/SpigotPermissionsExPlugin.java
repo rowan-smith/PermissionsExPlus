@@ -624,10 +624,14 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
     }
 
 	public class PlayerEventsListener implements Listener {
-		@EventHandler(priority = EventPriority.MONITOR)
+		@EventHandler(priority = EventPriority.LOWEST)
 		public void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
 			if (event.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED && !requiresLateUserSetup()) {
-				getPermissionsManager().cacheUser(event.getUniqueId().toString(), event.getName());
+				try {
+					getPermissionsManager().cacheUser(event.getUniqueId().toString(), event.getName());
+				} catch (Throwable t) {
+					ErrorReport.handleError("While pre-login user cache for " + event.getName(), t);
+				}
 			}
 		}
 

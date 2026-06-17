@@ -10,6 +10,7 @@ import ru.tehkode.permissions.PEXBackendConfiguration;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -111,5 +112,29 @@ class LocalSqlBackendTest extends ru.tehkode.permissions.PEXTestBase {
 
         assertEquals("5", group.getOption("rank", null));
         assertEquals("staff", group.getOption("rank-ladder", null));
+    }
+
+    @Test
+    void resolveUserIdUsesMojangUuidForUnknownOnlinePlayers() throws Exception {
+        UUID mojangId = UUID.fromString("87674864-8ba1-4f85-8afa-6c3cdebf1d7a");
+        assertEquals(mojangId, backend.resolveUserId(mojangId.toString()));
+    }
+
+    @Test
+    void resolveUserIdFindsMigratedUuidUsersById() throws Exception {
+        UUID ronoId = UUID.fromString("87674864-8ba1-4f85-8afa-6c3cdebf1d7a");
+        repository.upsertUser(ronoId, ronoId.toString(), null, java.time.Instant.now());
+        repository.setUserOption(ronoId, "name", "Rono", null);
+
+        assertEquals(ronoId, backend.resolveUserId(ronoId.toString()));
+        assertFalse(backend.getUserData(ronoId.toString()).isVirtual());
+    }
+
+    @Test
+    void resolveUserIdFindsUsersByDisplayName() throws Exception {
+        UUID ronoId = UUID.fromString("87674864-8ba1-4f85-8afa-6c3cdebf1d7a");
+        repository.upsertUser(ronoId, "Rono", null, java.time.Instant.now());
+
+        assertEquals(ronoId, backend.resolveUserId("Rono"));
     }
 }

@@ -55,7 +55,7 @@ public final class LocalSqlRepository implements AutoCloseable {
         String normalized = path.replace('\\', '/');
         return new LocalSqlRepository(
                 "jdbc:h2:file:" + normalized
-                        + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_ON_EXIT=FALSE",
+                        + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=5000",
                 "", "");
     }
 
@@ -121,7 +121,9 @@ public final class LocalSqlRepository implements AutoCloseable {
     }
 
     public boolean isInitialized() throws SQLException {
-        return tableExists(dataSource.getConnection(), "users") && getSchemaVersion() >= 0;
+        try (Connection conn = dataSource.getConnection()) {
+            return tableExists(conn, "users") && getSchemaVersion() >= 0;
+        }
     }
 
     public void upsertUser(UUID id, String name, Instant firstJoin, Instant lastSeen) throws SQLException {
@@ -136,7 +138,7 @@ public final class LocalSqlRepository implements AutoCloseable {
         }
     }
 
-    public Optional<User> findUserByName(String name) throws SQLException {
+    public Optional<UUID> findUserIdByName(String name) throws SQLException {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT id FROM users WHERE LOWER(name) = LOWER(?)")) {
             ps.setString(1, name);
@@ -144,8 +146,18 @@ public final class LocalSqlRepository implements AutoCloseable {
             if (!rs.next()) {
                 return Optional.empty();
             }
-            return Optional.of(loadUser(UUID.fromString(rs.getString("id"))));
+            return Optional.of(UUID.fromString(rs.getString("id")));
         }
+    }
+
+    public Optional<User> findUserByName(String name) throws SQLException {
+        return findUserIdByName(name).map(id -> {
+            try {
+                return loadUser(id);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public Optional<User> findUserById(UUID id) throws SQLException {
