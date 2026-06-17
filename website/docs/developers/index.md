@@ -29,7 +29,7 @@ PermissionsExPlus exposes APIs for companion plugins that need to read or modify
 | **[Hook Plugin API](/developers/api/)** | Modern vs legacy API overview and full references |
 | **[Architecture](/developers/architecture/)** | Module stack, dependency rules, namespace map |
 | **[Javadoc](/developers/reference/)** | Full class and method reference for every version |
-| **[Sample plugins](https://github.com/%%site.repo%%/tree/main/plugin)** | Working example jars in the repo |
+| **[Sample plugins](https://github.com/%%site.repo%%/tree/main/example-plugin)** | [`example-plugin/`](https://github.com/%%site.repo%%/tree/main/example-plugin) (modern) and [`example-legacy-plugin/`](https://github.com/%%site.repo%%/tree/main/example-legacy-plugin) (legacy) |
 
 The website is intentionally thin — detailed API signatures live in Javadoc. The cookbook shows you *how* to do common tasks with links to the relevant classes. Full API references live under [Hook Plugin API](/developers/api/).
 

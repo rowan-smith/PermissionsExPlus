@@ -47,12 +47,13 @@ Compile against:
 - `permissionsex-legacy-api` — types, events, utils
 - `permissionsex-legacy-stub` — `PermissionsEx` static entry points only
 
-API reference: [api/LEGACY_API.md](/developers/api/legacy). New plugins: [api/MODERN_API.md](/developers/api/modern).
+API reference: [Legacy API](/developers/api/legacy). New plugins: [Modern API](/developers/api/modern).
 
 Runtime uses the live `ru.tehkode.permissions.bukkit.PermissionsEx` class from the deployed plugin jar.
 
 ## Verification
 
-- Unit tests: `mvn test`
-- Hook smoke test: `permissionsex-legacy-compat` module (MockBukkit + example hook plugin)
-- Manual matrix: [REAL_SERVER_MATRIX.md](/developers/testing-matrix)
+- Unit and integration tests: `mvn test` (all modules from repo root)
+- Hook smoke tests: `legacy-compat/` module (Maven artifact `permissionsex-legacy-compat`) — MockBukkit plus `example-plugin` / `example-legacy-plugin` contract tests
+- Universal jar contents: `mvn package -pl universal -am` then `mvn -pl universal test` (requires the shaded jar to exist)
+- Manual matrix: [Real-Server Test Matrix](/developers/testing-matrix)

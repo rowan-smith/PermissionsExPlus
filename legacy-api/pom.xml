@@ -10,13 +10,35 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>legacy-api</artifactId>
-    <packaging>pom</packaging>
-    <name>PermissionsEx Legacy API (reactor)</name>
+    <artifactId>permissionsex-legacy-api</artifactId>
+    <name>PermissionsEx Legacy API (thin)</name>
+    <description>Classic ru.tehkode.permissions compile surface for hook plugins (manager, entities, events, utils). Use permissionsex-legacy-stub for PermissionsEx static entry points.</description>
 
-    <modules>
-        <module>permissionsex-legacy-api</module>
-        <module>permissionsex-legacy-stub</module>
-        <module>permissionsex-legacy-compat</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>permissionsex-core-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.4.8-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.17.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

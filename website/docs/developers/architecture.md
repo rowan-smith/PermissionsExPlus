@@ -5,43 +5,35 @@ slug: /developers/architecture
 ---
 ## Module stack
 
-Grouped by concern (physical directories; matches root `pom.xml` reactor order):
+Flat layout at the repository root (matches root `pom.xml` reactor order; same shape as LuckPerms, ViaVersion, and Maintenance):
 
 ```
-legacy-api/
-  permissionsex-legacy-api    Classic ru.tehkode.permissions types + utils + Bukkit events
-  permissionsex-legacy-stub   Compile-only PermissionsEx static entry points
-  permissionsex-legacy-compat Regression tests (MockBukkit + optional classic plugin JARs)
-
-api/
-  permissionsex-core-api      Engine ↔ API SPI (bus dispatches, permission holder types)
-  permissionsex-api           PermissionsExApi + managers for modern hook plugins
-  permissionsex-api-bungee    PermissionsEx.getApi() + proxy service registry
-
-common/
-  permissionsex-platform-api  Runtime bridge (PlatformAdapter, scheduler, logging, identity)
-  permissionsex-core          Engine (manager, backends, commands, hierarchy) — THE ONLY permission logic
-
-platform/
-  permissionsex-spigot        Bukkit/Paper runtime (live today)
-  permissionsex-bungee        Bungee/Waterfall proxy runtime (live today)
-  permissionsex-paper         Paper-specific runtime enhancements
-  permissionsex-velocity      Velocity proxy runtime
-  permissionsex-sponge        Sponge runtime
-
-bootstrap/
-  permissionsex-bootstrap     Universal shaded jar (all platform descriptors)
+api-core/           Engine ↔ API SPI (bus dispatches, permission holder types)
+legacy-api/         Classic ru.tehkode.permissions types + utils + Bukkit events
+api/                PermissionsExApi + managers for modern hook plugins
+legacy-stub/        Compile-only PermissionsEx static entry points
+platform-api/       Runtime bridge (PlatformAdapter, scheduler, logging, identity)
+common/             Engine (manager, backends, commands, hierarchy) — THE ONLY permission logic
+proxy-common/       Shared proxy bootstrap (config, backends, API registry)
+bukkit/             Bukkit/Paper runtime (live today)
+bungee/             Bungee/Waterfall proxy runtime (live today)
+velocity/           Velocity proxy runtime
+sponge/             Sponge runtime
+universal/          Universal shaded jar (all platform descriptors)
+example-plugin/     Modern hook plugin sample
+example-legacy-plugin/ Legacy hook plugin sample
+legacy-compat/      Regression tests (MockBukkit + optional classic plugin JARs)
 ```
 
-Dependency direction: **platform** → **common** → **legacy-api** / **api** → **core-api**; **bootstrap** merges platform jars; **plugin** modules depend on **legacy-api** (+ **legacy-stub**) or **api** only.
+Dependency direction: **bukkit** / **bungee** / **velocity** / **sponge** → **common** → **legacy-api** / **api** → **api-core**; **universal** merges platform jars; example modules depend on **legacy-api** (+ **legacy-stub**) or **api** only.
 
 ## Design rules
 
 | Rule | Meaning |
 |------|---------|
-| **Single engine** | Only `permissionsex-core` contains permission logic (evaluation, hierarchy, timed expiry, backends, caching). |
+| **Single engine** | Only `common` (`permissionsex-core`) contains permission logic (evaluation, hierarchy, timed expiry, backends, caching). |
 | **Platform thinness** | Platform modules are translation layers: adapters, lifecycle, event bridging, service registration — never permission logic. |
-| **API separation** | `api/` = plugin-facing contracts; `core-api` = engine-facing SPI; `platform-api` = runtime abstraction between engine and host. |
+| **API separation** | `api/` = plugin-facing contracts; `api-core` = engine-facing SPI; `platform-api` = runtime abstraction between engine and host. |
 | **Legacy freeze** | `ru.tehkode.permissions.*` is frozen — compatibility fixes only. |
 | **Context rule** | `String world` = canonical subject scope; `PermissionContext` = extended metadata; platforms never interpret permissions. |
 
@@ -52,7 +44,7 @@ Dependency direction: **platform** → **common** → **legacy-api** / **api** �
 | `ru.tehkode.permissions.*` | Stable legacy API for hook plugins (interfaces, events, backend aliases) |
 | `dev.rono.permissions.core.*` | Implementation (manager, backends, commands) |
 | `dev.rono.permissions.api.*` | Modern minimal integration SPI |
-| `dev.rono.permissions.api.runtime.*` | Platform bridge types (`permissionsex-platform-api`) |
+| `dev.rono.permissions.api.runtime.*` | Platform bridge types (`platform-api`) |
 | `dev.rono.permissions.spigot.*` / `bungee.*` / `paper.*` / … | Platform-specific wiring |
 
 New implementation code belongs under `dev.rono`. Public contracts consumed by third-party plugins remain under `ru.tehkode` as thin types delegating to core where needed.
@@ -65,25 +57,25 @@ New implementation code belongs under `dev.rono`. Public contracts consumed by t
 
 ```
 Plugin → PermissionsEx.getApi() → PermissionsExApi → UserManager / GroupManager
-  → permissionsex-core (DefaultPermissionManager, GroupHierarchyEngine, TimedExpiryCoordinator)
+  → common (DefaultPermissionManager, GroupHierarchyEngine, TimedExpiryCoordinator)
 ```
 
 ### Platform interaction flow
 
 ```
-permissionsex-core → PlatformRuntime
+common → PlatformRuntime
   ├── PlatformAdapter      (identity / realms)
   ├── PlatformEventBus     (native listener publication)
   └── PlatformScheduler    (host thread scheduling)
         ↓
-permissionsex-spigot / bungee / velocity / sponge → Server API
+bukkit / bungee / velocity / sponge → Server API
 ```
 
 ### Legacy flow
 
 ```
 Legacy plugin → PermissionsEx.getPermissionManager() → PermissionManager (adapter)
-  → same permissionsex-core engine
+  → same common engine
 ```
 
 ## Permission resolution
@@ -156,18 +148,41 @@ Business logic lives in `CoreCommandService`.
 
 ## Legacy isolation policy
 
-Classic hook-plugin compatibility is confined to **`permissionsex-legacy-api`** and thin platform façades. New work belongs under **`dev.rono.*`**.
+Classic hook-plugin compatibility is confined to **`legacy-api`** and thin platform façades. New work belongs under **`dev.rono.*`**.
 
 | Layer | Package / module | Role |
 |-------|------------------|------|
-| **Compile contract** | `permissionsex-legacy-api` → `ru.tehkode.permissions.*` | Frozen public types for third-party plugins (`PermissionManager`, events, `NativeInterface`, config interfaces, `ru.tehkode.utils.*`). |
-| **Compile stub** | `permissionsex-legacy-stub` → `ru.tehkode.permissions.bukkit.PermissionsEx` | Static entry points for hook plugins only; **not** on the Spigot module compile classpath. |
-| **Runtime plugin entry** | `permissionsex-spigot` → `ru.tehkode.permissions.bukkit.PermissionsEx` | Live `JavaPlugin` subclass registered in `plugin.yml`. |
+| **Compile contract** | `legacy-api` → `ru.tehkode.permissions.*` | Frozen public types for third-party plugins (`PermissionManager`, events, `NativeInterface`, config interfaces, `ru.tehkode.utils.*`). |
+| **Compile stub** | `legacy-stub` → `ru.tehkode.permissions.bukkit.PermissionsEx` | Static entry points for hook plugins only; **not** on the Bukkit module compile classpath. |
+| **Runtime plugin entry** | `bukkit` → `ru.tehkode.permissions.bukkit.PermissionsEx` | Live `JavaPlugin` subclass registered in `plugin.yml`. |
 | **Legacy bridges** | `dev.rono.permissions.core.legacy.*` | Adapters from modern config/runtime to classic types (e.g. `LegacyPermissionsExConfigAdapter`). Not part of the hook-plugin compile surface. |
 | **Modern internals** | `dev.rono.permissions.core.InternalPermissionManager` | Runtime hooks removed from the legacy `PermissionManager` interface (`PlatformAdapter`, bus publish, scheduling, `getBasedir`, …). |
-| **Bukkit events** | Published only from `permissionsex-spigot` | `SpigotEventPublisher` translates `dev.rono.permissions.api.bus.*` dispatches into `ru.tehkode.permissions.events.*`. Core does not depend on event publication. |
-| **Backend aliases** | `ru.tehkode.permissions.spigot.backends.*` (Spigot), `dev.rono.permissions.bungee.backends.*` (Bungee) | Classpath-stable names delegating to `dev.rono.permissions.core.backends.*`. |
+| **Bukkit events** | Published only from `bukkit` | `SpigotEventPublisher` translates `dev.rono.permissions.api.bus.*` dispatches into `ru.tehkode.permissions.events.*`. Core does not depend on event publication. |
+| **Backend aliases** | `ru.tehkode.permissions.spigot.backends.*` (Bukkit), `dev.rono.permissions.bungee.backends.*` (Bungee) | Classpath-stable names delegating to `dev.rono.permissions.core.backends.*`. |
 
-**Baseline:** legacy `PermissionManager` / events / `NativeInterface` match commit **`628215f`** (plus `shouldSaveDefaultGroup`). Guarded by `LegacyApiContractTest` in `permissionsex-legacy-api`.
+**Baseline:** legacy `PermissionManager` / events / `NativeInterface` match commit **`628215f`** (plus `shouldSaveDefaultGroup`). Guarded by `LegacyApiContractTest` in `legacy-api/`.
 
 **Rule of thumb:** if a feature is new, add it to `dev.rono.permissions.api` or `InternalPermissionManager` — never expand `ru.tehkode.permissions.PermissionManager`.
+
+## Testing
+
+Tests live next to the module they exercise (`{module}/src/test/java/`). Run everything from the repo root:
+
+```bash
+mvn test
+```
+
+| Module | Focus |
+|--------|-------|
+| `api-core` | API SPI types (`PermissionContext`, bus dispatches, `PermissionAddRequest`) |
+| `platform-api` | Runtime bridge (`PlatformAdapter` descriptors, scheduler, event bus) |
+| `legacy-api` | Frozen legacy contract (`LegacyApiContractTest`) |
+| `common` | Permission engine, backends, commands, modern API integration |
+| `bukkit` | Spigot adapters, backends, MockBukkit integration |
+| `bungee` / `velocity` / `sponge` | Platform adapters and legacy hook detection |
+| `proxy-common` | Shared proxy wiring and legacy bridge |
+| `universal` | Shaded jar contents (run after `mvn package -pl universal -am`) |
+| `example-plugin` / `example-legacy-plugin` | Hook plugin compile contracts |
+| `legacy-compat` | End-to-end hook smoke tests with MockBukkit |
+
+Pre-release manual checks: [Real-Server Test Matrix](/developers/testing-matrix).

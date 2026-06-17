@@ -27,11 +27,11 @@ for entry in "${CLASSIC_BUILDS[@]}"; do
 done
 
 CURRENT_OUT="${APIDOCS_DIR}/${VERSION}"
-MODERN_DIR="$REPO_ROOT/api/permissionsex-api/target/reports/apidocs"
-LEGACY_DIR="$REPO_ROOT/legacy-api/permissionsex-legacy-api/target/reports/apidocs"
+MODERN_DIR="$REPO_ROOT/api/target/reports/apidocs"
+LEGACY_DIR="$REPO_ROOT/legacy-api/target/reports/apidocs"
 
 mvn -f "$REPO_ROOT/pom.xml" \
-  -pl api/permissionsex-api,legacy-api/permissionsex-legacy-api \
+  -pl api,legacy-api \
   -am compile javadoc:javadoc \
   -Ddoclint=none \
   -DskipTests \

@@ -10,31 +10,51 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>api</artifactId>
-    <packaging>pom</packaging>
-    <name>PermissionsEx API (reactor)</name>
+    <artifactId>permissionsex-api</artifactId>
+    <name>PermissionsExPlus Public API</name>
+    <description>Modern hook integration surface: PexPermissionService, PexUser, PexGroup, and PexPermissionSubject on Bukkit ServicesManager.</description>
 
-    <modules>
-        <module>permissionsex-core-api</module>
-        <module>permissionsex-api</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>permissionsex-core-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>permissionsex-legacy-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-api</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>aggregate-public-api</id>
-                        <goals>
-                            <goal>aggregate</goal>
-                        </goals>
-                        <configuration>
-                            <excludePackageNames>dev.rono.permissions.bootstrap:dev.rono.permissions.api.runtime</excludePackageNames>
-                        </configuration>
-                    </execution>
-                </executions>
+                <configuration>
+                    <!-- PermissionHolder and bus types live in permissionsex-core-api -->
+                    <includeDependencySources>true</includeDependencySources>
+                    <dependencySourceIncludes>
+                        <dependencySourceInclude>dev.rono.permissions:permissionsex-core-api</dependencySourceInclude>
+                    </dependencySourceIncludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

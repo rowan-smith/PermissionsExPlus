@@ -594,4 +594,4 @@ The modern API no longer exposes `WorldManager` / `World` types — use `RealmMa
 
 Full class reference: [Javadoc](/developers/reference/) · [Modern API](/developers/api/modern) · [Context concepts](/concepts/context/)
 
-Sample plugins: [GitHub /plugin](https://github.com/%%site.repo%%/tree/main/plugin)
+Sample plugins: [`example-plugin/`](https://github.com/%%site.repo%%/tree/main/example-plugin) (modern) · [`example-legacy-plugin/`](https://github.com/%%site.repo%%/tree/main/example-legacy-plugin) (legacy)

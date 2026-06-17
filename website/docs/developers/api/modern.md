@@ -19,7 +19,7 @@ Runtime: on **Spigot/Paper**, resolve the API via **`PermissionsEx.getApi()`**. 
 
 Add **`permissionsex-legacy-stub`** when calling `ru.tehkode.permissions.bukkit.PermissionsEx` static helpers from a hook plugin.
 
-Sample plugin: [`plugin/permissionsex-example-plugin/`](https://github.com/%%site.repo%%/tree/main/plugin/permissionsex-example-plugin/)
+Sample plugin: [`example-plugin/`](https://github.com/%%site.repo%%/tree/main/example-plugin/)
 
 **Recipes:** [API Cookbook](/developers/cookbook) — world, server, realm, timed grants, and proxy examples.
 
@@ -34,10 +34,10 @@ Every public type under `dev.rono.permissions.api.*` is documented with Javadoc.
 mvn -pl api javadoc:aggregate -am
 
 # Single-module docs (builds dependencies via -am)
-mvn -pl api/permissionsex-api javadoc:javadoc -am
+mvn -pl api javadoc:javadoc -am
 ```
 
-Output: `api/target/reports/apidocs/` (aggregate) or `api/permissionsex-api/target/reports/apidocs/` (single module).
+Output: `api/target/reports/apidocs/`
 
 Package overviews live in `package-info.java` files. Architectural rules: [API_INVARIANTS.md](/developers/api/invariants).
 
@@ -198,7 +198,7 @@ var sub = api.getEventBus().subscribe(new PermissionEventListener() {
 api.getEventBus().unsubscribe(sub);
 ```
 
-Uses types from `permissionsex-core-api`: `EntityDispatch`, `SystemDispatch`, `EntityMutation`, `SystemMutation`. On Spigot, the platform still publishes legacy Bukkit events in parallel.
+Uses types from `api-core/` (Maven artifact `permissionsex-core-api`): `EntityDispatch`, `SystemDispatch`, `EntityMutation`, `SystemMutation`. On Spigot, the platform still publishes legacy Bukkit events in parallel.
 
 ---
 
@@ -361,9 +361,9 @@ Obtain via `subject.inContext(PermissionContext.world("world_nether"))`, `user.g
 
 ---
 
-## Advanced SPI (`permissionsex-core-api`)
+## Advanced SPI (`api-core/`)
 
-Not required for typical hook plugins. Used by platform modules and deep integration:
+Maven artifact: `permissionsex-core-api`. Not required for typical hook plugins. Used by platform modules and deep integration:
 
 | Type | Role |
 |------|------|

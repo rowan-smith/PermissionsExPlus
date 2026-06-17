@@ -50,12 +50,14 @@ PermissionManager legacy = PermissionsEx.getPermissionManager();
 
 | Module | API |
 |--------|-----|
-| [`plugin/permissionsex-example-plugin/`](https://github.com/%%site.repo%%/tree/main/plugin/permissionsex-example-plugin/) | Modern only |
-| [`plugin/permissionsex-example-legacy-plugin/`](https://github.com/%%site.repo%%/tree/main/plugin/permissionsex-example-legacy-plugin/) | Legacy + stub |
+| [`example-plugin/`](https://github.com/%%site.repo%%/tree/main/example-plugin/) | Modern only |
+| [`example-legacy-plugin/`](https://github.com/%%site.repo%%/tree/main/example-legacy-plugin/) | Legacy + stub |
 
 ## Tests
 
-Modern API integration tests live in `common/permissionsex-core/src/test/java/dev/rono/permissions/core/`:
+### Modern API integration (`common/`)
+
+Integration tests live in `common/src/test/java/dev/rono/permissions/core/`:
 
 | Class | Coverage |
 |-------|----------|
@@ -70,7 +72,25 @@ Modern API integration tests live in `common/permissionsex-core/src/test/java/de
 | `ApiLayerInvariantTest` | architectural composition guards |
 | `RealmsTest`, `PermissionContextTest` | pure utility unit tests |
 
-Run: `mvn -pl common/permissionsex-core test -Dtest='ModernApi*Test,ApiLayerInvariantTest,RealmsTest,PermissionContextTest'`
+Run: `mvn -pl common test -Dtest='ModernApi*Test,ApiLayerInvariantTest,RealmsTest,PermissionContextTest'`
+
+### Per-module unit tests
+
+| Module | Examples |
+|--------|----------|
+| `api-core` | `PermissionAddRequestBuilderTest`, `PermissionContextApiCoreTest`, `PermissionDispatchTypesTest` |
+| `platform-api` | `PlatformDescriptorTest`, `DirectPlatformSchedulerTest`, `NoOpPlatformEventBusTest` |
+| `legacy-api` | `LegacyApiContractTest`, `LegacyEventCompatibilityTest` |
+| `bukkit` | `SpigotPlatformBridgeTest`, `MockBukkitPermissionsExTest` |
+| `bungee` | `BungeePlatformAdapterTest`, `BungeePexPermissionBridgeTest` |
+| `velocity` | `VelocityPlatformAdapterTest` |
+| `sponge` | `SpongePlatformAdapterTest` |
+| `proxy-common` | `ProxyConfigBridgeTest`, `ProxyLegacyBridgeControllerTest` |
+| `universal` | `BootstrapArtifactsTest`, `UniversalJarContentsTest` (requires packaged jar) |
+| `example-plugin` / `example-legacy-plugin` | `ExamplePluginContractTest`, `ExampleLegacyPluginContractTest` |
+| `legacy-compat` | `ModernHookPluginSmokeTest`, optional `LegacyClassicJarProbeTest` |
+
+Full suite: `mvn test` from the repo root. See [Real-Server Test Matrix](/developers/testing-matrix) for manual pre-release checks.
 
 The modern API is **Realm-only** in 3.0-SNAPSHOT: `RealmManager`, `Realm`, `Realms`, and `PermissionContext` replace the removed `World*` types. See the [Cookbook](/developers/cookbook) for world, server, and realm examples.
 
