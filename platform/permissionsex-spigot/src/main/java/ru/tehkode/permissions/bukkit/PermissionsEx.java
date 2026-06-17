@@ -47,17 +47,17 @@ public final class PermissionsEx extends SpigotPermissionsExPlugin {
         throw new PermissionsNotAvailable();
     }
 
-    @Deprecated(forRemoval = false)
+    @Deprecated(since = "1.24.x", forRemoval = false)
     public static PermissionManager getPermissionManager() {
         return getApi().getPermissionManager();
     }
 
-    @Deprecated(forRemoval = false)
+    @Deprecated(since = "1.24.x", forRemoval = false)
     public static PermissionUser getUser(Player player) {
         return getPermissionManager().getUser(player);
     }
 
-    @Deprecated(forRemoval = false)
+    @Deprecated(since = "1.24.x", forRemoval = false)
     public static PermissionUser getUser(String name) {
         return getPermissionManager().getUser(name);
     }

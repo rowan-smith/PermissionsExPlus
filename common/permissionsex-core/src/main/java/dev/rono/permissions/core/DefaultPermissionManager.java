@@ -89,8 +89,7 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 	}
 
 	/** @deprecated use {@link #DefaultPermissionManager(PermissionsExConfig, Logger, PlatformRuntime)} */
-	@Deprecated
-	public DefaultPermissionManager(PermissionsExConfig config, Logger logger, PlatformAdapter platform) throws PermissionBackendException {
+	@Deprecated(since = "1.24.x")	public DefaultPermissionManager(PermissionsExConfig config, Logger logger, PlatformAdapter platform) throws PermissionBackendException {
 		this(config, logger, PlatformRuntime.adapterOnly(platform));
 	}
 
@@ -534,14 +533,12 @@ public class DefaultPermissionManager implements PermissionManager, InternalPerm
 		return Collections.unmodifiableList(ret);
 	}
 
-	@Deprecated
-	public PermissionGroup[] getGroups() {
+	@Deprecated(since = "1.24.x")	public PermissionGroup[] getGroups() {
 		return getGroupList().toArray(new PermissionGroup[0]);
 	}
 
 	@Override
-	@Deprecated
-	public Collection<String> getGroupNames() {
+	@Deprecated(since = "1.24.x")	public Collection<String> getGroupNames() {
 		return backend.getGroupNames();
 	}
 

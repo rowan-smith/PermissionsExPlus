@@ -32,8 +32,7 @@ public interface PermissionUser extends PermissionEntity {
      * @return map of world name to ordered list of parent groups (including inherited parents)
      * @deprecated Use {@link PermissionEntity#getAllParents()} instead.
      */
-    @Deprecated
-    Map<String, List<PermissionGroup>> getAllGroups();
+    @Deprecated(since = "1.24.x")    Map<String, List<PermissionGroup>> getAllGroups();
 
     /**
      * Adds this user to a group in the given world context.
@@ -220,7 +219,7 @@ public interface PermissionUser extends PermissionEntity {
      *             (modern {@code dev.rono.permissions.api.ladder.LadderManager}). This method remains for
      *             binary compatibility with hook plugins compiled against older releases.
      */
-    @Deprecated(since = "3.0.0")
+    @Deprecated(since = "1.24.x")
     PermissionGroup promote(PermissionUser promoter, String ladderName) throws RankingException;
 
     /**
@@ -242,7 +241,7 @@ public interface PermissionUser extends PermissionEntity {
      *             (modern {@code dev.rono.permissions.api.ladder.LadderManager}). This method remains for
      *             binary compatibility with hook plugins compiled against older releases.
      */
-    @Deprecated(since = "3.0.0")
+    @Deprecated(since = "1.24.x")
     PermissionGroup demote(PermissionUser demoter, String ladderName) throws RankingException;
 
     /**
@@ -294,8 +293,7 @@ public interface PermissionUser extends PermissionEntity {
      * @return array of group names (including inherited parents)
      * @deprecated Use {@link PermissionEntity#getParentIdentifiers()} instead.
      */
-    @Deprecated
-    String[] getGroupsNames();
+    @Deprecated(since = "1.24.x")    String[] getGroupsNames();
 
     /**
      * Returns parent group names for this user in the given world context.
@@ -304,8 +302,7 @@ public interface PermissionUser extends PermissionEntity {
      * @return array of group names (including inherited parents)
      * @deprecated Use {@link PermissionEntity#getParentIdentifiers(String)} instead.
      */
-    @Deprecated
-    String[] getGroupsNames(String world);
+    @Deprecated(since = "1.24.x")    String[] getGroupsNames(String world);
 
     /**
      * Returns parent groups for this user in the global context.
@@ -313,8 +310,7 @@ public interface PermissionUser extends PermissionEntity {
      * @return array of parent groups (including inherited parents)
      * @deprecated Use {@link PermissionEntity#getParents()} instead.
      */
-    @Deprecated
-    PermissionGroup[] getGroups();
+    @Deprecated(since = "1.24.x")    PermissionGroup[] getGroups();
 
     /**
      * Returns parent groups for this user in the given world context.
@@ -323,8 +319,7 @@ public interface PermissionUser extends PermissionEntity {
      * @return array of parent groups (including inherited parents)
      * @deprecated Use {@link PermissionEntity#getParents(String)} instead.
      */
-    @Deprecated
-    PermissionGroup[] getGroups(String worldName);
+    @Deprecated(since = "1.24.x")    PermissionGroup[] getGroups(String worldName);
 
     /**
      * Returns own (direct) parent group names in the global context.
@@ -332,8 +327,7 @@ public interface PermissionUser extends PermissionEntity {
      * @return array of directly assigned group names
      * @deprecated Use {@link PermissionEntity#getOwnParentIdentifiers()} instead.
      */
-    @Deprecated
-    String[] getGroupNames();
+    @Deprecated(since = "1.24.x")    String[] getGroupNames();
 
     /**
      * Returns own (direct) parent group names in the given world context.
@@ -342,8 +336,7 @@ public interface PermissionUser extends PermissionEntity {
      * @return array of directly assigned group names
      * @deprecated Use {@link PermissionEntity#getOwnParentIdentifiers(String)} instead.
      */
-    @Deprecated
-    String[] getGroupNames(String worldName);
+    @Deprecated(since = "1.24.x")    String[] getGroupNames(String worldName);
 
     /**
      * Replaces this user's direct parent groups in the given world context.
@@ -352,8 +345,7 @@ public interface PermissionUser extends PermissionEntity {
      * @param worldName world context, or {@code null} for the global context
      * @deprecated Use {@link PermissionEntity#setParentsIdentifier(List, String)} instead.
      */
-    @Deprecated
-    void setGroups(String[] groups, String worldName);
+    @Deprecated(since = "1.24.x")    void setGroups(String[] groups, String worldName);
 
     /**
      * Replaces this user's direct parent groups in the global context.
@@ -361,8 +353,7 @@ public interface PermissionUser extends PermissionEntity {
      * @param groups new parent group names
      * @deprecated Use {@link PermissionEntity#setParentsIdentifier(List)} instead.
      */
-    @Deprecated
-    void setGroups(String[] groups);
+    @Deprecated(since = "1.24.x")    void setGroups(String[] groups);
 
     /**
      * Replaces this user's direct parent groups in the given world context.
@@ -371,8 +362,7 @@ public interface PermissionUser extends PermissionEntity {
      * @param worldName    world context, or {@code null} for the global context
      * @deprecated Use {@link PermissionEntity#setParents(List, String)} instead.
      */
-    @Deprecated
-    void setGroups(PermissionGroup[] parentGroups, String worldName);
+    @Deprecated(since = "1.24.x")    void setGroups(PermissionGroup[] parentGroups, String worldName);
 
     /**
      * Replaces this user's direct parent groups in the global context.
@@ -380,6 +370,5 @@ public interface PermissionUser extends PermissionEntity {
      * @param parentGroups new parent group objects
      * @deprecated Use {@link PermissionEntity#setParents(List)} instead.
      */
-    @Deprecated
-    void setGroups(PermissionGroup[] parentGroups);
+    @Deprecated(since = "1.24.x")    void setGroups(PermissionGroup[] parentGroups);
 }

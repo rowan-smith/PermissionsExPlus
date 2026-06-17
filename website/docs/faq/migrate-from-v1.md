@@ -81,7 +81,7 @@ Version 3 intentionally minimizes breaks. The items below are administrative, no
 | SNAPSHOT builds | Pre-release identifier in version string | Use for testing; pin to `3.0.0` stable when released |
 | `backend: file` in config | Normalized to `local` at load time | Set `backend: local` explicitly when convenient |
 | Framework-specific admin commands | `config`, `convert uuid` = classic; `export` = modern | See [Command mapping](/commands/command-mapping) |
-| `@Deprecated(since = "3.0.0")` on select legacy methods | Compile-time warnings only | Adopt [Modern API](/developers/api/modern) for new code |
+| `@Deprecated(since = "1.24.x")` on select legacy methods | Compile-time warnings only | Adopt [Modern API](/developers/api/modern) for new code |
 
 **No permission data format break** between `1.24.x` and `3.0.0-SNAPSHOT`. Your H2 database, SQL data, and YAML imports remain valid.
 
