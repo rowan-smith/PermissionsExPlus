@@ -17,7 +17,7 @@ Verified against git tag **`STABLE-1.23.4`** (upstream release `1.23.4`, January
 | Proxy | **Not supported** — no BungeeCord, Waterfall, Velocity, or Sponge artifacts in upstream |
 | Minecraft | Built against Bukkit **`1.8.8-R0.1-SNAPSHOT`**; typical deployments were **1.8.x era** servers |
 | Java | Compiled for **Java 7** bytecode |
-| Storage backends | `file` (YAML), `memory`, `sql` — no embedded H2 `local` default |
+| Storage backends | `file` (YAML), `memory`, `sql` — no embedded H2 `h2` default |
 | Commands | Classic `/pex` tree only |
 | Hook API | `ru.tehkode.permissions.*` only |
 

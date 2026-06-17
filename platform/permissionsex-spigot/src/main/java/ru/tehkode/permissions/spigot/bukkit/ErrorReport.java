@@ -316,7 +316,7 @@ public class ErrorReport {
 				}
 			}
 			if (permissionsDb == null) {
-				String backendName = pexConfig.getString("permissions.backend", "local");
+				String backendName = pexConfig.getString("permissions.backend", "h2");
 				String backendType = pexConfig.getString("permissions.backends." + backendName + ".type", backendName);
 				if ("file".equalsIgnoreCase(backendType)) {
 					File file = new File(pexPlugin.getDataFolder(),

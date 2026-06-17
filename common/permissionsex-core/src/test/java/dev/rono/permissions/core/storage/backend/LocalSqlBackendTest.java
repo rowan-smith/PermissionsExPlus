@@ -74,7 +74,7 @@ class LocalSqlBackendTest extends ru.tehkode.permissions.PEXTestBase {
 
     @Test
     void diagnosticLabelIncludesDatabaseName() {
-        assertTrue(backend.diagnosticLabel().startsWith("local-h2:"));
+        assertTrue(backend.diagnosticLabel().startsWith("h2:"));
     }
 
     @Test

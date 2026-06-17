@@ -35,7 +35,7 @@ PEX is tested against current Spigot/Paper APIs. Always verify on your exact ser
 
 ## Disk space
 
-Minimal. Default **`local`** storage uses a small H2 database in `plugins/PermissionsEx/`:
+Minimal. Default **`h2`** storage uses a small H2 database in `plugins/PermissionsEx/`:
 
 - `config.yml` — settings
 - `permissions.mv.db` — groups and users (embedded H2)

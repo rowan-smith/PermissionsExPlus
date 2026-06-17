@@ -10,6 +10,6 @@ public enum PexConfigFlavor {
     }
 
     public String defaultBackend() {
-        return PexConfigData.LOCAL_BACKEND;
+        return PexConfigData.H2_BACKEND;
     }
 }

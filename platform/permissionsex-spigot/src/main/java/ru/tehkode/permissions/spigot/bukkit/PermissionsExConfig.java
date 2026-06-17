@@ -45,11 +45,11 @@ public final class PermissionsExConfig implements dev.rono.permissions.core.Perm
         if (backends == null) {
             backends = c.createSection("permissions.backends");
         }
-        if (!backends.isSet("local")) {
-            ConfigurationSection local = backends.createSection("local");
-            local.set("type", "local");
-            local.set("database", "permissions");
-            local.set("migration-source", "permissions.yml");
+        if (!backends.isSet("h2")) {
+            ConfigurationSection h2 = backends.createSection("h2");
+            h2.set("type", "h2");
+            h2.set("database", "permissions");
+            h2.set("migration-source", "permissions.yml");
         }
 
         ConfigurationSection inform = c.getConfigurationSection("permissions.informplayers");

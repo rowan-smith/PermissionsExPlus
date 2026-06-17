@@ -14,11 +14,11 @@ permissions:
   debug: false
   allowOps: false
   createUserRecords: true
-  backend: local
+  backend: h2
   basedir: plugins/PermissionsEx
   backends:
-    local:
-      type: local
+    h2:
+      type: h2
       database: permissions
       migration-source: permissions.yml
 ```
@@ -31,7 +31,7 @@ permissions:
 | `debug` | Extra logging for troubleshooting |
 | `allowOps` | Whether server ops bypass PEX |
 | `createUserRecords` | Auto-create a user entry when someone joins |
-| `backend` | Active storage backend (`local`, `sql`, `memory`; legacy `file` is normalized to `local`) |
+| `backend` | Active storage backend (`h2`, `sql`, `memory`; legacy `file` is normalized to `h2`) |
 | `basedir` | Folder for config and data files |
 
 Change a setting in-game:
@@ -69,7 +69,7 @@ See [General commands — command framework](/commands/general/#command-framewor
 
 ## Storage backends
 
-### local (default)
+### h2 (default)
 
 Embedded H2 database at `{basedir}/{database}.mv.db` — by default `plugins/PermissionsEx/permissions.mv.db`.
 
@@ -90,7 +90,7 @@ In-memory store for testing. Data is lost on restart.
 
 ### file (import only)
 
-YAML import backend for pulling data from `permissions.yml` via `/pex import file` (classic) or `/pex backend import file` (modern). Setting `backend: file` in config is automatically normalized to `local` with the YAML path preserved as `migration-source`.
+YAML import backend for pulling data from `permissions.yml` via `/pex import file` (classic) or `/pex backend import file` (modern). Setting `backend: file` in config is automatically normalized to `h2` with the YAML path preserved as `migration-source`.
 
 ## Permission data
 
@@ -162,5 +162,5 @@ Classic syntax equivalent:
 
 Full starter files are in the repository [`examples/`](https://github.com/rowan-smith/PermissionsExPlus/tree/main/examples) directory:
 
-- [`config.yml`](https://github.com/rowan-smith/PermissionsExPlus/blob/main/examples/config.yml) — plugin settings (update `backend: local` for current defaults)
+- [`config.yml`](https://github.com/rowan-smith/PermissionsExPlus/blob/main/examples/config.yml) — plugin settings (update `backend: h2` for current defaults)
 - [`permissions.yml`](https://github.com/rowan-smith/PermissionsExPlus/blob/main/examples/permissions.yml) — sample groups/users for YAML migration or import

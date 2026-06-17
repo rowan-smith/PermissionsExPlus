@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PexConfigDataLegacyBackendTest {
 
     @Test
-    void normalizesActiveFileBackendToLocalWithMigrationSource() {
+    void normalizesActiveFileBackendToH2WithMigrationSource() {
         LinkedHashMap<String, Object> fileSection = new LinkedHashMap<>();
         fileSection.put(PexConfigData.KEY_BACKEND_TYPE, "file");
         fileSection.put(PexConfigData.KEY_BACKEND_FILE_LEAF, "customperms.yml");
@@ -23,8 +23,8 @@ class PexConfigDataLegacyBackendTest {
 
         PexConfigData data = PexConfigData.fromPermissionsMap(root, () -> ".", PexConfigFlavor.SPIGOT);
 
-        assertEquals("local", data.backend());
+        assertEquals("h2", data.backend());
         assertEquals("customperms.yml", data.storeRelative());
-        assertEquals("customperms.yml", data.backends().get("local").get("migration-source"));
+        assertEquals("customperms.yml", data.backends().get("h2").get("migration-source"));
     }
 }

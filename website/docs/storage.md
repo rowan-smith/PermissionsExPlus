@@ -9,7 +9,7 @@ PermissionsExPlus stores its data in a folder on your server. By default this is
 ```text
 plugins/PermissionsEx/
 ├── config.yml
-├── permissions.mv.db          # H2 database (default local backend)
+├── permissions.mv.db          # H2 database (default h2 backend)
 └── permissions.yml.migrated   # present after YAML auto-migration
 ```
 
@@ -17,13 +17,13 @@ plugins/PermissionsEx/
 
 Plugin settings — which backend to use, command syntax, debug mode, and general behaviour. See [Configuration](/configuration/).
 
-## Permission data (local backend)
+## Permission data (h2 backend)
 
-By default, groups, users, and permissions live in an **H2 file database** at `plugins/PermissionsEx/permissions.mv.db` (configured via `permissions.backends.local.database`). Manage data with `/pex` commands — you do not edit the database file by hand.
+By default, groups, users, and permissions live in an **H2 file database** at `plugins/PermissionsEx/permissions.mv.db` (configured via `permissions.backends.h2.database`). Manage data with `/pex` commands — you do not edit the database file by hand.
 
 ### YAML auto-migration
 
-If `permissions.yml` is present on first startup with the default **`local`** backend, PEX imports it into H2 automatically and renames the original file to **`permissions.yml.migrated`**. This is a one-way migration; ongoing changes are stored in the database.
+If `permissions.yml` is present on first startup with the default **`h2`** backend, PEX imports it into H2 automatically and renames the original file to **`permissions.yml.migrated`**. This is a one-way migration; ongoing changes are stored in the database.
 
 ## Backends
 
@@ -31,7 +31,7 @@ PEX can store data in different ways:
 
 | Backend | Best for |
 |---------|----------|
-| **local** (default) | Single servers — embedded H2 file database |
+| **h2** (default) | Single servers — embedded H2 file database |
 | **sql** | Networks sharing MySQL, PostgreSQL, or SQLite |
 | **memory** | Testing only — data is lost on restart |
 | **file** | YAML import only via `/pex import file` — not for day-to-day storage |

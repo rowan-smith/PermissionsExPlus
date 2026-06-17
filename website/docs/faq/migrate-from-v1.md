@@ -57,7 +57,7 @@ What changes is the **project name**, **version label**, **documentation focus**
 | Area | PermissionsEx `1.23.4` | PermissionsExPlus `3.0.0-SNAPSHOT` |
 |------|------------------------|-------------------------------------|
 | Server platforms | **Bukkit / Spigot / Paper only** | Bukkit/Paper + **BungeeCord, Waterfall, Velocity, Sponge** |
-| Storage backend | **`file`** (YAML) typical | **`local` (H2)** default |
+| Storage backend | **`file`** (YAML) typical | **`h2` (H2)** default |
 | Command framework | Classic only | **`modern`** default (+ classic) |
 | YAML day-to-day storage | Common | **Import/migration** into H2 |
 | Java runtime | **Java 7+** bytecode (Java 8+ typical in practice) | **Java 21+** required |
@@ -82,7 +82,7 @@ PermissionsExPlus 3.0 intentionally minimizes breaks. The items below are admini
 |--------|--------|------------|
 | Jar / project name | `PermissionsEx-1.23.4.jar` → `PermissionsExPlus-3.0.0-SNAPSHOT.jar` | Remove old jars; keep one PEX jar |
 | SNAPSHOT builds | Pre-release identifier in version string | Use for testing; pin to `3.0.0` stable when released |
-| `backend: file` in config | Normalized to `local` at load time | Set `backend: local` explicitly when convenient |
+| `backend: file` in config | Normalized to `h2` at load time | Set `backend: h2` explicitly when convenient |
 | Framework-specific admin commands | `config`, `convert uuid` = classic; `export` = modern | See [Command mapping](/commands/command-mapping) |
 | `@Deprecated(since = "3.0.0")` on select legacy methods | Compile-time warnings only | Adopt [Modern API](/developers/api/modern) for new code |
 | Java 21+ required | PermissionsEx 1.23.4 ran on older Java | Upgrade server JVM before installing PEX+ |
@@ -152,17 +152,17 @@ For SQL backends, dump the database too.
 /pex hierarchy
 ```
 
-`/pex version` should report **3.0.0-SNAPSHOT**. `/pex backend` should show your expected backend (`local` after YAML import, or your SQL backend).
+`/pex version` should report **3.0.0-SNAPSHOT**. `/pex backend` should show your expected backend (`h2` after YAML import, or your SQL backend).
 
 ### 4. Review config (optional)
 
 ```yaml
 permissions:
   command-framework: modern
-  backend: local
+  backend: h2
   backends:
-    local:
-      type: local
+    h2:
+      type: h2
       database: permissions
       migration-source: permissions.yml
 ```
@@ -185,7 +185,7 @@ See [Configuration](/configuration) and [Example files](/guides/example-configs)
 
 ### I used YAML (`permissions.yml` only)
 
-Leave your data in `plugins/PermissionsEx/permissions.yml`. On first startup with default `backend: local`, PEX+ imports it into H2 and renames the file to **`permissions.yml.migrated`**.
+Leave your data in `plugins/PermissionsEx/permissions.yml`. On first startup with default `backend: h2`, PEX+ imports it into H2 and renames the file to **`permissions.yml.migrated`**.
 
 ### I already use H2 (`permissions.mv.db`)
 

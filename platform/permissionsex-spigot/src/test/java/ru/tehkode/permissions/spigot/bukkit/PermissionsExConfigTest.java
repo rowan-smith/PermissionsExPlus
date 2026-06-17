@@ -23,7 +23,7 @@ public class PermissionsExConfigTest {
 
         PermissionsExConfig config = new PermissionsExConfig(plugin);
 
-        assertEquals("local", config.getDefaultBackend());
+        assertEquals("h2", config.getDefaultBackend());
         assertFalse(config.isDebug());
         assertFalse(config.allowOps());
         assertFalse(config.createUserRecords());

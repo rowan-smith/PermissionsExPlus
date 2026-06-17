@@ -12,7 +12,7 @@ PermissionsExPlus stores groups, users, and world inheritance in a **backend**. 
 
 | Backend | Role |
 |---------|------|
-| **local** (default) | Day-to-day storage — embedded H2 file at `plugins/PermissionsEx/permissions.mv.db` |
+| **h2** (default) | Day-to-day storage — embedded H2 file at `plugins/PermissionsEx/permissions.mv.db` |
 | **sql** | Shared MySQL / PostgreSQL / SQLite for proxy networks |
 | **memory** | Testing only — data is lost on restart |
 | **file** | YAML **import source** — not for active storage |
@@ -34,7 +34,7 @@ See [Storage](/storage) and [Configuration](/configuration) for full backend opt
 The easiest import path — no commands required.
 
 1. Place your data in `plugins/PermissionsEx/permissions.yml`
-2. Use the default `backend: local` in `config.yml`
+2. Use the default `backend: h2` in `config.yml`
 3. Start the server
 
 PEX creates `permissions.mv.db`, imports the YAML, and renames the original file to **`permissions.yml.migrated`**. Ongoing changes are stored in H2.
@@ -55,10 +55,10 @@ Add a `file` section under `permissions.backends` in `config.yml`:
 
 ```yaml
 permissions:
-  backend: local
+  backend: h2
   backends:
-    local:
-      type: local
+    h2:
+      type: h2
       database: permissions
     yaml-import:
       type: file
@@ -108,8 +108,8 @@ Switching the active backend does **not** copy data automatically. Use import af
 
    | Framework | Command |
    |-----------|---------|
-   | Modern | `/pex backend import local` |
-   | Classic | `/pex import local` |
+   | Modern | `/pex backend import h2` |
+   | Classic | `/pex import h2` |
 
 4. Verify with `/pex hierarchy`
 
@@ -129,7 +129,7 @@ Export dumps the active backend as YAML text in chat. Useful for backups, audits
 Export a specific configured backend without switching:
 
 ```text
-/pex backend export local
+/pex backend export h2
 /pex backend export yaml-import
 ```
 

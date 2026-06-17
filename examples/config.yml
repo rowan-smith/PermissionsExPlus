@@ -8,12 +8,12 @@ permissions:
   log-players: true
   createUserRecords: true
   save-default-group: true
-  backend: local
+  backend: h2
   basedir: plugins/PermissionsEx
   informplayers:
     changes: false
   backends:
-    local:
-      type: local
+    h2:
+      type: h2
       database: permissions
       migration-source: permissions.yml

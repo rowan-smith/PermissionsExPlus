@@ -223,7 +223,7 @@ public final class LocalSqlBackend extends AbstractPermissionBackend {
 
     @Override
     public String diagnosticLabel() {
-        return "local-h2:" + databaseFile.getName();
+        return "h2:" + databaseFile.getName();
     }
 
     @Override

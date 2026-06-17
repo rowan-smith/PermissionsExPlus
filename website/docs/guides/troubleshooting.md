@@ -86,8 +86,8 @@ Watch the console while the player triggers the permission check.
 |-------|-----|
 | File permissions | Check server can write to `plugins/PermissionsEx/` (H2 needs write access for `permissions.mv.db`) |
 | SQL connection failed | Check database credentials in `config.yml` |
-| Wrong backend active | `/pex backend` — should show `local` or your SQL alias |
-| YAML not imported | Ensure `permissions.yml` exists before first startup with `backend: local`, or use `/pex import file` |
+| Wrong backend active | `/pex backend` — should show `h2` or your SQL alias |
+| YAML not imported | Ensure `permissions.yml` exists before first startup with `backend: h2`, or use `/pex import file` |
 
 ```text
 /pex backend

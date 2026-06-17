@@ -123,7 +123,7 @@ Show, switch, list, import, and export storage backends.
 
 | Backend | Description |
 |---------|-------------|
-| `local` | H2 file database (default) — `permissions.mv.db` under `basedir` |
+| `h2` | H2 file database (default) — `permissions.mv.db` under `basedir` |
 | `sql` | MySQL / PostgreSQL / SQLite (shared networks) |
 | `memory` | In-memory (testing) |
 | `file` | YAML import only (not for active storage) |
@@ -155,7 +155,7 @@ Show, switch, list, import, and export storage backends.
 | Classic | `/pex backend <alias>` |
 
 ```text
-/pex backend switch local
+/pex backend switch h2
 /pex backend sql
 ```
 
@@ -172,7 +172,7 @@ Switching backends does **not** migrate data automatically. Import after switchi
 Import permission data from another configured backend into the current one. Data is **merged** into the active backend.
 
 ```text
-/pex backend switch local
+/pex backend switch h2
 /pex backend import yaml-import
 ```
 
@@ -188,7 +188,7 @@ Dumps the active (or named) backend as YAML text in chat. Use for backups and pr
 
 ```text
 /pex backend export
-/pex backend export local
+/pex backend export h2
 ```
 
 > Export is available in the **modern** command framework only. Classic servers can switch to `command-framework: modern` temporarily, or back up `permissions.mv.db` / use SQL dump tools.

@@ -205,7 +205,7 @@ public class BungeePermissionsExConfig implements PermissionsExConfig, ru.tehkod
 
     private void ensureDefaults() {
         Map<String, Object> perms = getOrCreateSection("permissions");
-        perms.putIfAbsent("backend", "local");
+        perms.putIfAbsent("backend", "h2");
         perms.putIfAbsent("basedir", configFile.getParent().resolve("data").toString());
         perms.putIfAbsent("debug", false);
         perms.putIfAbsent("allowOps", false);
@@ -219,16 +219,16 @@ public class BungeePermissionsExConfig implements PermissionsExConfig, ru.tehkod
 
         Map<String, Object> backend = getOrCreateSection("permissions.backends.memory");
         backend.putIfAbsent("type", "memory");
-        Map<String, Object> localBackend = getOrCreateSection("permissions.backends.local");
-        localBackend.putIfAbsent("type", "local");
-        localBackend.putIfAbsent("database", "permissions");
-        localBackend.putIfAbsent("migration-source", "permissions.yml");
+        Map<String, Object> h2Backend = getOrCreateSection("permissions.backends.h2");
+        h2Backend.putIfAbsent("type", "h2");
+        h2Backend.putIfAbsent("database", "permissions");
+        h2Backend.putIfAbsent("migration-source", "permissions.yml");
     }
 
     private static Map<String, Object> defaultConfig() {
         LinkedHashMap<String, Object> root = new LinkedHashMap<>();
         LinkedHashMap<String, Object> permissions = new LinkedHashMap<>();
-        permissions.put("backend", "local");
+        permissions.put("backend", "h2");
         permissions.put("basedir", "plugins/PermissionsEx");
         permissions.put("debug", false);
         permissions.put("allowOps", false);
@@ -243,11 +243,11 @@ public class BungeePermissionsExConfig implements PermissionsExConfig, ru.tehkod
         LinkedHashMap<String, Object> memory = new LinkedHashMap<>();
         memory.put("type", "memory");
         backends.put("memory", memory);
-        LinkedHashMap<String, Object> local = new LinkedHashMap<>();
-        local.put("type", "local");
-        local.put("database", "permissions");
-        local.put("migration-source", "permissions.yml");
-        backends.put("local", local);
+        LinkedHashMap<String, Object> h2 = new LinkedHashMap<>();
+        h2.put("type", "h2");
+        h2.put("database", "permissions");
+        h2.put("migration-source", "permissions.yml");
+        backends.put("h2", h2);
         permissions.put("backends", backends);
         root.put("permissions", permissions);
         return root;

@@ -37,7 +37,7 @@ public record PexConfigData(
     public static final String KEY_INFORM_CHANGES = "changes";
     public static final String KEY_BACKENDS = "backends";
     public static final String FILE_BACKEND = "file";
-    public static final String LOCAL_BACKEND = "local";
+    public static final String H2_BACKEND = "h2";
     public static final String KEY_BACKEND_TYPE = "type";
     /** Path leaf inside {@code backends.file}. */
     public static final String KEY_BACKEND_FILE_LEAF = "file";
@@ -45,7 +45,7 @@ public record PexConfigData(
     public static final String KEY_MIGRATION_SOURCE = "migration-source";
     public static final String KEY_COMMAND_FRAMEWORK = CommandFramework.CONFIG_KEY;
 
-    private static final String FALLBACK_BACKEND = LOCAL_BACKEND;
+    private static final String FALLBACK_BACKEND = H2_BACKEND;
 
     public PexConfigData {
         Objects.requireNonNull(informPlayers, "informPlayers");
@@ -173,7 +173,7 @@ public record PexConfigData(
         Map<String, Object> active = backends.get(backend);
         if (active != null) {
             String type = stringify(active.get(KEY_BACKEND_TYPE), backend);
-            if (LOCAL_BACKEND.equals(type)) {
+            if (H2_BACKEND.equals(type)) {
                 Object migration = active.get(KEY_MIGRATION_SOURCE);
                 if (migration != null) {
                     String s = String.valueOf(migration).trim();
@@ -234,7 +234,7 @@ public record PexConfigData(
     }
 
     /**
-     * Maps legacy active {@code backend: file} configs to {@code local} while preserving the YAML path
+     * Maps legacy active {@code backend: file} configs to {@code h2} while preserving the YAML path
      * for one-time import via {@code migration-source}.
      */
     private static String normalizeActiveBackendAlias(
@@ -242,18 +242,18 @@ public record PexConfigData(
         if (!FILE_BACKEND.equalsIgnoreCase(backend)) {
             return backend;
         }
-        Map<String, Object> local = backends.computeIfAbsent(LOCAL_BACKEND, ignored -> new LinkedHashMap<>());
-        local.putIfAbsent(KEY_BACKEND_TYPE, LOCAL_BACKEND);
-        local.putIfAbsent(KEY_DATABASE, "permissions");
+        Map<String, Object> h2 = backends.computeIfAbsent(H2_BACKEND, ignored -> new LinkedHashMap<>());
+        h2.putIfAbsent(KEY_BACKEND_TYPE, H2_BACKEND);
+        h2.putIfAbsent(KEY_DATABASE, "permissions");
         Map<String, Object> fileSection = backends.get(FILE_BACKEND);
         if (fileSection != null) {
             Object yamlPath = fileSection.get(KEY_BACKEND_FILE_LEAF);
             if (yamlPath != null && !String.valueOf(yamlPath).isBlank()) {
-                local.putIfAbsent(KEY_MIGRATION_SOURCE, String.valueOf(yamlPath).trim());
+                h2.putIfAbsent(KEY_MIGRATION_SOURCE, String.valueOf(yamlPath).trim());
             }
         }
-        local.putIfAbsent(KEY_MIGRATION_SOURCE, PexPermissionsData.DEFAULT_STORE_FILE);
-        return LOCAL_BACKEND;
+        h2.putIfAbsent(KEY_MIGRATION_SOURCE, PexPermissionsData.DEFAULT_STORE_FILE);
+        return H2_BACKEND;
     }
 
     private static void applyYamlDefaults(Map<String, Object> permissionsMap, PexConfigFlavor flavor) {

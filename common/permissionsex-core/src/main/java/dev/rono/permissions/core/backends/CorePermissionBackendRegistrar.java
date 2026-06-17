@@ -21,7 +21,7 @@ public final class CorePermissionBackendRegistrar {
             if (installed) {
                 return;
             }
-            PermissionBackend.registerBackendAlias("local", LocalSqlBackend.class);
+            PermissionBackend.registerBackendAlias("h2", LocalSqlBackend.class);
             PermissionBackend.registerBackendAlias("file", YamlFileBackend.class);
             PermissionBackend.registerBackendAlias("sql", SQLBackend.class);
             PermissionBackend.registerBackendAlias("multi", MultiBackend.class);
