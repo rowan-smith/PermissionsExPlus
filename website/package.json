@@ -1,6 +1,6 @@
 {
   "name": "permissionsexplus-docs",
-  "version": "3.0.0",
+  "version": "3.0.0-SNAPSHOT",
   "private": true,
   "scripts": {
     "sync-site-vars": "node scripts/sync-site-vars.mjs",

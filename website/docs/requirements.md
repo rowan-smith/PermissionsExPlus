@@ -17,7 +17,7 @@ Install the universal **`PermissionsExPlus-%%site.version%%.jar`** on each serve
 
 ## Java
 
-**Java 21 or newer** is required to run PermissionsExPlus %%site.version%% (Version 3).
+**Java 21 or newer** is required to run PermissionsExPlus %%site.version%% (Version 3 — development builds use the `-SNAPSHOT` suffix).
 
 Check your version:
 

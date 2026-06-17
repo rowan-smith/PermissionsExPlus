@@ -161,7 +161,7 @@ Save the YAML output, then proceed with your changes. If something goes wrong, r
 2. Replace the old jar with `PermissionsExPlus-%%site.version%%.jar`
 3. Start the server — existing `permissions.yml` or H2 data is preserved
 4. Run `/pex convert uuid` if your data still uses player names (classic framework only)
-5. Upgrading from PermissionsExPlus 1.x? See [Migrating from Version 1](/faq/migrate-from-v1)
+5. Upgrading from **1.24.x**? See [Migrating from Version 1](/faq/migrate-from-v1) — new major line, full backwards compatibility
 6. See [Migration FAQ](/faq/migration) for other plugin-specific notes
 
 ### Import from GroupManager / LuckPerms

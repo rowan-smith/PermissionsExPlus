@@ -6,6 +6,7 @@ import siteVarsPlugin from './src/remark/siteVarsPlugin';
 
 const JAVADOC_VERSIONS = [
   {label: `${siteVars.version} (current)`, href: `pathname:///apidocs/${siteVars.version}/index.html`},
+  {label: '1.24.0', href: 'pathname:///apidocs/1.24.0/index.html'},
   {label: '1.23.5', href: 'pathname:///apidocs/1.23.5/index.html'},
   {label: '1.23.4', href: 'pathname:///apidocs/1.23.4/index.html'},
   {label: '1.23.3', href: 'pathname:///apidocs/1.23.3/index.html'},
@@ -81,7 +82,7 @@ const config: Config = {
     announcementBar: {
       id: 'pex_migration',
       content:
-        'Running PermissionsExPlus 1.x? Read the <a href="/faq/migrate-from-v1">Version 1 → 3.0.0 migration guide</a> · <a href="/faq/migration">Other plugins</a> · <a href="/changelog">Changelog</a>',
+        'Running PermissionsExPlus 1.24.x? Read the <a href="/faq/migrate-from-v1">Version 1 → 3.0 migration guide</a> · <a href="/faq/migration">Other plugins</a> · <a href="/changelog">Changelog</a>',
       backgroundColor: '#0f2922',
       textColor: '#86efac',
       isCloseable: true,
@@ -138,7 +139,7 @@ const config: Config = {
             {type: 'doc', docId: 'guides/import-export', label: 'Import & Export'},
             {type: 'doc', docId: 'guides/troubleshooting', label: 'Troubleshooting'},
             {type: 'doc', docId: 'faq/default-groups', label: 'Default Groups'},
-            {type: 'doc', docId: 'faq/migrate-from-v1', label: 'From Version 1 (3.0.0)'},
+            {type: 'doc', docId: 'faq/migrate-from-v1', label: 'From Version 1 (1.24.x → 3.0)'},
             {type: 'doc', docId: 'faq/migration', label: 'From other plugins'},
             {type: 'doc', docId: 'changelog', label: 'Changelog'},
           ],

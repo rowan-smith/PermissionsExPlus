@@ -1,9 +1,9 @@
 [
   {
-    "tag": "v3.0.0",
-    "name": "PermissionsExPlus 3.0.0",
-    "publishedAt": "2026-06-17T00:30:55.452Z",
-    "url": "https://github.com/rowan-smith/PermissionsExPlus/releases/tag/v3.0.0",
+    "tag": "v3.0.0-SNAPSHOT",
+    "name": "PermissionsExPlus 3.0.0-SNAPSHOT",
+    "publishedAt": "2026-06-17T00:34:56.435Z",
+    "url": "https://github.com/rowan-smith/PermissionsExPlus/releases/tag/v3.0.0-SNAPSHOT",
     "body": "See GitHub Releases for full release notes.",
     "prerelease": false
   }

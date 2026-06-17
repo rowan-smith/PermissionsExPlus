@@ -8,7 +8,7 @@ slug: /about
 
 PermissionsExPlus is a maintained fork of [PermissionsEx](https://github.com/PEXPlugins/PermissionsEx), the permissions plugin used on thousands of Minecraft servers since 2011.
 
-**Current version:** %%site.version%% (Version 3). Upgrading from the 1.x line? See [Migrating from Version 1](/faq/migrate-from-v1).
+**Current version:** %%site.version%% (Version 3 — new major line). Upgrading from **1.24.x**? See [Migrating from Version 1](/faq/migrate-from-v1).
 
 This fork keeps the familiar `/pex` command structure while adding:
 
