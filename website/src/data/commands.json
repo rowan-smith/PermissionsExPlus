@@ -9,8 +9,8 @@
   },
   {
     "command": "/pex backend",
-    "syntax": "/pex backend [alias]",
-    "summary": "Show or switch the active storage backend.",
+    "syntax": "/pex backend list",
+    "summary": "",
     "category": "General",
     "docSlug": "/commands/general",
     "anchor": "pex-backend"
@@ -24,9 +24,17 @@
     "anchor": "pex-config"
   },
   {
+    "command": "/pex config permissions.command-framework",
+    "syntax": "/pex config permissions.command-framework",
+    "summary": "Command framework",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-config-permissionscommand-framework"
+  },
+  {
     "command": "/pex convert uuid",
     "syntax": "/pex convert uuid",
-    "summary": "Bulk-converts user records from username keys to UUID keys. Run after migrating from older PEX versions.",
+    "summary": "",
     "category": "General",
     "docSlug": "/commands/general",
     "anchor": "pex-convert-uuid"
@@ -38,6 +46,14 @@
     "category": "Ranks",
     "docSlug": "/commands/ranks",
     "anchor": "pex-demote"
+  },
+  {
+    "command": "/pex export",
+    "syntax": "/pex export",
+    "summary": "",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-export"
   },
   {
     "command": "/pex group <group>",
@@ -185,8 +201,8 @@
   },
   {
     "command": "/pex import",
-    "syntax": "/pex import <backend>",
-    "summary": "Import permission data from another configured backend into the current one.",
+    "syntax": "/pex import",
+    "summary": "",
     "category": "General",
     "docSlug": "/commands/general",
     "anchor": "pex-import"
@@ -214,14 +230,6 @@
     "category": "General",
     "docSlug": "/commands/general",
     "anchor": "pex-report"
-  },
-  {
-    "command": "/pex toggle debug",
-    "syntax": "/pex toggle debug",
-    "summary": "Enables verbose permission-resolution logging in the server console.",
-    "category": "General",
-    "docSlug": "/commands/general",
-    "anchor": "pex-toggle-debug"
   },
   {
     "command": "/pex user <user>",
@@ -398,6 +406,14 @@
     "category": "Users",
     "docSlug": "/commands/users",
     "anchor": "pex-users-list"
+  },
+  {
+    "command": "/pex version",
+    "syntax": "/pex version",
+    "summary": "Shows the installed PermissionsExPlus version.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-version"
   },
   {
     "command": "/pex world <world>",

@@ -37,9 +37,15 @@ permissions:
 | Add permission | `/pex user Steve permissions add essentials.home` | `/pex user Steve add essentials.home` |
 | List permissions | `/pex user Steve permissions list` | `/pex user Steve list` |
 | Add to group | `/pex user Steve groups add vip` | `/pex user Steve group add vip` |
+| Switch backend | `/pex backend switch sql` | `/pex backend sql` |
 | Import backend | `/pex backend import file` | `/pex import file` |
+| Export backend | `/pex backend export` | — |
+| Toggle debug | `/pex debug on` / `/pex debug off` | `/pex toggle debug` |
+| Edit config in-game | — | `/pex config permissions.debug true` |
 
-Command reference pages document **both** frameworks. **Modern** syntax is the default for new servers; classic examples are shown in a second column where helpful. See [Configuration — command framework](/configuration/#command-framework).
+Command reference pages primarily document **classic** syntax (familiar to long-time PEX users). For the full modern ↔ classic mapping, see **[Command mapping](/commands/command-mapping)**. **Modern** syntax is the default for new servers.
+
+See also [Configuration — command framework](/configuration/#command-framework) and [Import & Export](/guides/import-export).
 
 ---
 
@@ -112,9 +118,7 @@ Common nodes: `permissions.debug`, `permissions.backend`, `permissions.command-f
 
 ## `/pex backend`
 
-**Syntax:** `/pex backend [alias]`
-
-Show or switch the active storage backend.
+Show, switch, list, import, and export storage backends.
 
 | Backend | Description |
 |---------|-------------|
@@ -123,13 +127,38 @@ Show or switch the active storage backend.
 | `memory` | In-memory (testing) |
 | `file` | YAML import only (not for active storage) |
 
+### Show active backend
+
+| Framework | Syntax |
+|-----------|--------|
+| Both | `/pex backend` |
+| Modern | `/pex backend info` |
+
 ```text
 /pex backend
-/pex backend local
+```
+
+### List configured backends (modern)
+
+**Syntax:** `/pex backend list`
+
+```text
+/pex backend list
+```
+
+### Switch backend
+
+| Framework | Syntax |
+|-----------|--------|
+| Modern | `/pex backend switch <alias>` |
+| Classic | `/pex backend <alias>` |
+
+```text
+/pex backend switch local
 /pex backend sql
 ```
 
-Switching backends does not migrate data automatically. Use `/pex import` (classic) or `/pex backend import` (modern) after switching.
+Switching backends does **not** migrate data automatically. Import after switching — see [Import & Export](/guides/import-export).
 
 ---
 
@@ -139,28 +168,58 @@ Switching backends does not migrate data automatically. Use `/pex import` (class
 
 **Syntax (modern):** `/pex backend import <backend>`
 
-Import permission data from another configured backend into the current one.
+Import permission data from another configured backend into the current one. Data is **merged** into the active backend.
 
 ```text
-/pex backend sql
-/pex import yaml-import
+/pex backend switch local
+/pex backend import yaml-import
 ```
 
-Ensure the source backend is configured in `config.yml` under `permissions.backends`.
+Ensure the source backend is configured in `config.yml` under `permissions.backends`. Full walkthrough: [Import & Export](/guides/import-export).
+
+---
+
+## `/pex export`
+
+**Syntax (modern):** `/pex backend export [backend]`
+
+Dumps the active (or named) backend as YAML text in chat. Use for backups and preparing import files.
+
+```text
+/pex backend export
+/pex backend export local
+```
+
+> Export is available in the **modern** command framework only. Classic servers can switch to `command-framework: modern` temporarily, or back up `permissions.mv.db` / use SQL dump tools.
+
+---
+
+## `/pex version`
+
+**Syntax:** `/pex version`
+
+Shows the installed PermissionsExPlus version.
+
+```text
+/pex version
+```
 
 ---
 
 ## `/pex convert uuid`
 
-**Syntax:** `/pex convert uuid`
+**Syntax (classic):** `/pex convert uuid` · `/pex convert uuid force`
 
 Bulk-converts user records from username keys to UUID keys. Run after migrating from older PEX versions.
 
 ```text
 /pex convert uuid
+/pex convert uuid force
 ```
 
-Players should have joined at least once so their UUIDs are known.
+> UUID conversion is registered in the **classic** command framework. Use `command-framework: classic` in `config.yml` if you need this command in-game.
+
+Players should have joined at least once so their UUIDs are known. `force` rewrites records even when a UUID mapping already exists — use with care.
 
 ---
 
@@ -177,17 +236,19 @@ Prints the full user/group permission tree. Useful for auditing setups.
 
 ---
 
-## `/pex toggle debug`
+## Debug logging
 
-**Syntax:** `/pex toggle debug`
+| Framework | Turn on | Turn off | Status |
+|-----------|---------|----------|--------|
+| **Modern** | `/pex debug on` | `/pex debug off` | `/pex debug` |
+| **Classic** | `/pex toggle debug` | `/pex toggle debug` (toggles) | — |
 
-Enables verbose permission-resolution logging in the server console.
+Enables verbose permission-resolution logging in the server console. Use when diagnosing [permission issues](/guides/troubleshooting/).
 
 ```text
+/pex debug on
 /pex toggle debug
 ```
-
-Disable the same way. Use when diagnosing [permission issues](/guides/troubleshooting/).
 
 ---
 

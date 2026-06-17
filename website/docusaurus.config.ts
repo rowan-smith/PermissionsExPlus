@@ -116,6 +116,7 @@ const config: Config = {
           ],
         },
         {type: 'doc', docId: 'commands/index', label: 'Commands', position: 'left'},
+        {type: 'doc', docId: 'commands/command-mapping', label: 'Command Mapping', position: 'left'},
         {
           type: 'dropdown',
           label: 'Configuration',
@@ -123,6 +124,8 @@ const config: Config = {
           items: [
             {type: 'doc', docId: 'configuration', label: 'config.yml & permissions.yml'},
             {type: 'doc', docId: 'storage', label: 'Storage & Backends'},
+            {type: 'doc', docId: 'guides/example-configs', label: 'Example files'},
+            {type: 'doc', docId: 'guides/import-export', label: 'Import & Export'},
           ],
         },
         {
@@ -131,6 +134,7 @@ const config: Config = {
           position: 'left',
           items: [
             {type: 'doc', docId: 'guides/recipes', label: 'Common Setups'},
+            {type: 'doc', docId: 'guides/import-export', label: 'Import & Export'},
             {type: 'doc', docId: 'guides/troubleshooting', label: 'Troubleshooting'},
             {type: 'doc', docId: 'faq/default-groups', label: 'Default Groups'},
             {type: 'doc', docId: 'faq/migration', label: 'Migration'},
@@ -213,7 +217,9 @@ const config: Config = {
           title: 'Reference',
           items: [
             {label: 'Commands', to: '/commands'},
+            {label: 'Command Mapping', to: '/commands/command-mapping'},
             {label: 'Configuration', to: '/configuration'},
+            {label: 'Import & Export', to: '/guides/import-export'},
             {label: 'API Cookbook', to: '/developers/cookbook'},
             {label: 'Hook Plugin API', to: '/developers/api'},
             {label: 'Architecture', to: '/developers/architecture'},

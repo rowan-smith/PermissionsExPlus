@@ -7,7 +7,7 @@ const CATEGORIES = [
   {
     slug: '/commands/general',
     label: 'General',
-    description: 'Reload, config, backends, import, debug, and server-wide tools.',
+    description: 'Reload, config, backends, import, export, debug, and server-wide tools.',
   },
   {
     slug: '/commands/users',
