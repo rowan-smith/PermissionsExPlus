@@ -4,7 +4,7 @@
 
     <groupId>dev.rono.permissions</groupId>
     <artifactId>PermissionsExPlus</artifactId>
-    <version>1.23.5</version>
+    <version>3.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>PermissionsExPlus</name>

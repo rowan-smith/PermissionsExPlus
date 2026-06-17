@@ -8,14 +8,14 @@ slug: /about
 
 PermissionsExPlus is a maintained fork of [PermissionsEx](https://github.com/PEXPlugins/PermissionsEx), the permissions plugin used on thousands of Minecraft servers since 2011.
 
+**Current version:** %%site.version%% (Version 3 — new major line). Upgrading from **1.24.x**? See [Migrating from Version 1](/faq/migrate-from-v1).
+
 This fork keeps the familiar `/pex` command structure while adding:
 
 - Active maintenance and modern platform support
 - Spigot, Paper, BungeeCord, Velocity, and Sponge from one jar
 - A modern `dev.rono.permissions.api` integration API
 - Restored classic `ru.tehkode.*` hook plugin compatibility
-
-**Current version:** %%site.version%%
 
 ## Credits
 

@@ -10,7 +10,7 @@ Starter configuration files live in the repository [`examples/`](https://github.
 
 [`examples/config.yml`](https://github.com/rowan-smith/PermissionsExPlus/blob/main/examples/config.yml) — copy to `plugins/PermissionsEx/config.yml` on your server.
 
-For current defaults, set `backend: local` and include a `local` backend section (see [Configuration](/configuration/)). The repository example may still show legacy `backend: file` until it is updated — prefer `local` for new installs.
+Uses the default **`local`** H2 backend with `command-framework: modern`. See [Configuration](/configuration/) for all options.
 
 ## permissions.yml
 

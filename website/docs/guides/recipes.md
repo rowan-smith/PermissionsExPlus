@@ -102,7 +102,7 @@ Uses [world context](/concepts/context/).
 
 1. Install `PermissionsExPlus-%%site.version%%.jar` on **every** backend and the proxy
 2. Use a shared **`sql`** backend (recommended) — not separate H2 files per server
-3. Set up groups on one server, then `/pex backend import` / `/pex import` or share the database
+3. Set up groups on one server, then share the database or [import data](/guides/import-export) into the SQL backend
 
 ```yaml
 # config.yml — SQL backend for shared data

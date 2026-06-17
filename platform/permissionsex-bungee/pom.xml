@@ -4,7 +4,7 @@
     <parent>
         <groupId>dev.rono.permissions</groupId>
         <artifactId>platform</artifactId>
-        <version>1.23.5</version>
+        <version>3.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

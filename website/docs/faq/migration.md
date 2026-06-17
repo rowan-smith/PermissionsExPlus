@@ -4,6 +4,10 @@ description: Migrating to PermissionsExPlus from other permission plugins.
 slug: /faq/migration
 ---
 
+Upgrading from **PermissionsExPlus 1.24.x** (last Version 1 line)? See [Migrating from Version 1](/faq/migrate-from-v1) for the `1.24.x` → `3.0.0-SNAPSHOT` upgrade with full backwards compatibility.
+
+---
+
 ## From original PermissionsEx
 
 1. **Back up** your `plugins/PermissionsEx/` folder

@@ -23,6 +23,7 @@ const sidebars: SidebarsConfig = {
       link: {type: 'doc', id: 'commands/index'},
       items: [
         'commands/general',
+        'commands/command-mapping',
         'commands/users',
         'commands/groups',
         'commands/permissions',
@@ -34,7 +35,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Configuration',
       collapsed: false,
-      items: ['configuration', 'storage', 'guides/example-configs'],
+      items: ['configuration', 'storage', 'guides/example-configs', 'guides/import-export'],
     },
     {
       type: 'category',
@@ -42,8 +43,10 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'guides/recipes',
+        'guides/import-export',
         'guides/troubleshooting',
         'faq/default-groups',
+        'faq/migrate-from-v1',
         'faq/migration',
         'changelog',
       ],

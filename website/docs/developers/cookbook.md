@@ -194,7 +194,7 @@ boolean ok = PermissionsEx.getPermissionManager()
 | Situation | API |
 |-----------|-----|
 | New plugin | Modern — `PermissionsEx.getApi()` |
-| Existing PEX 1.23.x plugin | Legacy — usually works without changes |
+| Existing PEX 1.x plugin | Legacy — usually works without changes |
 | Bukkit events on Spigot | Legacy events |
 | Bungee/Velocity proxy | `dev.rono.permissions.bungee.PermissionsEx.getApi()` |
 

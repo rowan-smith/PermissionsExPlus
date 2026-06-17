@@ -56,6 +56,14 @@ Import data from another configured backend:
 
 (Modern command framework: `/pex backend import file`.)
 
+Export a YAML snapshot of the active backend (modern framework):
+
+```text
+/pex backend export
+```
+
+See [Import & Export](/guides/import-export) for backup workflows, YAML migration, and moving data between H2 and SQL.
+
 ## UUID storage
 
 Modern servers should use player UUIDs instead of usernames. Convert existing data:

@@ -8,7 +8,7 @@ export type JavadocVersion = {
   current?: boolean;
 };
 
-const LEGACY_VERSIONS = ['1.23.4', '1.23.3', '1.23.2', '1.23.1'] as const;
+const LEGACY_VERSIONS = ['1.24.0', '1.23.5', '1.23.4', '1.23.3', '1.23.2', '1.23.1'] as const;
 
 export function getJavadocVersions(): JavadocVersion[] {
   return [

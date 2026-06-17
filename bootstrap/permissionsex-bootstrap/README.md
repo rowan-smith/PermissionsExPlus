@@ -14,4 +14,4 @@ From repo root:
 mvn -pl bootstrap -am package
 ```
 
-Output: `bootstrap/target/PermissionsExPlus-1.23.5.jar`
+Output: `bootstrap/target/PermissionsExPlus-3.0.0-SNAPSHOT.jar`

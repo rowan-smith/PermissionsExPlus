@@ -110,7 +110,7 @@ export default function CommandSearch(): JSX.Element {
 
       {!query.trim() && (
         <div className={styles.quickTags}>
-          {['reload', 'group create', 'user add', 'promote', 'worlds', 'import'].map((tag) => (
+          {['reload', 'group create', 'user add', 'promote', 'worlds', 'import', 'export'].map((tag) => (
             <button
               key={tag}
               type="button"
