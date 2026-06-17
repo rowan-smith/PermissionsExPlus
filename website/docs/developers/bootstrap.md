@@ -7,7 +7,7 @@ See the [Universal Bootstrap Jar](https://permissionsexplus.rono.dev/developers/
 
 Maven module **`permissionsex-bootstrap`** (`dev.rono.permissions:permissionsex-bootstrap`) emits a single installable jar:
 
-**`bootstrap/target/PermissionsExPlus-{version}.jar`**
+**`universal/target/PermissionsExPlus-{version}.jar`**
 
 Maven still uses a normal module `artifactId` for the reactor; only the **on-disk jar name** is simplified as above (`build.finalName`).
 
@@ -49,9 +49,9 @@ Keep a **single** `PermissionsExPlus-*.jar` per server process.
 From repo root:
 
 ```bash
-mvn -pl bootstrap -am package
+mvn -pl universal -am package
 ```
 
 All five platform modules must succeed first so their jars exist for the merge step.
 
-Output: `bootstrap/target/PermissionsExPlus-{version}.jar`
+Output: `universal/target/PermissionsExPlus-{version}.jar`

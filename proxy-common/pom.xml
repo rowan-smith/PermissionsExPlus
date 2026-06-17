@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -10,26 +10,29 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>permissionsex-api</artifactId>
-    <name>PermissionsExPlus Public API</name>
-    <description>Modern hook integration surface: PexPermissionService, PexUser, PexGroup, and PexPermissionSubject on Bukkit ServicesManager.</description>
+    <artifactId>permissionsex-proxy-common</artifactId>
+    <name>PermissionsEx Proxy Common</name>
+    <description>Shared proxy bootstrap (config, backends, API registry) for Bungee, Velocity, and Sponge.</description>
 
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-core-api</artifactId>
+            <artifactId>permissionsex-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-legacy-api</artifactId>
+            <artifactId>permissionsex-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>net.md-5</groupId>
-            <artifactId>bungeecord-api</artifactId>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
             <scope>provided</scope>
-            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -41,21 +44,10 @@
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <!-- PermissionHolder and bus types live in permissionsex-core-api -->
-                    <includeDependencySources>true</includeDependencySources>
-                    <dependencySourceIncludes>
-                        <dependencySourceInclude>dev.rono.permissions:permissionsex-core-api</dependencySourceInclude>
-                    </dependencySourceIncludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

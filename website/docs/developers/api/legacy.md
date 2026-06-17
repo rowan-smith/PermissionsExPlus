@@ -13,7 +13,7 @@ Maven artifacts:
 
 **Status:** Frozen public contract matching upstream **PermissionsEx 1.23.4** (baseline commit **`628215f`**). Guarded by `LegacyApiContractTest` in `permissionsex-legacy-api`. Do not add methods to `ru.tehkode.*` — use the [modern API](/developers/api/modern) for new features. Legacy methods deprecated in PermissionsExPlus 3.0 use `@Deprecated(since = "3.0.0")`.
 
-Sample plugin: [`plugin/permissionsex-example-legacy-plugin/`](https://github.com/%%site.repo%%/tree/main/plugin/permissionsex-example-legacy-plugin/)
+Sample plugin: [`example-legacy-plugin/`](https://github.com/%%site.repo%%/tree/main/example-legacy-plugin/)
 
 ---
 
@@ -74,7 +74,7 @@ void onJoin(Player player) {
 
 ## `PermissionsEx` (stub)
 
-Compile-only static façade. Runtime class is the live `JavaPlugin` in `permissionsex-spigot`.
+Compile-only static façade. Runtime class is the live `JavaPlugin` in `bukkit`.
 
 | Method | Description |
 |--------|-------------|

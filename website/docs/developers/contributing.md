@@ -27,10 +27,10 @@ mvn clean package
 Universal jar:
 
 ```bash
-mvn clean package -pl bootstrap -am
+mvn clean package -pl universal -am
 ```
 
-Output: `bootstrap/target/PermissionsExPlus-%%site.version%%.jar`
+Output: `universal/target/PermissionsExPlus-%%site.version%%.jar`
 
 See [Universal Bootstrap Jar](/developers/bootstrap) for install and routing details.
 

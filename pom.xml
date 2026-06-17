@@ -11,12 +11,21 @@
     <url>https://github.com/rowan-smith/PermissionsExPlus</url>
 
     <modules>
-        <module>api</module>
+        <module>api-core</module>
         <module>legacy-api</module>
+        <module>api</module>
+        <module>legacy-stub</module>
+        <module>platform-api</module>
         <module>common</module>
-        <module>platform</module>
-        <module>bootstrap</module>
-        <module>plugin</module>
+        <module>proxy-common</module>
+        <module>bukkit</module>
+        <module>bungee</module>
+        <module>velocity</module>
+        <module>sponge</module>
+        <module>universal</module>
+        <module>example-plugin</module>
+        <module>example-legacy-plugin</module>
+        <module>legacy-compat</module>
     </modules>
 
     <properties>

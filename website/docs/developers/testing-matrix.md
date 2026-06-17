@@ -11,7 +11,7 @@ Use this checklist before tagging a release.
 |-----------|---------|-------|
 | Minecraft | 1.21.11 | Primary compile/test API |
 | Java | 21+ | Required for current artifacts |
-| PermissionsExPlus | `PermissionsExPlus-%%site.version%%.jar` from `bootstrap/target/` | Remove older PEX jars first |
+| PermissionsExPlus | `PermissionsExPlus-%%site.version%%.jar` from `universal/target/` | Remove older PEX jars first |
 
 ### Plugins to install alongside PEX
 
@@ -50,4 +50,4 @@ Verify `/pex` on proxy and permission checks for connected players.
 - `example-legacy-plugin` JAR — compiles only against legacy API + stub
 - `example-plugin` JAR — compiles only against modern API
 - API docs: [Hook Plugin API](/developers/api)
-- Optional: drop classic hook plugin JARs into `legacy-api/permissionsex-legacy-compat/src/test/resources/plugin-jars/` and run `mvn -pl legacy-api/permissionsex-legacy-compat test`
+- Optional: drop classic hook plugin JARs into `legacy-compat/src/test/resources/plugin-jars/` and run `mvn -pl legacy-compat test`

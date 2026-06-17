@@ -52,14 +52,32 @@ mvn clean package
 Universal jar:
 
 ```bash
-mvn clean package -pl bootstrap -am
+mvn clean package -pl universal -am
 ```
 
-Output: `bootstrap/target/PermissionsExPlus-{version}.jar`
+Output: `universal/target/PermissionsExPlus-{version}.jar`
 
 ## Project layout
 
-Maven reactor groups: `legacy-api`, `api`, `common`, `platform`, `bootstrap`, `plugin`. See the [Architecture](https://permissionsexplus.rono.dev/developers/architecture) page for module details.
+Maven modules at the repository root (flat layout, like LuckPerms / ViaVersion / Maintenance):
+
+| Module | Purpose |
+|--------|---------|
+| `api-core` | Engine ↔ API SPI |
+| `api` | Modern hook plugin API |
+| `legacy-api` | Classic `ru.tehkode.permissions` API |
+| `legacy-stub` | Compile-only static entry points |
+| `platform-api` | Platform runtime bridge |
+| `common` | Permission engine (single source of logic) |
+| `proxy-common` | Shared proxy wiring |
+| `bukkit` | Bukkit/Paper runtime |
+| `bungee` | BungeeCord runtime |
+| `velocity` | Velocity runtime |
+| `sponge` | Sponge runtime |
+| `universal` | Merged deployable jar |
+| `example-plugin` / `example-legacy-plugin` | Hook plugin samples |
+
+See the [Architecture](https://permissionsexplus.rono.dev/developers/architecture) page for module details.
 
 ## Hook plugin development
 
