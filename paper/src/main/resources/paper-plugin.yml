@@ -1,6 +1,6 @@
 name: PermissionsEx
 version: "${project.version}"
-main: dev.rono.permissions.paper.PaperPermissionsExPlugin
+main: ru.tehkode.permissions.bukkit.PermissionsEx
 api-version: "1.21"
 authors:
   - t3hk0d3

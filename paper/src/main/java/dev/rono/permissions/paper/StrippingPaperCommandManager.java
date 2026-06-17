@@ -1,4 +1,4 @@
-package ru.tehkode.permissions.spigot.bukkit;
+package dev.rono.permissions.paper;
 
 import cloud.commandframework.CommandTree;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /**
- * Paper-specific Cloud manager with the same input stripping as {@link StrippingBukkitCommandManager}.
+ * Paper-specific Cloud manager with the same input stripping as the Spigot Bukkit manager.
  */
 public final class StrippingPaperCommandManager<C> extends PaperCommandManager<C> {
 

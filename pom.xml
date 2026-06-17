@@ -27,6 +27,7 @@
         <module>common</module>
         <module>proxy-common</module>
         <module>bukkit</module>
+        <module>paper</module>
         <module>bungee</module>
         <module>velocity</module>
         <module>sponge</module>

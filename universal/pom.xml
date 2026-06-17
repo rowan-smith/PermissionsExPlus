@@ -13,13 +13,19 @@
     <artifactId>permissionsex-bootstrap</artifactId>
     <packaging>jar</packaging>
     <name>PermissionsExPlus Universal</name>
-    <description>Merges pre-built shaded platform jars into one deployable artifact (Bukkit, Bungee, Velocity, Sponge).</description>
+    <description>Merges pre-built shaded platform jars into one deployable artifact (Spigot, Paper, Bungee, Velocity, Sponge).</description>
 
-    <!-- Logical graph: bootstrap merges all platform artifacts (Spigot/Bungee shade core + apis; others are thin overlays). -->
+    <!-- Logical graph: bootstrap merges all platform artifacts (Spigot/Paper/Bungee shade core + apis; others are thin overlays). -->
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>permissionsex-spigot</artifactId>
+            <version>${project.version}</version>
+            <classifier>all</classifier>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>permissionsex-paper</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -77,7 +83,8 @@
                             <!-- Merge only platform artifacts (already shaded with core/api + libs) -->
                             <artifactSet>
                                 <includes>
-                                    <include>dev.rono.permissions:permissionsex-spigot</include>
+                                    <include>dev.rono.permissions:permissionsex-spigot:jar:all</include>
+                                    <include>dev.rono.permissions:permissionsex-paper</include>
                                     <include>dev.rono.permissions:permissionsex-bungee</include>
                                     <include>dev.rono.permissions:permissionsex-velocity</include>
                                     <include>dev.rono.permissions:permissionsex-sponge</include>

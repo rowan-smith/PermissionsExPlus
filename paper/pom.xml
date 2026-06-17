@@ -1,4 +1,6 @@
-﻿<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -8,52 +10,32 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>permissionsex-spigot</artifactId>
-    <name>PermissionsEx Spigot</name>
+    <artifactId>permissionsex-paper</artifactId>
+    <name>PermissionsEx Paper</name>
+    <description>Paper runtime adapter (extends Spigot module with cloud-paper).</description>
 
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>permissionsex-core</artifactId>
+            <artifactId>permissionsex-spigot</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>33.4.8-jre</version>
         </dependency>
         <dependency>
             <groupId>cloud.commandframework</groupId>
-            <artifactId>cloud-bukkit</artifactId>
+            <artifactId>cloud-paper</artifactId>
         </dependency>
         <dependency>
             <groupId>cloud.commandframework</groupId>
             <artifactId>cloud-brigadier</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.mojang</groupId>
-            <artifactId>brigadier</artifactId>
-        </dependency>
-
-        <!-- Testing -->
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.xerial</groupId>
-            <artifactId>sqlite-jdbc</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -64,11 +46,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockbukkit.mockbukkit</groupId>
-            <artifactId>mockbukkit-v1.21</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -86,14 +63,12 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
                     <execution>
+                        <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
-                        <phase>package</phase>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>all</shadedClassifierName>
                             <relocations>
                                 <relocation>
                                     <pattern>org.apache</pattern>
@@ -115,6 +90,14 @@
                                     <shadedPattern>ru.tehkode.libs.org.h2</shadedPattern>
                                 </relocation>
                             </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>cloud.commandframework:cloud-bukkit</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

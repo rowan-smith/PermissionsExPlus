@@ -64,6 +64,7 @@ import ru.tehkode.permissions.events.PermissionEvent;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 import ru.tehkode.permissions.spigot.backends.MemoryBackend;
 import dev.rono.permissions.core.backends.file.YamlFileBackend;
+import ru.tehkode.permissions.spigot.bukkit.regexperms.PermissionList;
 import ru.tehkode.permissions.spigot.bukkit.regexperms.RegexPermissions;
 
 import java.lang.reflect.Field;
@@ -419,6 +420,17 @@ public class SpigotPermissionsExPlugin extends JavaPlugin implements NativeInter
 			getLogger().fine("Brigadier tab-completion hook not available: " + ex.getMessage());
 		}
 	}
+
+	/**
+	 * Installs a platform-specific regex permission subscription backend when available.
+	 *
+	 * @return {@code true} when installation succeeded and legacy injection should be skipped
+	 */
+	public boolean installRegexPermissionSubscription(RegexPermissions regexPermissions, PermissionList permsList) {
+		return false;
+	}
+
+	public void uninstallRegexPermissionSubscription(RegexPermissions regexPermissions) {}
 
 	@Override
 	public String UUIDToName(UUID uid) {

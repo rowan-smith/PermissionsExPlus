@@ -2,7 +2,6 @@ package dev.rono.permissions.runtime.startup;
 
 import dev.rono.permissions.api.PermissionsExApi;
 import dev.rono.permissions.bootstrap.PlatformDescriptor;
-import dev.rono.permissions.paper.PaperPlatformProbe;
 import dev.rono.permissions.bootstrap.PlatformFamily;
 import dev.rono.permissions.core.InternalPermissionManager;
 import org.bukkit.Server;
@@ -66,8 +65,14 @@ public final class BukkitPermissionBootstrapReporter {
     }
 
     private static String tryPaperVendorDetails(Server server) {
-        String details = PaperPlatformProbe.tryVendorDetails(server);
-        return details != null && !details.isBlank() ? details : null;
+        try {
+            Class<?> probe = Class.forName("dev.rono.permissions.paper.PaperPlatformProbe");
+            var method = probe.getMethod("tryVendorDetails", Server.class);
+            Object details = method.invoke(null, server);
+            return details instanceof String s && !s.isBlank() ? s : null;
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
     }
 
     private static String resolveMinecraftVersion(Server server) {
