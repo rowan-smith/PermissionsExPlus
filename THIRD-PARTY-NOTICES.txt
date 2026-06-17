@@ -1,0 +1,65 @@
+PermissionsExPlus Third-Party Notices
+=====================================
+
+PermissionsExPlus (GPL-2.0-or-later) redistributes the following third-party
+components inside its platform runtime jars (merged into the universal
+PermissionsExPlus-*.jar artifact). Some libraries are relocated under the
+ru.tehkode.libs.* package namespace to avoid classpath conflicts.
+
+This file satisfies attribution requirements for permissively licensed
+dependencies bundled with the plugin. See LICENSE for PermissionsExPlus
+itself.
+
+Embedded libraries
+------------------
+
+Apache License 2.0
+  - Google Guava (com.google.guava:guava)
+    https://github.com/google/guava
+  - Google Gson (com.google.code.gson:gson)
+    https://github.com/google/gson
+  - Apache Commons DBCP2 (org.apache.commons:commons-dbcp2)
+    https://commons.apache.org/proper/commons-dbcp/
+  - Apache Commons Lang3 (org.apache.commons:commons-lang3)
+    https://commons.apache.org/proper/commons-lang/
+  - json-simple (com.googlecode.json-simple:json-simple)
+    https://github.com/fangyidong/json-simple
+
+MIT License
+  - Cloud Command Framework (cloud.commandframework:cloud-core,
+    cloud-bukkit, cloud-bungee, cloud-velocity, cloud-annotations)
+    https://github.com/Incendo/cloud
+  - Mojang Brigadier (com.mojang:brigadier)
+    https://github.com/Mojang/brigadier
+
+Mozilla Public License 2.0 (MPL-2.0)
+  - H2 Database Engine (com.h2database:h2)
+    https://h2database.com/
+    (H2 is dual-licensed MPL-2.0 / EPL-1.0; this distribution relies on
+    the MPL-2.0 terms when combined with GPL-licensed PermissionsExPlus code.)
+
+Runtime-provided (not bundled)
+------------------------------
+
+The following platform APIs are compile-time/runtime-provided dependencies
+and are not embedded in PermissionsExPlus jars:
+
+  - Bukkit / Spigot / Paper API (GPL-3.0)
+  - BungeeCord API
+  - Velocity API (MIT)
+  - Sponge API (MIT)
+
+Unclear upstream license
+------------------------
+
+  - Mojang AccountsClient (com.github.Mojang:AccountsClient)
+    https://github.com/Mojang/AccountsClient
+    No LICENSE file is published in the upstream repository. This component
+    was inherited from original PermissionsEx 1.23.4 usage.
+
+Original PermissionsEx
+----------------------
+
+PermissionsExPlus is a maintained fork of PermissionsEx 1.23.4, originally
+authored by t3hk0d3 and zml under GPL-2.0-or-later. See LICENSE and source
+file headers for copyright and license details.
