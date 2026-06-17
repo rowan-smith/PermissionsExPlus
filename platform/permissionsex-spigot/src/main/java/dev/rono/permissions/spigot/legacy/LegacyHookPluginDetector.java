@@ -1,26 +1,18 @@
 package dev.rono.permissions.spigot.legacy;
 
+import dev.rono.permissions.api.runtime.legacy.LegacyHookBytecodeProbe;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 
 /**
  * Detects third-party plugins that compile against or depend on the classic {@code ru.tehkode.*} hook API.
  */
 public final class LegacyHookPluginDetector {
 
-    private static final String TEHKODE_MARKER = "ru/tehkode";
     private static final String PEX_NAME = "permissionsex";
 
     private LegacyHookPluginDetector() {}
@@ -63,39 +55,11 @@ public final class LegacyHookPluginDetector {
     }
 
     static boolean referencesLegacyApi(Plugin plugin) {
-        try {
-            var location = plugin.getClass().getProtectionDomain().getCodeSource().getLocation();
-            if (location == null) {
-                return false;
-            }
-            return referencesLegacyApiInJar(Path.of(location.toURI()));
-        } catch (URISyntaxException | IllegalArgumentException ignored) {
-            return false;
-        }
+        return LegacyHookBytecodeProbe.referencesLegacyApiAt(
+                plugin.getClass().getProtectionDomain().getCodeSource().getLocation());
     }
 
-    static boolean referencesLegacyApiInJar(Path jar) {
-        if (!Files.isRegularFile(jar)) {
-            return false;
-        }
-        try (JarInputStream jarStream = new JarInputStream(Files.newInputStream(jar))) {
-            JarEntry entry;
-            while ((entry = jarStream.getNextJarEntry()) != null) {
-                if (!entry.getName().endsWith(".class")) {
-                    continue;
-                }
-                if (containsTehkodeMarker(jarStream)) {
-                    return true;
-                }
-            }
-        } catch (IOException ignored) {
-            return false;
-        }
-        return false;
-    }
-
-    private static boolean containsTehkodeMarker(InputStream classBytes) throws IOException {
-        byte[] buffer = classBytes.readAllBytes();
-        return new String(buffer, StandardCharsets.ISO_8859_1).contains(TEHKODE_MARKER);
+    static boolean referencesLegacyApiInJar(java.nio.file.Path jar) {
+        return LegacyHookBytecodeProbe.referencesLegacyApiInJar(jar);
     }
 }

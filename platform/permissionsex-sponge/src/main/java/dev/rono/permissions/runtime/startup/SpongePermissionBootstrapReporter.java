@@ -17,14 +17,18 @@ public final class SpongePermissionBootstrapReporter {
 
     private SpongePermissionBootstrapReporter() {}
 
-    public static void log(SpongePermissionsExPlugin plugin, PermissionManager manager, Server server, Logger logger) {
+    public static void log(SpongePermissionsExPlugin plugin, PermissionManager manager, Server server, Logger logger, boolean legacyApiActive) {
         PlatformDescriptor desc = describe(server.game().platform());
         logger.info(PREFIX + "Runtime: " + desc.runtimeBannerLine());
         logger.info(PREFIX + "Platform adapter: "
                 + InternalPermissionManager.require(manager).getPlatform().getClass().getSimpleName());
         logger.info(PREFIX + "Core engine: started");
         logger.info(PREFIX + "API: modern v2 (PermissionsExApi via PermissionsEx.getApi())");
-        logger.info(PREFIX + "API: legacy v1 compatibility enabled");
+        if (legacyApiActive) {
+            logger.info(PREFIX + "API: legacy v1 compatibility enabled");
+        } else {
+            logger.info(PREFIX + "API: legacy v1 compatibility deferred (no hook plugins detected)");
+        }
         logger.info(PREFIX + "Context resolvers: world, static");
         logger.info(PREFIX + "Storage: " + manager.getBackend().diagnosticLabel());
         logger.info(PREFIX + "Plugins loaded: " + server.game().pluginManager().plugins().size());

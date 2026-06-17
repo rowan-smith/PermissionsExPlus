@@ -11,8 +11,17 @@ import ru.tehkode.permissions.PermissionManager;
 public final class PermissionsEx {
 
     private static final String PLUGIN_NAME = "PermissionsEx";
+    private static volatile ProxyLegacyBridgeHost bridgeHost;
 
     private PermissionsEx() {}
+
+    public static void registerBridgeHost(ProxyLegacyBridgeHost host) {
+        bridgeHost = host;
+    }
+
+    public static void clearBridgeHost() {
+        bridgeHost = null;
+    }
 
     public static Plugin getPlugin() {
         return ProxyServer.getInstance().getPluginManager().getPlugin(PLUGIN_NAME);
@@ -35,6 +44,19 @@ public final class PermissionsEx {
      */
     @Deprecated(since = "1.24.x", forRemoval = false)
     public static PermissionManager getPermissionManager() {
+        ensureLegacyBridge("PermissionsEx.getPermissionManager()");
         return getApi().getPermissionManager();
+    }
+
+    private static void ensureLegacyBridge(String reason) {
+        var host = bridgeHost;
+        if (host != null) {
+            host.ensureLegacyBridgeForHook(reason);
+        }
+    }
+
+    /** Implemented by proxy plugin entry classes to activate deferred legacy registration. */
+    public interface ProxyLegacyBridgeHost {
+        void ensureLegacyBridgeForHook(String reason);
     }
 }

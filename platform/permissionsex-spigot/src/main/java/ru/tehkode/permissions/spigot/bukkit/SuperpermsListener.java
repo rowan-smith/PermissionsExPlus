@@ -1,5 +1,11 @@
 package ru.tehkode.permissions.spigot.bukkit;
 
+import dev.rono.permissions.api.bus.EntityDispatch;
+import dev.rono.permissions.api.bus.EntityMutation;
+import dev.rono.permissions.api.bus.SystemDispatch;
+import dev.rono.permissions.api.bus.SystemMutation;
+import dev.rono.permissions.api.event.PermissionEventBus;
+import dev.rono.permissions.api.event.PermissionEventListener;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -13,8 +19,6 @@ import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionDefault;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
-import ru.tehkode.permissions.events.PermissionEntityEvent;
-import ru.tehkode.permissions.events.PermissionSystemEvent;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,14 +26,32 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * PEX permissions database integration with superperms
+ * PEX permissions database integration with superperms.
+ *
+ * <p>Permission mutations are observed via the modern {@link PermissionEventBus}; legacy Bukkit
+ * events are only published for third-party hook plugins when the legacy bridge is active.</p>
  */
 public class SuperpermsListener implements Listener {
 	private final SpigotPermissionsExPlugin plugin;
+	private final PermissionEventBus eventBus;
+	private PermissionEventBus.Subscription busSubscription;
 	private final Map<UUID, PermissionAttachment> attachments = new HashMap<>();
 
 	public SuperpermsListener(SpigotPermissionsExPlugin plugin) {
 		this.plugin = plugin;
+		var api = ((SpigotPermissionManager) plugin.getPermissionsManager()).permissionsExApi();
+		this.eventBus = api.getEventBus();
+		this.busSubscription = eventBus.subscribe(new PermissionEventListener() {
+			@Override
+			public void onEntity(EntityDispatch dispatch) {
+				handleEntityDispatch(dispatch);
+			}
+
+			@Override
+			public void onSystem(SystemDispatch dispatch) {
+				handleSystemDispatch(dispatch);
+			}
+		});
 		for (Player player : plugin.getServer().getOnlinePlayers()) {
 			updateAttachment(player);
 		}
@@ -104,19 +126,15 @@ public class SuperpermsListener implements Listener {
 		rootPermission.getChildren().clear();
 		final List<String> groups = user.getParentIdentifiers(worldName);
 		final Map<String, String> options = user.getOptions(worldName);
-		// Metadata
-		// Groups
 		for (String group : groups) {
 			rootPermission.getChildren().put("groups." + group, true);
 			rootPermission.getChildren().put("group." + group, true);
 		}
 
-		// Options
 		for (Map.Entry<String, String> option : options.entrySet()) {
 			rootPermission.getChildren().put("options." + option.getKey() + "." + option.getValue(), true);
 		}
 
-		// Prefix and Suffix
 		rootPermission.getChildren().put("prefix." + user.getPrefix(worldName), true);
 		rootPermission.getChildren().put("suffix." + user.getSuffix(worldName), true);
 
@@ -133,6 +151,10 @@ public class SuperpermsListener implements Listener {
 	}
 
 	public void onDisable() {
+		if (busSubscription != null) {
+			eventBus.unsubscribe(busSubscription);
+			busSubscription = null;
+		}
 		for (PermissionAttachment attach : attachments.values()) {
 			attach.remove();
 		}
@@ -165,7 +187,6 @@ public class SuperpermsListener implements Listener {
 	private void handleLogin(PlayerLoginEvent event) {
 		try {
 			final Player player = event.getPlayer();
-			// Because player world is inaccurate in the login event (at least with MV), start with null world and then reset to the real world in join event
 			removeAttachment(player);
 			updateAttachment(player, null);
 		} catch (Throwable t) {
@@ -189,7 +210,6 @@ public class SuperpermsListener implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
-	// Technically not supposed to use MONITOR for this, but we don't want to remove before other plugins are done checking permissions
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		try {
 			removeAttachment(event.getPlayer());
@@ -198,10 +218,10 @@ public class SuperpermsListener implements Listener {
 		}
 	}
 
-	private void updateSelective(PermissionEntityEvent event, PermissionUser user) {
+	private void updateSelective(EntityMutation mutation, PermissionUser user) {
 		final Player p = resolvePlayer(user);
 		if (p != null) {
-			switch (event.getAction()) {
+			switch (mutation) {
 				case SAVED:
 					break;
 
@@ -251,23 +271,18 @@ public class SuperpermsListener implements Listener {
 		return plugin.getServer().getPlayerExact(user.getName());
 	}
 
-	@EventHandler(priority = EventPriority.LOW)
-	public void onLegacyEntityEvent(PermissionEntityEvent event) {
-		handleEntityEvent(event);
-	}
-
-	private void handleEntityEvent(PermissionEntityEvent event) {
+	private void handleEntityDispatch(EntityDispatch dispatch) {
 		try {
-			if (event.getType() == ru.tehkode.permissions.PermissionEntity.Type.USER) {
-				PermissionUser user = plugin.getPermissionsManager().getUser(event.getEntityIdentifier());
+			if ("USER".equalsIgnoreCase(dispatch.entityType())) {
+				PermissionUser user = plugin.getPermissionsManager().getUser(dispatch.entityIdentifier());
 				if (user != null) {
-					updateSelective(event, user);
+					updateSelective(dispatch.mutation(), user);
 				}
-			} else if (event.getType() == ru.tehkode.permissions.PermissionEntity.Type.GROUP) {
-				PermissionGroup group = plugin.getPermissionsManager().getGroup(event.getEntityIdentifier());
+			} else if ("GROUP".equalsIgnoreCase(dispatch.entityType())) {
+				PermissionGroup group = plugin.getPermissionsManager().getGroup(dispatch.entityIdentifier());
 				if (group != null) {
 					for (PermissionUser user : group.getActiveUsers(true)) {
-						updateSelective(event, user);
+						updateSelective(dispatch.mutation(), user);
 					}
 				}
 			}
@@ -285,24 +300,14 @@ public class SuperpermsListener implements Listener {
 		}
 	}
 
-	@EventHandler(priority = EventPriority.LOW)
-	public void onLegacySystemEvent(PermissionSystemEvent event) {
-		handleSystemEvent(event);
-	}
-
-	private void handleSystemEvent(PermissionSystemEvent event) {
+	private void handleSystemDispatch(SystemDispatch dispatch) {
 		try {
-			if (event.getAction() == PermissionSystemEvent.Action.DEBUGMODE_TOGGLE) {
+			if (dispatch.mutation() == SystemMutation.DEBUGMODE_TOGGLE
+					|| dispatch.mutation() == SystemMutation.REINJECT_PERMISSIBLES) {
 				return;
 			}
-			switch (event.getAction()) {
-				case DEBUGMODE_TOGGLE:
-				case REINJECT_PERMISSIBLES:
-					return;
-				default:
-					for (Player p : plugin.getServer().getOnlinePlayers()) {
-						updateAttachment(p);
-					}
+			for (Player p : plugin.getServer().getOnlinePlayers()) {
+				updateAttachment(p);
 			}
 		} catch (Throwable t) {
 			ErrorReport.handleError("Superperms event permission system event", t);

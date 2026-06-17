@@ -16,14 +16,18 @@ public final class VelocityPermissionBootstrapReporter {
 
     private VelocityPermissionBootstrapReporter() {}
 
-    public static void log(VelocityPermissionsExPlugin plugin, PermissionManager manager, Logger logger) {
+    public static void log(VelocityPermissionsExPlugin plugin, PermissionManager manager, Logger logger, boolean legacyApiActive) {
         PlatformDescriptor desc = describe(plugin.server());
         logger.info(PREFIX + "Runtime: " + desc.runtimeBannerLine());
         logger.info(PREFIX + "Platform adapter: "
                 + InternalPermissionManager.require(manager).getPlatform().getClass().getSimpleName());
         logger.info(PREFIX + "Core engine: started");
         logger.info(PREFIX + "API: modern v2 (PermissionsExApi via PermissionsEx.getApi())");
-        logger.info(PREFIX + "API: legacy v1 compatibility enabled");
+        if (legacyApiActive) {
+            logger.info(PREFIX + "API: legacy v1 compatibility enabled");
+        } else {
+            logger.info(PREFIX + "API: legacy v1 compatibility deferred (no hook plugins detected)");
+        }
         logger.info(PREFIX + "Context resolvers: server, static");
         logger.info(PREFIX + "Storage: " + manager.getBackend().diagnosticLabel());
         logger.info(PREFIX + "Proxy plugins loaded: " + plugin.server().getPluginManager().getPlugins().size());

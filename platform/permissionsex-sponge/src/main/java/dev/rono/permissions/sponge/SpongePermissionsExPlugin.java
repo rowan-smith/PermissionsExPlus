@@ -10,6 +10,8 @@ import dev.rono.permissions.core.commands.CoreCloudPlatform;
 import dev.rono.permissions.core.commands.CoreCommandService;
 import dev.rono.permissions.core.commands.PexCloudCommands;
 import dev.rono.permissions.proxy.commands.ProxyConfigBridge;
+import dev.rono.permissions.bungee.PermissionsEx;
+import dev.rono.permissions.runtime.legacy.ProxyLegacyBridgeController;
 import dev.rono.permissions.runtime.startup.ProxyPlatformInitializer;
 import dev.rono.permissions.runtime.startup.SpongePermissionBootstrapReporter;
 import dev.rono.permissions.sponge.platform.SpongePlatformAdapter;
@@ -37,7 +39,7 @@ import java.util.function.Function;
  * Sponge runtime entry point. Engine bootstrap reuses {@link ProxyPlatformInitializer} for config/backends/API registry.
  */
 @Plugin("permissionsex")
-public final class SpongePermissionsExPlugin {
+public final class SpongePermissionsExPlugin implements PermissionsEx.ProxyLegacyBridgeHost {
     private final PluginContainer container;
     private final Logger logger;
     private final Path configDir;
@@ -46,6 +48,7 @@ public final class SpongePermissionsExPlugin {
     private PlatformRuntime platformRuntime;
     private CoreCommandService commandService;
     private SpongeCloudCommandManager<CommandCause> cloudManager;
+    private ProxyLegacyBridgeController legacyBridge;
 
     @Inject
     public SpongePermissionsExPlugin(PluginContainer container, Logger logger, @ConfigDir(sharedRoot = false) Path configDir) {
@@ -66,12 +69,31 @@ public final class SpongePermissionsExPlugin {
                 platformRuntime);
         config = startup.config();
         manager = startup.manager();
+        legacyBridge = startup.legacyBridge();
+        PermissionsEx.registerBridgeHost(this);
+        maybeActivateLegacyBridge(server, "startup scan");
         cloudManager = new SpongeCloudCommandManager<>(
                 container,
                 cloud.commandframework.execution.CommandExecutionCoordinator.simpleCoordinator(),
                 Function.identity(),
                 Function.identity());
-        SpongePermissionBootstrapReporter.log(this, manager, server, logger);
+        SpongePermissionBootstrapReporter.log(this, manager, server, logger, legacyBridge.isActive());
+    }
+
+    @Override
+    public void ensureLegacyBridgeForHook(String reason) {
+        if (legacyBridge != null) {
+            legacyBridge.activate(reason, java.util.logging.Logger.getLogger(logger.getName()));
+        }
+    }
+
+    private void maybeActivateLegacyBridge(Server server, String scanContext) {
+        var hook = SpongeLegacyHookPluginDetector.findHook(server.game().pluginManager().plugins(), container);
+        if (hook != null) {
+            legacyBridge.activate(
+                    "detected hook plugin '" + hook.name() + "' (" + scanContext + ")",
+                    java.util.logging.Logger.getLogger(logger.getName()));
+        }
     }
 
     @Listener
@@ -96,8 +118,10 @@ public final class SpongePermissionsExPlugin {
 
     @Listener
     public void onEngineStop(StoppingEngineEvent<Server> event) {
+        PermissionsEx.clearBridgeHost();
         ProxyPlatformInitializer.shutdown(manager);
         manager = null;
+        legacyBridge = null;
         config = null;
         commandService = null;
         cloudManager = null;
