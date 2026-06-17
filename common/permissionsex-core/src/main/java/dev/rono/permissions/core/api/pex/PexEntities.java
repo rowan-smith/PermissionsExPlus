@@ -2,16 +2,6 @@ package dev.rono.permissions.core.api.pex;
 
 import dev.rono.permissions.api.ladder.Ladder;
 import dev.rono.permissions.api.permission.PermissionHolder;
-import dev.rono.permissions.api.world.World;
-
-/** @deprecated Use {@link RealmImpl} */
-@Deprecated(since = "3.0.0")
-final class WorldImpl extends RealmImpl implements World {
-
-    WorldImpl(String name, DefaultPermissionManager manager) {
-        super(name, manager);
-    }
-}
 
 final class LadderImpl implements Ladder {
 

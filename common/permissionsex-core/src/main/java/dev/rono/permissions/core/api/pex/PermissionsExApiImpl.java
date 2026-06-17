@@ -6,7 +6,6 @@ import dev.rono.permissions.api.group.GroupManager;
 import dev.rono.permissions.api.ladder.LadderManager;
 import dev.rono.permissions.api.realm.RealmManager;
 import dev.rono.permissions.api.user.UserManager;
-import dev.rono.permissions.api.world.WorldManager;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import ru.tehkode.permissions.PermissionManager;
 
@@ -38,11 +37,6 @@ public final class PermissionsExApiImpl implements PermissionsExApi {
 
     @Override
     public RealmManager getRealmManager() {
-        return realmManager;
-    }
-
-    @Override
-    public WorldManager getWorldManager() {
         return realmManager;
     }
 

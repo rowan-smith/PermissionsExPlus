@@ -3,7 +3,7 @@ package dev.rono.permissions.core.api;
 import dev.rono.permissions.api.permission.PermissionContext;
 import dev.rono.permissions.api.runtime.ContextResolver;
 import dev.rono.permissions.api.runtime.PlatformAdapter;
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.realm.Realms;
 import ru.tehkode.permissions.PermissionEntity;
 
 import java.util.Optional;
@@ -40,14 +40,14 @@ public final class ContextPermissionEvaluator {
     }
 
     private static String toLegacyRealm(Optional<String> realm) {
-        return realm.map(Worlds::normalize).orElse(null);
+        return realm.map(Realms::normalize).orElse(null);
     }
 
     /** Converts legacy {@code String world} arguments to {@link PermissionContext}. */
     public static PermissionContext fromLegacyWorld(String world) {
-        if (Worlds.isGlobal(world)) {
+        if (Realms.isGlobal(world)) {
             return PermissionContext.global();
         }
-        return PermissionContext.world(Worlds.normalize(world));
+        return PermissionContext.world(Realms.normalize(world));
     }
 }

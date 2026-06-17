@@ -216,9 +216,9 @@ class ModernApiTest extends ModernApiTestSupport {
     assertTrue(api.getGroupManager().count() >= 1);
     assertEquals(1, api.getGroupManager().count(g -> g.getName().equals(group.getName())));
 
-    api.getWorldManager().createWorld("count-test-world");
-    assertTrue(api.getWorldManager().count() >= 1);
-    assertEquals(1, api.getWorldManager().count(w -> w.getName().equals("count-test-world")));
+    api.getRealmManager().createRealm("count-test-realm");
+    assertTrue(api.getRealmManager().count() >= 1);
+    assertEquals(1, api.getRealmManager().count(r -> r.getName().equals("count-test-realm")));
 
     assertTrue(api.getLadderManager().count() >= 1);
     assertTrue(api.getLadderManager().count(l -> l.getName().equals("default")) >= 1);

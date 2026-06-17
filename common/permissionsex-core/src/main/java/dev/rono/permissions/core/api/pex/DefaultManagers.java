@@ -207,8 +207,7 @@ final class DefaultGroupManager implements GroupManager {
     }
 }
 
-final class DefaultRealmManager implements dev.rono.permissions.api.realm.RealmManager,
-        dev.rono.permissions.api.world.WorldManager {
+final class DefaultRealmManager implements dev.rono.permissions.api.realm.RealmManager {
 
     private final DefaultPermissionManager manager;
 

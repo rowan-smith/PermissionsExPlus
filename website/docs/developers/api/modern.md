@@ -58,7 +58,7 @@ var manager = api.getPermissionManager();  // legacy bridge + holder operations
 
 **Bungee/Waterfall:** `dev.rono.permissions.bungee.PermissionsEx.getApi()`
 
-`PermissionsExApi` provides `getUserManager()`, `getGroupManager()`, `getRealmManager()`, and `getLadderManager()` with explicit `find` / `get` / `create` / `exists` lifecycle (no hidden creation in `getX()`). Each manager also exposes `count()` (total stored/registry entries) and `count(Predicate)` (filtered count). `getWorldManager()` remains as a deprecated alias for `getRealmManager()`. Holder-based permission edits use `getPermissionManager().addPermission(holder, …)` / `hasPermission(holder, …)`.
+`PermissionsExApi` provides `getUserManager()`, `getGroupManager()`, `getRealmManager()`, and `getLadderManager()` with explicit `find` / `get` / `create` / `exists` lifecycle (no hidden creation in `getX()`). Each manager also exposes `count()` (total stored/registry entries) and `count(Predicate)` (filtered count). Holder-based permission edits use `getPermissionManager().addPermission(holder, …)` / `hasPermission(holder, …)`.
 
 ---
 
@@ -102,9 +102,7 @@ user.save();
 | `RealmManager` | registered realms | requires exists | explicit create | realms |
 | `LadderManager` | known ladders | requires exists | explicit create | ladders |
 
-`RealmManager` also exposes `listRealmNames()` / `listRealms()`. Each `Realm` supports inheritance administration (`parents`, `setParents`, `addParent`, `removeParent`, `parentTree`).
-
-`WorldManager` / `World` / `Worlds` are **deprecated aliases** for the realm types — use `RealmManager`, `Realm`, and `Realms` in new code.
+`RealmManager` also exposes `listRealmNames()` / `listRealms()`. Each `Realm` supports inheritance administration (`parents`, `setParents`, `addParent`, `removeParent`, `parentTree`). Use `Realms` for global namespace normalization (`null` / empty = global).
 
 `LadderManager` also exposes `promote(user, ladder)`, `demote(user, ladder)`, `isRanked(user, ladder)`, and `rank(user, ladder)`.
 

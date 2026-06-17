@@ -2,14 +2,13 @@ package dev.rono.permissions.core.api.pex;
 
 import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.realm.Realm;
-import dev.rono.permissions.api.world.World;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-final class RealmImpl implements Realm, World {
+final class RealmImpl implements Realm {
 
     private final String name;
     private final DefaultPermissionManager manager;

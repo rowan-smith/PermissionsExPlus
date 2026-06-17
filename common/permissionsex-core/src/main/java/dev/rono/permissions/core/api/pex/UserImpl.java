@@ -5,7 +5,7 @@ import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.subject.SubjectType;
 import dev.rono.permissions.api.subject.TimedGroupMembership;
 import dev.rono.permissions.api.user.User;
-import dev.rono.permissions.api.world.Worlds;
+import dev.rono.permissions.api.realm.Realms;
 import dev.rono.permissions.core.DefaultPermissionManager;
 import dev.rono.permissions.core.api.ContextPermissionEvaluator;
 import ru.tehkode.permissions.PermissionUser;
@@ -123,7 +123,7 @@ public final class UserImpl extends AbstractPermissionSubjectAdapter implements 
         var memberships = new ArrayList<TimedGroupMembership>();
         memberships.addAll(timedGroupMemberships(PermissionContext.global()));
         for (String realm : configuredRealms()) {
-            if (!Worlds.isGlobal(realm)) {
+            if (!Realms.isGlobal(realm)) {
                 memberships.addAll(timedGroupMemberships(ContextPermissionEvaluator.fromLegacyWorld(realm)));
             }
         }

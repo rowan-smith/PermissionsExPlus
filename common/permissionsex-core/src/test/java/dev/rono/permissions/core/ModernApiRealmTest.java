@@ -33,12 +33,4 @@ class ModernApiRealmTest extends ModernApiTestSupport {
         child.removeParent("parent-realm");
         assertTrue(child.parents().isEmpty());
     }
-
-    @Test
-    void deprecatedWorldManagerDelegatesToRealmManager() {
-        api().getRealmManager().createRealm("delegation-realm");
-        assertTrue(api().getWorldManager().exists("delegation-realm"));
-        assertEquals("delegation-realm", api().getWorldManager().getWorld("delegation-realm").getName());
-        assertTrue(api().getWorldManager().listWorldNames().contains("delegation-realm"));
-    }
 }

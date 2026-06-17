@@ -66,9 +66,9 @@ Modern API integration tests live in `common/permissionsex-core/src/test/java/de
 | `ModernApiEventBusTest` | subscribe/unsubscribe, dispatches |
 | `ModernApiLadderTest` | promote/demote, rank metadata |
 | `ApiLayerInvariantTest` | architectural composition guards |
-| `WorldsTest`, `PermissionContextTest` | pure utility unit tests |
+| `RealmsTest`, `PermissionContextTest` | pure utility unit tests |
 
-Run: `mvn -pl common/permissionsex-core test -Dtest='ModernApi*Test,ApiLayerInvariantTest,WorldsTest,RealmsTest,PermissionContextTest'`
+Run: `mvn -pl common/permissionsex-core test -Dtest='ModernApi*Test,ApiLayerInvariantTest,RealmsTest,PermissionContextTest'`
 
 ## Related docs
 

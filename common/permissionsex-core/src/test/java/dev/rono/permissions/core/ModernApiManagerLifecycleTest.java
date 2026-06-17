@@ -6,8 +6,7 @@ import dev.rono.permissions.api.ladder.LadderAlreadyExistsException;
 import dev.rono.permissions.api.ladder.LadderNotFoundException;
 import dev.rono.permissions.api.user.UserAlreadyExistsException;
 import dev.rono.permissions.api.user.UserNotFoundException;
-import dev.rono.permissions.api.world.WorldAlreadyExistsException;
-import dev.rono.permissions.api.world.WorldNotFoundException;
+import dev.rono.permissions.api.realm.RealmNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -53,15 +52,16 @@ class ModernApiManagerLifecycleTest extends ModernApiTestSupport {
     }
 
     @Test
-    void worldFindGetCreateLifecycle() {
-        assertTrue(api().getWorldManager().findWorld("missing-world").isEmpty());
-        assertThrows(WorldNotFoundException.class, () -> api().getWorldManager().getWorld("missing-world"));
+    void realmFindGetCreateLifecycle() {
+        assertTrue(api().getRealmManager().findRealm("missing-realm-lifecycle").isEmpty());
+        assertThrows(RealmNotFoundException.class, () -> api().getRealmManager().getRealm("missing-realm-lifecycle"));
 
-        api().getWorldManager().createWorld("lifecycle-world");
-        assertTrue(api().getWorldManager().exists("lifecycle-world"));
-        assertEquals("lifecycle-world", api().getWorldManager().getWorld("lifecycle-world").getName());
+        api().getRealmManager().createRealm("lifecycle-realm");
+        assertTrue(api().getRealmManager().exists("lifecycle-realm"));
+        assertEquals("lifecycle-realm", api().getRealmManager().getRealm("lifecycle-realm").getName());
 
-        assertThrows(WorldAlreadyExistsException.class, () -> api().getWorldManager().createWorld("lifecycle-world"));
+        assertThrows(dev.rono.permissions.api.realm.RealmAlreadyExistsException.class,
+                () -> api().getRealmManager().createRealm("lifecycle-realm"));
     }
 
     @Test
