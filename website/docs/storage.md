@@ -34,7 +34,7 @@ PEX can store data in different ways:
 | **local** (default) | Single servers — embedded H2 file database |
 | **sql** | Networks sharing MySQL, PostgreSQL, or SQLite |
 | **memory** | Testing only — data is lost on restart |
-| **file** / **yaml-import** | Legacy YAML import only — **deprecated**; not for day-to-day storage |
+| **file** | YAML import only via `/pex import file` — not for day-to-day storage |
 
 Check your active backend:
 
@@ -51,10 +51,10 @@ Switch backends:
 Import data from another configured backend:
 
 ```text
-/pex import yaml-import
+/pex import file
 ```
 
-(Modern command framework: `/pex backend import yaml-import`.)
+(Modern command framework: `/pex backend import file`.)
 
 ## UUID storage
 

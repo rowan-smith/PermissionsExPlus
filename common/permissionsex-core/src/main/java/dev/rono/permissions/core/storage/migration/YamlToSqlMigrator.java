@@ -1,14 +1,9 @@
 package dev.rono.permissions.core.storage.migration;
 
-import dev.rono.permissions.core.backends.BackendDataTransfer;
 import dev.rono.permissions.core.backends.file.YamlMaps;
 import dev.rono.permissions.core.storage.ContextKeyCodec;
 import dev.rono.permissions.core.storage.LocalSqlRepository;
 import org.yaml.snakeyaml.Yaml;
-import ru.tehkode.permissions.PermissionsGroupData;
-import ru.tehkode.permissions.PermissionsUserData;
-import ru.tehkode.permissions.backends.PermissionBackend;
-import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,18 +30,10 @@ public final class YamlToSqlMigrator {
     }
 
     public MigrationResult migrate(File yamlFile, LocalSqlRepository repository) throws Exception {
-        return migrate(yamlFile, repository, false);
-    }
-
-    public MigrationResult repair(File yamlFile, LocalSqlRepository repository) throws Exception {
-        return migrate(yamlFile, repository, true);
-    }
-
-    private MigrationResult migrate(File yamlFile, LocalSqlRepository repository, boolean force) throws Exception {
         if (!yamlFile.isFile()) {
             return MigrationResult.skipped("No YAML file at " + yamlFile.getAbsolutePath());
         }
-        if (!force && repository.isInitialized() && repository.getSchemaVersion() >= 0 && !repository.isEmpty()) {
+        if (repository.isInitialized() && repository.getSchemaVersion() >= 0 && !repository.isEmpty()) {
             return MigrationResult.skipped("Local SQL database already contains data");
         }
 
@@ -78,16 +65,6 @@ public final class YamlToSqlMigrator {
         Files.move(yamlFile.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
         logger.info("Migrated " + yamlFile.getName() + " to local SQL; backup at " + backup.getName());
         return MigrationResult.migrated(backup);
-    }
-
-    public static void migrateViaTransfer(PermissionBackend source, LocalSqlBackendAdapter target)
-            throws PermissionBackendException {
-        for (String groupName : source.getGroupNames()) {
-            BackendDataTransfer.transferGroup(source.getGroupData(groupName), target.getGroupData(groupName));
-        }
-        for (String userName : source.getUserIdentifiers()) {
-            BackendDataTransfer.transferUser(source.getUserData(userName), target.getUserData(userName));
-        }
     }
 
     private void migrateWorldInheritance(LocalSqlRepository repository, Map<String, Object> root) throws Exception {
@@ -260,10 +237,5 @@ public final class YamlToSqlMigrator {
         public static MigrationResult skipped(String reason) {
             return new MigrationResult(false, reason, null);
         }
-    }
-
-    public interface LocalSqlBackendAdapter {
-        PermissionsGroupData getGroupData(String groupName);
-        PermissionsUserData getUserData(String userName);
     }
 }

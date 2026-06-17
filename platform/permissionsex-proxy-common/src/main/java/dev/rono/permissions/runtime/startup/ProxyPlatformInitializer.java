@@ -22,8 +22,6 @@ public final class ProxyPlatformInitializer {
     public static ProxyStartupResult start(
             File dataDirectory, Logger logger, PlatformRuntime platformRuntime) throws PermissionBackendException {
         PermissionBackend.registerBackendAlias("memory", BungeeMemoryBackend.class);
-        PermissionBackend.registerBackendAlias("file", dev.rono.permissions.core.backends.file.YamlFileBackend.class);
-        PermissionBackend.registerBackendAlias("yaml-import", dev.rono.permissions.core.backends.file.YamlFileBackend.class);
         var config = new BungeePermissionsExConfig(dataDirectory, logger);
         var manager = new DefaultPermissionManager(config, logger, platformRuntime);
         manager.initTimer();

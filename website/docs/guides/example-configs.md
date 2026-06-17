@@ -16,6 +16,6 @@ For current defaults, set `backend: local` and include a `local` backend section
 
 [`examples/permissions.yml`](https://github.com/rowan-smith/PermissionsExPlus/blob/main/examples/permissions.yml) — sample groups and users.
 
-With the default **`local`** backend, place this file at `plugins/PermissionsEx/permissions.yml` before first startup. PEX imports it into H2 (`permissions.mv.db`) and renames the file to `permissions.yml.migrated`. You can also use it as a reference when preparing a `yaml-import` backend for manual import.
+With the default **`local`** backend, place this file at `plugins/PermissionsEx/permissions.yml` before first startup. PEX imports it into H2 (`permissions.mv.db`) and renames the file to `permissions.yml.migrated`. You can also use it as a reference when preparing a `file` backend section for manual import.
 
 See also the [Configuration](/configuration) page for option reference.
