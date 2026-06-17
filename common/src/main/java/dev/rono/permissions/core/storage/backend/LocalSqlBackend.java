@@ -5,6 +5,7 @@ import dev.rono.permissions.api.permission.PermissionContext;
 import dev.rono.permissions.core.InternalPermissionManager;
 import dev.rono.permissions.core.backends.AbstractPermissionBackend;
 import dev.rono.permissions.core.storage.EffectiveUserCache;
+import dev.rono.permissions.core.storage.H2DatabaseCompatibility;
 import dev.rono.permissions.core.storage.LocalSqlExporter;
 import dev.rono.permissions.core.storage.LocalSqlRepository;
 import dev.rono.permissions.core.storage.migration.YamlToSqlMigrator;
@@ -53,6 +54,10 @@ public final class LocalSqlBackend extends AbstractPermissionBackend {
         try {
             initializeStorage();
         } catch (Exception e) {
+            if (H2DatabaseCompatibility.appearsShadedH2Database(databaseFile.toPath())) {
+                throw new PermissionBackendException(
+                        H2DatabaseCompatibility.shadedDatabaseMigrationHint(databaseFile.getAbsolutePath()), e);
+            }
             throw new PermissionBackendException("Failed to initialize local SQL backend", e);
         }
         refreshNameCaches();
