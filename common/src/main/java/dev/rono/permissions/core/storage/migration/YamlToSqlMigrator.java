@@ -172,7 +172,8 @@ public final class YamlToSqlMigrator {
                                          String contextKey) throws Exception {
         Map<String, String> options = YamlMaps.collectLeafOptions(YamlMaps.optionsMap(node, null));
         for (Map.Entry<String, String> entry : options.entrySet()) {
-            if ("rank".equals(entry.getKey()) || "rank-ladder".equals(entry.getKey()) || "default".equals(entry.getKey())) {
+            if ("rank".equals(entry.getKey()) || "rank-ladder".equals(entry.getKey())
+                    || "default".equals(entry.getKey()) || "weight".equals(entry.getKey())) {
                 continue;
             }
             repository.setGroupOption(groupId, entry.getKey(), entry.getValue(), contextKey);

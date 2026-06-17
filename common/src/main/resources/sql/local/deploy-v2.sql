@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS user_entity_options (
     user_id TEXT NOT NULL,
     option_key TEXT NOT NULL,
     option_value TEXT,
-    context_key TEXT,
+    context_key TEXT NOT NULL DEFAULT '',
     PRIMARY KEY (user_id, option_key, context_key),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS group_entity_options (
     group_id INT NOT NULL,
     option_key TEXT NOT NULL,
     option_value TEXT,
-    context_key TEXT,
+    context_key TEXT NOT NULL DEFAULT '',
     PRIMARY KEY (group_id, option_key, context_key),
     FOREIGN KEY (group_id) REFERENCES "groups"(id) ON DELETE CASCADE
 );

@@ -700,14 +700,15 @@ public final class LocalSqlRepository implements AutoCloseable {
         if (!tableExistsPublic(table)) {
             return Map.of();
         }
+        String storageKey = normalizeStorageContextKey(contextKey);
         Map<String, String> out = new LinkedHashMap<>();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
                      "SELECT option_key, option_value FROM " + table + " WHERE " + idColumn + " = ? AND "
-                             + "(context_key IS NULL AND ? IS NULL OR context_key = ?)")) {
+                             + "(context_key = ? OR (? = '' AND context_key IS NULL))")) {
             ps.setString(1, idValue);
-            ps.setString(2, contextKey);
-            ps.setString(3, contextKey);
+            ps.setString(2, storageKey);
+            ps.setString(3, storageKey);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 out.put(rs.getString("option_key"), rs.getString("option_value"));
@@ -725,15 +726,16 @@ public final class LocalSqlRepository implements AutoCloseable {
         if (!tableExistsPublic(table)) {
             return;
         }
+        String storageKey = normalizeStorageContextKey(contextKey);
         try (Connection conn = dataSource.getConnection()) {
             if (value == null) {
                 try (PreparedStatement ps = conn.prepareStatement(
                         "DELETE FROM " + table + " WHERE " + idColumn + " = ? AND option_key = ? AND "
-                                + "(context_key IS NULL AND ? IS NULL OR context_key = ?)")) {
+                                + "(context_key = ? OR (? = '' AND context_key IS NULL))")) {
                     ps.setString(1, idValue);
                     ps.setString(2, key);
-                    ps.setString(3, contextKey);
-                    ps.setString(4, contextKey);
+                    ps.setString(3, storageKey);
+                    ps.setString(4, storageKey);
                     ps.executeUpdate();
                 }
                 return;
@@ -744,7 +746,7 @@ public final class LocalSqlRepository implements AutoCloseable {
                 ps.setString(1, idValue);
                 ps.setString(2, key);
                 ps.setString(3, value);
-                ps.setString(4, contextKey);
+                ps.setString(4, storageKey);
                 ps.executeUpdate();
             }
         }
