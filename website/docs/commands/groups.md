@@ -146,25 +146,26 @@ Classic: `/pex group <group> users` · `/pex group <group> user add <user>`
 
 ## `/pex group <group> parents`
 
-**Syntax:** `/pex group <group> parents [subcommand] [world]`
+**Syntax:** `/pex group <group> parents <subcommand> [--world <world>]`
 
 Manage [inheritance](/concepts/inheritance/) parents.
 
 | Subcommand | Syntax | Action |
 |------------|--------|--------|
-| (none) | `parents` | Show current parents |
 | `list` | `parents list` | List parents |
 | `add` | `parents add <parents...>` | Add parent(s) |
 | `set` | `parents set <parents...>` | Replace all parents |
 | `remove` | `parents remove <parents...>` | Remove parent(s) |
 
 ```text
-/pex group vip parents
 /pex group vip parents list
 /pex group vip parents add default
 /pex group admin parents set vip
 /pex group builder parents remove creative
+/pex group builder parents add creative --world world_creative
 ```
+
+Classic: trailing `[world]` instead of `--world`.
 
 ---
 
