@@ -14,7 +14,7 @@ Policy: **legacy `ru.tehkode.*` stays frozen**. New capabilities belong under `d
 | Modern event bus | `pex.events()` → `PermissionEventBus` |
 | Player checks (Bukkit) | `getPermissionManager().has(player, "node")` or `User.inContext(...)` / holder context |
 | Global permission checks | `pex.user(id).has("node")` |
-| Promote / demote | `User.promote` / `User.demote` (+ `RankingException`) |
+| Promote / demote (commands) | `LadderManager.promote/demote` | Modern: `/pex ladder <ladder> promote\|demote <user>`; classic: `/pex promote` |
 | Backend admin | `pex.backend().activate`, `createHandle`, `importFrom` |
 | Import / export | `pex.backend().exportData`, `importData(document, ImportMode)` |
 | Hierarchy helpers | `Group.children` / `Group.descendants`, `Group.childIdentifiers`, `Group.members(world, inherit)` |

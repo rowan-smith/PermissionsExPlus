@@ -43,7 +43,7 @@ permissions:
 | Toggle debug | `/pex debug on` / `/pex debug off` | `/pex toggle debug` |
 | Edit config in-game | — | `/pex config permissions.debug true` |
 
-Command reference pages primarily document **classic** syntax (familiar to long-time PEX users). For the full modern ↔ classic mapping, see **[Command mapping](/commands/command-mapping)**. **Modern** syntax is the default for new servers.
+Command reference pages document **modern** syntax first (the default). Classic equivalents appear in [Command mapping](/commands/command-mapping) and on [Rank commands](/commands/ranks#classic-promote-and-demote) where they differ.
 
 See also [Configuration — command framework](/configuration/#command-framework) and [Import & Export](/guides/import-export).
 
@@ -264,9 +264,9 @@ Enables verbose permission-resolution logging in the server console. Use when di
 
 ---
 
-## Standalone rank commands
+## Standalone rank commands (classic only)
 
-These work without the `/pex` prefix. See [Rank commands](/commands/ranks/).
+When `command-framework` is **classic**, these work without the `/pex` prefix. The **modern** framework uses [`/pex ladder`](/commands/ranks) instead.
 
 ```text
 /promote <user> [ladder]

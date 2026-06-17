@@ -6,6 +6,10 @@ slug: /commands/users
 
 Manage individual players. Replace `<user>` with a **player name** or **UUID**.
 
+PEX registers **`modern`** (default) or **`classic`** command trees. This page documents **modern syntax first**; classic equivalents are in [Command mapping — users](/commands/command-mapping#user-permissions).
+
+**Context flags (modern):** append `--world <world>` or `--server <name>` instead of a trailing world argument.
+
 ---
 
 ## `/pex users list`
@@ -20,84 +24,83 @@ Lists every user record stored in the backend.
 
 ---
 
-## `/pex user <user>`
+## `/pex user <user>` / `info`
 
-**Syntax:** `/pex user <user>`
+**Syntax:** `/pex user <user>` · `/pex user <user> info`
 
 Shows a summary: groups, prefix, suffix, and key options.
 
 ```text
 /pex user Steve
+/pex user Steve info
 /pex user 069a79f4-44e9-4726-a5be-fca90e38aaf5
 ```
 
 ---
 
-## `/pex user <user> list`
+## Permissions
 
-**Syntax:** `/pex user <user> list [world]`
+### List
 
-Lists all effective permissions for the user. Add a world name for world-scoped view.
-
-```text
-/pex user Steve list
-/pex user Steve list world_nether
-```
-
----
-
-## `/pex user <user> check`
-
-**Syntax:** `/pex user <user> check <permission> [world]`
-
-Tests whether the user has a specific permission node. Returns yes/no with the matching expression.
+**Syntax:** `/pex user <user> permissions list [--world <world>]`
 
 ```text
-/pex user Steve check essentials.fly
-/pex user Steve check essentials.fly world_nether
-/pex user Steve check permissions.user
+/pex user Steve permissions list
+/pex user Steve permissions list --world world_nether
 ```
 
----
+Classic: `/pex user Steve list [world]`
 
-## `/pex user <user> add`
+### Add / remove
 
-**Syntax:** `/pex user <user> add <permission> [world]`
-
-Grants a permission directly to the user (not via a group). Use for one-off exceptions.
+**Syntax:**
 
 ```text
-/pex user Steve add essentials.home
-/pex user Steve add essentials.fly world_nether
-/pex user Steve add -essentials.ban
+/pex user <user> permissions add <permission> [--world <world>]
+/pex user <user> permissions remove <permission> [--world <world>]
 ```
-
-Negation: prefix with `-` to explicitly deny.
-
----
-
-## `/pex user <user> remove`
-
-**Syntax:** `/pex user <user> remove <permission> [world]`
-
-Removes a directly-assigned permission.
 
 ```text
-/pex user Steve remove essentials.home
-/pex user Steve remove essentials.fly world_nether
+/pex user Steve permissions add essentials.home
+/pex user Steve permissions add essentials.fly --world world_nether
+/pex user Steve permissions add -essentials.ban
+/pex user Steve permissions remove essentials.home
 ```
 
-Does not remove permissions inherited from groups.
+Negation: prefix with `-` to explicitly deny. Removing a direct permission does not affect permissions inherited from groups.
 
----
+Classic: `/pex user Steve add|remove <permission> [world]`
 
-## `/pex user <user> timed add`
+### Check / trace
 
-**Syntax:** `/pex user <user> timed add <permission> <lifetime> [world]`
+**Syntax:**
 
-Grants a permission that **expires automatically**.
+```text
+/pex user <user> permissions check <permission> [--world <world>]
+/pex user <user> permissions trace <permission> [--world <world>]
+```
 
-| Lifetime | Meaning |
+```text
+/pex user Steve permissions check essentials.fly
+/pex user Steve permissions check essentials.fly --world world_nether
+/pex user Steve permissions trace essentials.fly
+```
+
+`trace` is **modern only** — shows how PEX resolved the node.
+
+Classic check: `/pex user Steve check <permission> [world]`
+
+### Timed permissions
+
+**Syntax:**
+
+```text
+/pex user <user> permissions timed list [--world <world>]
+/pex user <user> permissions timed add <permission> <duration> [--world <world>]
+/pex user <user> permissions timed remove <permission> [--world <world>]
+```
+
+| Duration | Meaning |
 |----------|---------|
 | `30s` | 30 seconds |
 | `5m` | 5 minutes |
@@ -105,105 +108,82 @@ Grants a permission that **expires automatically**.
 | `7d` | 7 days |
 
 ```text
-/pex user Steve timed add essentials.fly 7d
-/pex user Steve timed add essentials.god 30m world_nether
+/pex user Steve permissions timed add essentials.fly 7d
+/pex user Steve permissions timed add essentials.god 30m --world world_nether
+/pex user Steve permissions timed remove essentials.fly
 ```
+
+Classic: `/pex user Steve timed add|remove <permission> … [world]`
 
 ---
 
-## `/pex user <user> timed remove`
+## Groups
 
-**Syntax:** `/pex user <user> timed remove <permission> [world]`
+### List / add / remove / set
 
-Removes an active timed permission before it expires.
+**Syntax:**
 
 ```text
-/pex user Steve timed remove essentials.fly
+/pex user <user> groups list [--world <world>]
+/pex user <user> groups add <group> [--world <world>]
+/pex user <user> groups remove <group> [--world <world>]
+/pex user <user> groups set <group> [--world <world>]
 ```
+
+```text
+/pex user Steve groups list
+/pex user Steve groups add vip
+/pex user Steve groups add vip --world world_nether
+/pex user Steve groups set admin
+/pex user Steve groups remove vip
+```
+
+`groups set` **replaces** all memberships with a single group — the most common way to assign a rank.
+
+Classic: `/pex user Steve group list|add|remove|set … [world]`
+
+### Timed membership
+
+**Syntax:**
+
+```text
+/pex user <user> groups timed list [--world <world>]
+/pex user <user> groups timed add <group> <duration> [--world <world>]
+/pex user <user> groups timed remove <group> [--world <world>]
+```
+
+```text
+/pex user Steve groups timed add trial 7d
+/pex user Steve groups timed remove trial
+```
+
+Classic: `/pex user Steve group add <group> [world] [lifetime]`
 
 ---
 
-## `/pex user <user> group list`
+## Options (prefix, suffix, meta)
 
-**Syntax:** `/pex user <user> group list [world]`
-
-Shows all groups the user belongs to.
+**Syntax:**
 
 ```text
-/pex user Steve group list
-/pex user Steve group list world_nether
+/pex user <user> options list [--world <world>]
+/pex user <user> options get <option> [--world <world>]
+/pex user <user> options set <option> <value> [--world <world>]
+/pex user <user> options unset <option> [--world <world>]
 ```
-
----
-
-## `/pex user <user> group add`
-
-**Syntax:** `/pex user <user> group add <group> [world] [lifetime]`
-
-Adds the user to a group. Optional lifetime makes membership temporary.
 
 ```text
-/pex user Steve group add vip
-/pex user Steve group add vip world_nether
-/pex user Steve group add trial 7d
+/pex user Steve options list
+/pex user Steve options set nickname "Big S"
+/pex user Steve options get nickname
+/pex user Steve options set prefix "&b[Builder]"
+/pex user Steve options set suffix "&7"
+/pex user Steve options unset nickname
 ```
 
----
-
-## `/pex user <user> group set`
-
-**Syntax:** `/pex user <user> group set <group> [world]`
-
-**Replaces** all group memberships with a single group. The most common way to "rank" a player.
-
-```text
-/pex user Steve group set admin
-/pex user Steve group set default
-/pex user NewPlayer group set member
-```
-
----
-
-## `/pex user <user> group remove`
-
-**Syntax:** `/pex user <user> group remove <group> [world]`
-
-Removes the user from one group without affecting other memberships.
-
-```text
-/pex user Steve group remove vip
-```
-
----
-
-## `/pex user <user> prefix` / `suffix`
-
-**Syntax:** `/pex user <user> prefix [newprefix] [world]`
-
-Get or set the user's chat prefix. Omit `newprefix` to read the current value.
-
-```text
-/pex user Steve prefix
-/pex user Steve prefix &b[Builder]
-/pex user Steve prefix &6[VIP] world_nether
-```
-
-Suffix works the same: `/pex user <user> suffix [newsuffix] [world]`
+Classic prefix/suffix shortcuts: `/pex user Steve prefix|suffix [value] [world]` · options: `/pex user Steve set|get <option> …`
 
 See [Prefix & Meta](/concepts/meta/).
-
----
-
-## `/pex user <user> set` / `get`
-
-**Syntax:** `/pex user <user> set <option> <value> [world]`
-
-Set or read custom option key-value pairs.
-
-```text
-/pex user Steve set nickname "Big S"
-/pex user Steve get nickname
-```
 
 ---
 
@@ -231,24 +211,13 @@ Removes user records in a group that have been inactive for the threshold (days)
 
 ---
 
-## `/pex user <user> toggle debug`
+## Classic-only commands
 
-**Syntax:** `/pex user <user> toggle debug`
+These commands are available when `command-framework: classic`:
 
-Enables permission-resolution debug logging for one player only.
+| Command | Purpose |
+|---------|---------|
+| `/pex user <user> toggle debug` | Per-player permission debug logging |
+| `/pex user <user> superperms` | Bukkit superperms attachment state (Spigot/Paper) |
 
-```text
-/pex user Steve toggle debug
-```
-
----
-
-## `/pex user <user> superperms`
-
-**Syntax:** `/pex user <user> superperms`
-
-Shows the Bukkit superperms attachment state (Spigot/Paper only). Useful for [troubleshooting](/guides/troubleshooting/).
-
-```text
-/pex user Steve superperms
-```
+Use `/pex debug on` (modern) for server-wide debug instead of per-user toggle.

@@ -6,13 +6,33 @@ slug: /commands/worlds
 
 World commands manage [context](/concepts/context/) — scoping permissions to specific worlds.
 
+**Modern framework (default):** scope user and group commands with **`--world <world>`** flags instead of trailing world arguments. World inheritance and default-group setup remain **classic-only** commands (see below).
+
 ---
 
-## `/pex worlds`
+## Modern: world-scoped permissions
+
+Any modern user or group command accepts optional context flags:
+
+```text
+/pex group vip permissions add essentials.fly --world world_nether
+/pex user Steve permissions check essentials.fly --world world_nether
+/pex user Steve permissions list --world world_nether
+/pex group builder parents add creative --world world_creative
+/pex hierarchy --world world_nether
+```
+
+On proxy installs, use `--server <name>` where applicable.
+
+See [Command mapping — context](/commands/command-mapping#context-worlds-and-servers).
+
+---
+
+## Classic: `/pex worlds`
 
 **Syntax:** `/pex worlds`
 
-Lists all known worlds/realms.
+Lists all known worlds/realms. **Classic framework only.**
 
 ```text
 /pex worlds
@@ -20,11 +40,11 @@ Lists all known worlds/realms.
 
 ---
 
-## `/pex world <world>`
+## Classic: `/pex world <world>`
 
 **Syntax:** `/pex world <world>`
 
-Shows world info: inheritance parents, default group.
+Shows world info: inheritance parents, default group. **Classic framework only.**
 
 ```text
 /pex world world
@@ -34,11 +54,11 @@ Shows world info: inheritance parents, default group.
 
 ---
 
-## `/pex world <world> inherit`
+## Classic: `/pex world <world> inherit`
 
 **Syntax:** `/pex world <world> inherit <parentWorlds...>`
 
-Sets which worlds this world inherits permissions from. Child worlds start with the parent's permissions plus their own overrides.
+Sets which worlds this world inherits permissions from. Child worlds start with the parent's permissions plus their own overrides. **Classic framework only.**
 
 ```text
 /pex world world_nether inherit world
@@ -56,7 +76,7 @@ Multiple parents:
 
 ---
 
-## Default group per world
+## Classic: default group per world
 
 ```text
 /pex default group [world]
@@ -73,27 +93,14 @@ New players joining that world are assigned the default group. See [Default Grou
 
 ---
 
-## World-scoped permission commands
-
-Any user or group command accepts an optional world as the last argument:
-
-```text
-/pex group vip add essentials.fly world_nether
-/pex user Steve check essentials.fly world_nether
-/pex user Steve list world_nether
-/pex group builder parents add creative world_creative
-```
-
----
-
 ## Example: survival + creative
 
 ```text
 /pex world world_creative inherit world
 
-/pex group survival add essentials.sethome
-/pex group creative add worldedit.*
-/pex group creative add gamemode.creative world_creative
+/pex group survival permissions add essentials.sethome
+/pex group creative permissions add worldedit.*
+/pex group creative permissions add gamemode.creative --world world_creative
 
 /pex set default group survival true world
 /pex set default group creative true world_creative
@@ -107,9 +114,9 @@ Players in the overworld get survival permissions. In the creative world they ge
 
 ```text
 /pex world world_nether inherit world
-/pex group nether_vip add essentials.godmode world_nether
-/pex group nether_vip add essentials.fly world_nether
-/pex user Steve group add nether_vip world_nether
+/pex group nether_vip permissions add essentials.godmode --world world_nether
+/pex group nether_vip permissions add essentials.fly --world world_nether
+/pex user Steve groups add nether_vip --world world_nether
 ```
 
 Steve gets godmode and fly only in the Nether.
@@ -119,8 +126,10 @@ Steve gets godmode and fly only in the Nether.
 ## Inspect world setup
 
 ```text
-/pex hierarchy world_nether
+/pex hierarchy --world world_nether
 /pex world world_nether
-/pex user Steve list world_nether
-/pex user Steve check essentials.fly world_nether
+/pex user Steve permissions list --world world_nether
+/pex user Steve permissions check essentials.fly --world world_nether
 ```
+
+(`/pex world …` requires classic framework; hierarchy and user commands work on modern with `--world`.)

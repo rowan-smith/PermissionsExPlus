@@ -76,7 +76,7 @@ Uses [inheritance](/concepts/inheritance/) and [rank ladders](/commands/ranks/).
 /pex group admin add permissions.*
 /pex group admin add '*'
 
-/pex promote NewStaff staff
+/pex ladder staff promote NewStaff
 ```
 
 ---

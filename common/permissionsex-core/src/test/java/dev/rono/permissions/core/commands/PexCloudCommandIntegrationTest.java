@@ -144,4 +144,48 @@ class PexCloudCommandIntegrationTest extends PEXTestBase {
         assertEquals("User Rono promoted to admin group", harness.execute("promote Rono").getFirst());
         assertEquals("User Rono demoted to mod group", harness.execute("demote Rono").getFirst());
     }
+
+    @Test
+    void modernLadderPromoteAndDemoteCommandsWork() {
+        manager.getGroup("admin").setRankLadder("staff");
+        manager.getGroup("admin").setRank(1);
+        manager.getGroup("mod").setRankLadder("staff");
+        manager.getGroup("mod").setRank(2);
+        manager.getUser("Rono").setParents(List.of(manager.getGroup("mod")));
+
+        PexCloudCommandTestSupport.TestHarness harness =
+                PexCloudCommandTestSupport.install(manager, CommandFramework.MODERN, CoreCloudPlatform.GAME_SERVER);
+
+        assertEquals(
+                "User Rono promoted to admin group",
+                harness.execute("pex ladder staff promote Rono").getFirst());
+        assertEquals(
+                "User Rono demoted to mod group",
+                harness.execute("pex ladder staff demote Rono").getFirst());
+    }
+
+    @Test
+    void modernFrameworkDoesNotRegisterTopLevelPromoteCommands() {
+        PexCloudCommandTestSupport.TestHarness harness =
+                PexCloudCommandTestSupport.install(manager, CommandFramework.MODERN, CoreCloudPlatform.GAME_SERVER);
+
+        assertTrue(harness.suggest("pex ").stream().noneMatch(part -> part.equals("promote")));
+        assertTrue(harness.suggest("pex ").stream().noneMatch(part -> part.equals("demote")));
+        assertTrue(harness.suggest("").stream().noneMatch(part -> part.equals("promote")));
+    }
+
+    @Test
+    void modernLadderManagementCommandsWork() {
+        manager.getGroup("helper").setRankLadder("staff");
+        manager.getGroup("helper").setRank(2);
+
+        PexCloudCommandTestSupport.TestHarness harness =
+                PexCloudCommandTestSupport.install(manager, CommandFramework.MODERN, CoreCloudPlatform.GAME_SERVER);
+
+        assertFalse(harness.execute("pex ladders").isEmpty());
+        assertFalse(harness.execute("pex ladder staff info").isEmpty());
+        assertEquals(
+                "Group \"helper\" added to ladder \"staff\" at rank 3",
+                harness.execute("pex ladder staff groups add helper").getFirst());
+    }
 }

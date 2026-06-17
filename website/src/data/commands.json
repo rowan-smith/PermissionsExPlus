@@ -2,10 +2,10 @@
   {
     "command": "/demote",
     "syntax": "/demote <user> [ladder]",
-    "summary": "Rank ladder shortcut",
+    "summary": "Classic framework — rank ladder shortcut.",
     "category": "Ranks",
     "docSlug": "/commands/ranks",
-    "anchor": "demote"
+    "anchor": "classic-promote-and-demote"
   },
   {
     "command": "/pex backend",
@@ -42,10 +42,10 @@
   {
     "command": "/pex demote",
     "syntax": "/pex demote <user> [ladder]",
-    "summary": "Demotes the user to the previous group on the ladder.",
+    "summary": "Classic framework — demote on a rank ladder.",
     "category": "Ranks",
     "docSlug": "/commands/ranks",
-    "anchor": "pex-demote"
+    "anchor": "classic-promote-and-demote"
   },
   {
     "command": "/pex export",
@@ -210,10 +210,10 @@
   {
     "command": "/pex promote",
     "syntax": "/pex promote <user> [ladder]",
-    "summary": "Promotes the user to the next group on the ladder.",
+    "summary": "Classic framework — promote on a rank ladder.",
     "category": "Ranks",
     "docSlug": "/commands/ranks",
-    "anchor": "pex-promote"
+    "anchor": "classic-promote-and-demote"
   },
   {
     "command": "/pex reload",
@@ -442,9 +442,169 @@
   {
     "command": "/promote",
     "syntax": "/promote <user> [ladder]",
-    "summary": "Rank ladder shortcut",
+    "summary": "Classic framework — rank ladder shortcut.",
     "category": "Ranks",
     "docSlug": "/commands/ranks",
-    "anchor": "promote"
+    "anchor": "classic-promote-and-demote"
+  },
+  {
+    "command": "/pex ladder",
+    "syntax": "/pex ladder <ladder> promote <user>",
+    "summary": "Modern framework — promote a player on a rank ladder.",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "modern-promote-and-demote"
+  },
+  {
+    "command": "/pex ladder",
+    "syntax": "/pex ladder <ladder> demote <user>",
+    "summary": "Modern framework — demote a player on a rank ladder.",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "modern-promote-and-demote"
+  },
+  {
+    "command": "/pex ladders",
+    "syntax": "/pex ladders",
+    "summary": "Modern framework — list rank ladders.",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "modern-list-ladders"
+  },
+  {
+    "command": "/pex ladder",
+    "syntax": "/pex ladder <ladder> groups add <group>",
+    "summary": "Modern framework — add a group to a rank ladder.",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "modern-manage-ladder-groups"
+  },
+  {
+    "command": "/pex user",
+    "syntax": "/pex user <user> permissions list [--world <world>]",
+    "summary": "Modern framework — list a user's permissions.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "permissions"
+  },
+  {
+    "command": "/pex user",
+    "syntax": "/pex user <user> permissions add <permission> [--world <world>]",
+    "summary": "Modern framework — grant a permission directly to a user.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "permissions"
+  },
+  {
+    "command": "/pex user",
+    "syntax": "/pex user <user> permissions trace <permission> [--world <world>]",
+    "summary": "Modern framework — trace how a permission was resolved.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "permissions"
+  },
+  {
+    "command": "/pex user",
+    "syntax": "/pex user <user> groups add <group> [--world <world>]",
+    "summary": "Modern framework — add a user to a group.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "groups"
+  },
+  {
+    "command": "/pex user",
+    "syntax": "/pex user <user> options set <option> <value> [--world <world>]",
+    "summary": "Modern framework — set prefix, suffix, or custom options.",
+    "category": "Users",
+    "docSlug": "/commands/users",
+    "anchor": "options-prefix-suffix-meta"
+  },
+  {
+    "command": "/pex group",
+    "syntax": "/pex group <group> permissions add <permission> [--world <world>]",
+    "summary": "Modern framework — grant a permission to a group.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "permissions"
+  },
+  {
+    "command": "/pex group",
+    "syntax": "/pex group <group> permissions trace <permission> [--world <world>]",
+    "summary": "Modern framework — trace group permission resolution.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "permissions"
+  },
+  {
+    "command": "/pex group",
+    "syntax": "/pex group <group> members list",
+    "summary": "Modern framework — list group members.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "members"
+  },
+  {
+    "command": "/pex group",
+    "syntax": "/pex group <group> options set weight <value>",
+    "summary": "Modern framework — set group weight for prefix priority.",
+    "category": "Groups",
+    "docSlug": "/commands/groups",
+    "anchor": "options-weight-prefix-suffix"
+  },
+  {
+    "command": "/pex backend switch",
+    "syntax": "/pex backend switch <backend>",
+    "summary": "Modern framework — switch the active storage backend.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-backend"
+  },
+  {
+    "command": "/pex backend import",
+    "syntax": "/pex backend import <backend>",
+    "summary": "Modern framework — import data from another backend.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-backend"
+  },
+  {
+    "command": "/pex backend export",
+    "syntax": "/pex backend export [backend]",
+    "summary": "Modern framework — export permission data.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-backend"
+  },
+  {
+    "command": "/pex contexts",
+    "syntax": "/pex contexts",
+    "summary": "Modern framework — list active permission contexts.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-contexts"
+  },
+  {
+    "command": "/pex debug",
+    "syntax": "/pex debug on",
+    "summary": "Modern framework — enable permission debug logging.",
+    "category": "General",
+    "docSlug": "/commands/general",
+    "anchor": "pex-debug"
+  },
+  {
+    "command": "/pex ladder",
+    "syntax": "/pex ladder <ladder> info",
+    "summary": "Modern framework — show ladder details.",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "modern-list-ladders"
+  },
+  {
+    "command": "/pex ladder",
+    "syntax": "/pex ladder <ladder> groups move <group> <rank>",
+    "summary": "Modern framework — change a group's rank on a ladder.",
+    "category": "Ranks",
+    "docSlug": "/commands/ranks",
+    "anchor": "modern-manage-ladder-groups"
   }
 ]
