@@ -4,14 +4,14 @@
 
     <groupId>ru.tehkode</groupId>
     <artifactId>PermissionsEx</artifactId>
-    <version>1.23.5-SNAPSHOT</version>
+    <version>1.23.5</version>
 
     <name>PermissionsExPlus</name>
     <url>https://github.com/rowan-smith/PermissionsExPlus</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.release>11</maven.compiler.release>
         <junit.version>5.11.4</junit.version>
         <dbcp.version>2.13.0</dbcp.version>
         <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
@@ -153,16 +153,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.21.11-R0.1-SNAPSHOT</version>
-            <type>jar</type>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+            <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>2.5</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>${spigot.version}</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
@@ -276,6 +275,21 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>mc-1.8.8</id>
+            <properties>
+                <spigot.version>1.8.8-R0.1-SNAPSHOT</spigot.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>mc-latest</id>
+            <properties>
+                <spigot.version>26.2-R0.1-SNAPSHOT</spigot.version>
+                <maven.compiler.release>17</maven.compiler.release>
+            </properties>
         </profile>
     </profiles>
 </project>

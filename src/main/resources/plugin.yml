@@ -2,7 +2,7 @@ name: PermissionsEx
 main: ru.tehkode.permissions.bukkit.PermissionsEx
 version: "${project.version}"
 author: [t3hk0d3, zml, Rono]
-api-version: 1.21
+api-version: 1.13
 website: http://dev.bukkit.org/server-mods/permissionsex
 description: PermissionsExPlus - A maintained fork of PermissionsEx.
 commands:
