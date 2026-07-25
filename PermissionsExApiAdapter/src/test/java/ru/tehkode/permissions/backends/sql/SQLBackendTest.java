@@ -40,9 +40,7 @@ public class SQLBackendTest extends PEXTestBase {
         PermissionsUserData data = backend.getUserData("testUser");
         data.setPermissions(Arrays.asList("perm1", "perm2"), "world");
 
-        // Wait for async saving (SQLBackend uses CachingUserData which uses executor)
-        waitForExecutor();
-
+        backend.awaitPendingTasks();
         PermissionsUserData data2 = backend.getUserData("testUser");
         assertEquals(Arrays.asList("perm1", "perm2"), data2.getPermissions("world"));
     }
@@ -53,8 +51,7 @@ public class SQLBackendTest extends PEXTestBase {
         data.setPermissions(Collections.singletonList("group-perm"), null);
         data.setParents(Collections.singletonList("default"), null);
 
-        waitForExecutor();
-
+        backend.awaitPendingTasks();
         PermissionsGroupData data2 = backend.getGroupData("testGroup");
         assertEquals(Collections.singletonList("group-perm"), data2.getPermissions(null));
         assertEquals(Collections.singletonList("default"), data2.getParents(null));
