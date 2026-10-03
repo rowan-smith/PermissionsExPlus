@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -135,6 +136,18 @@ public abstract class PermissionBackend {
 
     protected Executor getExecutor() {
         return activeExecutorPtr;
+    }
+
+    /**
+     * Blocks until previously submitted backend executor tasks have completed.
+     * Useful for tests that need persistence to finish before reloading data.
+     */
+    public void awaitPendingTasks() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        getExecutor().execute(latch::countDown);
+        if (!latch.await(30, TimeUnit.SECONDS)) {
+            throw new InterruptedException("Timed out waiting for backend tasks to complete");
+        }
     }
 
     protected final PermissionManager getManager() {

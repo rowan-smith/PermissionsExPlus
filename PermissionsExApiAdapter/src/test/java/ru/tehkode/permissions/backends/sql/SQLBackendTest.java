@@ -2,18 +2,24 @@ package ru.tehkode.permissions.backends.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import ru.tehkode.permissions.PEXTestBase;
 import ru.tehkode.permissions.PermissionsGroupData;
 import ru.tehkode.permissions.PermissionsUserData;
 
 public class SQLBackendTest extends PEXTestBase {
+    @TempDir
+    Path tempDir;
+
     private SQLBackend backend;
 
     @BeforeEach
@@ -22,11 +28,23 @@ public class SQLBackendTest extends PEXTestBase {
         super.setUp();
 
         ConfigurationSection sqlConfig = new MemoryConfiguration();
-        // Use in-memory SQLite for testing with shared cache to keep data between
-        // connections
-        sqlConfig.set("uri", "sqlite:file::memory:?cache=shared");
+        // Prefer an on-disk temp database over shared-memory SQLite to avoid
+        // SQLITE_LOCKED_SHAREDCACHE races between the pool and async writers.
+        String database = tempDir.resolve("permissions.db").toAbsolutePath().toString().replace('\\', '/');
+        sqlConfig.set("uri", "sqlite:" + database);
 
         backend = new SQLBackend(manager, sqlConfig);
+        backend.awaitPendingTasks();
+        // Deploy writes the default group asynchronously; clear name caches so
+        // subsequent reads observe the persisted entity.
+        backend.reload();
+    }
+
+    @AfterEach
+    public void tearDownBackend() throws Exception {
+        if (backend != null) {
+            backend.close();
+        }
     }
 
     @Test

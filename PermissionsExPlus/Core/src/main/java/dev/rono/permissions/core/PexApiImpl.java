@@ -16,6 +16,8 @@ import dev.rono.permissions.core.context.CoreStateTracker;
 import dev.rono.permissions.core.context.RuntimeContextCalculators;
 import dev.rono.permissions.core.context.RuntimeContextRegistry;
 import dev.rono.permissions.core.context.RuntimeStateTracker;
+import dev.rono.permissions.core.engine.PermissionEngine;
+import dev.rono.permissions.core.engine.PermissionEngines;
 import dev.rono.permissions.core.event.EventBusImpl;
 import dev.rono.permissions.core.identity.IdentityResolver;
 import dev.rono.permissions.core.logger.AuditLogger;
@@ -26,6 +28,7 @@ import dev.rono.permissions.core.manager.LadderManagerImpl;
 import dev.rono.permissions.core.manager.UserManagerImpl;
 import dev.rono.permissions.core.placeholder.PlaceholderApiService;
 import dev.rono.permissions.core.platform.Platform;
+import dev.rono.permissions.core.resolver.ResolutionSupport;
 import dev.rono.permissions.core.resolver.ResolverImpl;
 import dev.rono.permissions.core.store.DataStore;
 import dev.rono.permissions.core.store.FlatDataStore;
@@ -48,7 +51,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
-    /** Platform-independent, API native PermissionsExPlus runtime. */
+/** Platform-independent, API native PermissionsExPlus runtime. */
     @Internal
     public final class PexApiImpl<C> implements PexApi {
     private final Platform<C> platform;
@@ -277,6 +280,18 @@ import org.jetbrains.annotations.ApiStatus.Internal;
         groups.attach(users, ladders);
         ladders.attach(users, groups);
 
+        var support = new ResolutionSupport(
+                groups,
+                config.advanced().maxInheritanceDepth(),
+                config.general().caseSensitive(),
+                config.general().wildcardsEnabled(),
+                config.general().allowNegations(),
+                config.general().defaultGroup(),
+                config.advanced().conflictResolution(),
+                platform.logger()::warn);
+
+        var permissionEngine = PermissionEngines.createCached(support);
+
         var resolvers = new ResolverImpl(
                 groups,
                 config.advanced().maxInheritanceDepth(),
@@ -286,7 +301,8 @@ import org.jetbrains.annotations.ApiStatus.Internal;
                 config.general().defaultGroup(),
                 config.advanced().conflictResolution(),
                 config.advanced().metaFormatting(),
-                platform.logger()::warn);
+                platform.logger()::warn,
+                permissionEngine);
 
         var contexts = new ContextManagerImpl(config.advanced(), contextRegistry, stateTracker, contextCalculators);
 
@@ -307,12 +323,19 @@ import org.jetbrains.annotations.ApiStatus.Internal;
             }
         }
 
-        events.subscribe(UserModifiedEvent.class, event -> placeholders.invalidate(event.current().uniqueId()));
-        events.subscribe(GroupModifiedEvent.class, event -> placeholders.invalidateAll());
+        events.subscribe(UserModifiedEvent.class, event -> {
+            placeholders.invalidate(event.current().uniqueId());
+            permissionEngine.invalidate();
+        });
+        events.subscribe(GroupModifiedEvent.class, event -> {
+            placeholders.invalidateAll();
+            permissionEngine.invalidate();
+        });
 
         platform.logger().info("Loaded config.yml, advanced.yml, and database.yml for API");
+        platform.logger().info("Permission engine: " + permissionEngine.id());
 
-        return new Runtime(config, store, events, groups, users, ladders, resolvers, contexts, placeholders, backendManager, identity, tasks, scheduler, commands, logger);
+        return new Runtime(config, store, events, groups, users, ladders, resolvers, permissionEngine, contexts, placeholders, backendManager, identity, tasks, scheduler, commands, logger);
     }
 
     private Path createLocalStorageDirectory(BackendConfiguration backend) {
@@ -363,11 +386,15 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
             expired.addAll(state.groups.purgeExpired());
 
-            if (!expired.isEmpty() && state.config.advanced().logExpiry()) {
-                if (state.config.advanced().logExpiryMode() == ExpiryLogMode.INDIVIDUAL) {
-                    expired.forEach(removal -> platform.logger().info("Removed expired " + removal.nodeType() + " '" + removal.node() + "' from " + removal.subjectType() + " " + removal.subject()));
-                } else {
-                    platform.logger().info("Cleaned up " + expired.size() + " expired node" + (expired.size() == 1 ? "" : "s") + " across the network");
+            if (!expired.isEmpty()) {
+                state.permissionEngine.invalidate();
+
+                if (state.config.advanced().logExpiry()) {
+                    if (state.config.advanced().logExpiryMode() == ExpiryLogMode.INDIVIDUAL) {
+                        expired.forEach(removal -> platform.logger().info("Removed expired " + removal.nodeType() + " '" + removal.node() + "' from " + removal.subjectType() + " " + removal.subject()));
+                    } else {
+                        platform.logger().info("Cleaned up " + expired.size() + " expired node" + (expired.size() == 1 ? "" : "s") + " across the network");
+                    }
                 }
             }
 
@@ -396,7 +423,9 @@ import org.jetbrains.annotations.ApiStatus.Internal;
             state.commands.registerDefaultCommands(this, platform::sendMessage);
         }
 
-        platform.logger().info("API ready: " + state.groups.cache().all().size() + " groups, " + state.ladders.cache().all().size() + " ladders, " + state.users.cache().all().size() + " cached users");
+        state.permissionEngine.rebuild();
+
+        platform.logger().info("API ready: " + state.groups.cache().all().size() + " groups, " + state.ladders.cache().all().size() + " ladders, " + state.users.cache().all().size() + " cached users (engine=" + state.permissionEngine.id() + ")");
     }
 
     private void startMessaging(Runtime<C> state) {
@@ -438,6 +467,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
             UserManagerImpl users,
             LadderManagerImpl ladders,
             ResolverImpl resolvers,
+            PermissionEngine permissionEngine,
             ContextManagerImpl contexts,
             PlaceholderApiService placeholders,
             BackendManagerImpl backend,

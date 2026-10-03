@@ -33,7 +33,7 @@ public enum BackendType {
             case "yaml", "yml" -> YAML;
             case "json" -> JSON;
             case "postgres", "postgresql" -> POSTGRES;
-            case "mysql" -> MYSQL;
+            case "mysql", "mariadb", "maria" -> MYSQL;
             default -> throw new IllegalArgumentException("Unsupported backend type: " + value);
         };
     }
