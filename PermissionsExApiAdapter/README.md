@@ -19,6 +19,10 @@ We delegate all API calls to the PermissionsExPlus API equivilents.
 * Configuration is handled by the PermissionsExPlus API.
   * This will include a `/pex backend import permissionsex` command or delegate in future.
 
+## Implementation
+- The api adapter imports `PermissionsExPlus/Core` directly so it can
+  use `PexImplProvider.get()` essentially using an **unsupported** api.
+
 ## Hard Dependencies
 
 - PermissionExPlus

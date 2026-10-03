@@ -7,6 +7,12 @@ every lookup and mutation to `PermissionsExPlusApi`. It intentionally publishes 
 `ru.tehkode.permissions` API contracts; consumers needing the legacy binary API must
 use `PermissionsExApiAdapter`.
 
-## Hard dependency
+## Implementation
+- The command adapter imports `PermissionsExPlus/Core` directly so it can
+  use `PexImplProvider.get()` to enable and disable existing command framework,
+  essentially we use an **unsupported** api to use this.
+- `api.commands().clear()` is used to clear the existing command set and
+  `api.commands().register()` is used to register the new commands.
 
+## Hard dependency
 - PermissionsExPlus
