@@ -6,6 +6,7 @@ import com.github.benmanes.caffeine.cache.Expiry;
 import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.permission.PermissionResult;
+import dev.rono.permissions.api.resolver.PermissionResolution;
 import dev.rono.permissions.api.resolver.QueryOptions;
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.core.resolver.ResolutionSupport;
@@ -91,6 +92,11 @@ public final class CachedPermissionEngine implements PermissionEngine {
         var result = delegate.check(holder, permission, options);
         cache.put(key, new CachedDecision(result, ttlNanos(holder, options)));
         return result;
+    }
+
+    @Override
+    public PermissionResolution explain(PermissionHolder holder, String permission, QueryOptions options) {
+        return delegate.explain(holder, permission, options);
     }
 
     @Override

@@ -57,7 +57,7 @@ inheritance:
 # ========================================================================
 messaging:
   # The method used to notify sibling servers to clear cache hooks.
-  # Options: none, redis, pluginmessage
+  # Options: none, redis
   type: "none"
 
   redis:
@@ -112,7 +112,7 @@ cache:
 #                     Core Thread Pool Management
 # ========================================================================
 threading:
-  # The core size of the background worker thread pool handling Hibernate/Jackson
+  # The core size of the background worker thread pool handling persistence/Jackson
   # saving tasks and Redis packet broadcasts. Adjust this if database lag increases.
   worker-pool-size: 4
 

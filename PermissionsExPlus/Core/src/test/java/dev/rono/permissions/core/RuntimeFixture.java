@@ -48,16 +48,8 @@ final class RuntimeFixture {
         permissionEngine = PermissionEngines.createCached(support);
         resolvers = new ResolverImpl(
                 groups,
-                10,
-                false,
-                true,
-                true,
-                "default",
-                PermissionConflictResolution.DENY_WINS,
+                support,
                 MetaFormatting.HIGHEST_WEIGHT,
-                warning -> {
-                    throw new AssertionError(warning);
-                },
                 permissionEngine);
 
         events.subscribe(dev.rono.permissions.api.event.user.UserModifiedEvent.class, event -> permissionEngine.invalidate());

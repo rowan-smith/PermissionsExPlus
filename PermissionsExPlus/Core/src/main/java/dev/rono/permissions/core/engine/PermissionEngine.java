@@ -2,6 +2,7 @@ package dev.rono.permissions.core.engine;
 
 import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.permission.PermissionResult;
+import dev.rono.permissions.api.resolver.PermissionResolution;
 import dev.rono.permissions.api.resolver.QueryOptions;
 import java.time.Instant;
 import java.util.Optional;
@@ -10,8 +11,9 @@ import java.util.Optional;
  * Internal authorization engine boundary.
  *
  * <p>
- * Implementations must not expose jCasbin or other engine-specific types through
- * the PermissionsExPlus API. Callers continue to use {@code PermissionResolver}.
+ * jCasbin is the authoritative permission evaluator. Implementations must not
+ * expose jCasbin types through the PermissionsExPlus API; callers continue to
+ * use {@code PermissionResolver}.
  * </p>
  */
 public interface PermissionEngine {
@@ -19,6 +21,12 @@ public interface PermissionEngine {
     String id();
 
     PermissionResult check(PermissionHolder holder, String permission, QueryOptions options);
+
+    /**
+     * Authoritative explanation of a permission decision. {@code result()} must
+     * match {@link #check} for the same inputs.
+     */
+    PermissionResolution explain(PermissionHolder holder, String permission, QueryOptions options);
 
     /**
      * Earliest expiry among policy nodes that can affect checks for this holder

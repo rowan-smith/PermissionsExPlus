@@ -239,11 +239,12 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
             this.getServer().getServicesManager().register(PermissionManager.class, this.permissionsManager, this,
                     ServicePriority.Normal);
 
-            regexPerms = new RegexPermissions(this);
-
-            superms = new SuperpermsListener(this);
-
-            this.getServer().getPluginManager().registerEvents(superms, this);
+            // PermissionsExPlus owns Bukkit injection; skip legacy RegexPermissions/Superperms.
+            if (getServer().getPluginManager().getPlugin("PermissionsExPlus") == null) {
+                regexPerms = new RegexPermissions(this);
+                superms = new SuperpermsListener(this);
+                this.getServer().getPluginManager().registerEvents(superms, this);
+            }
 
             this.saveConfig();
 

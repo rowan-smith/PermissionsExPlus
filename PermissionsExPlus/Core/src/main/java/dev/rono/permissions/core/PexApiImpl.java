@@ -294,14 +294,8 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
         var resolvers = new ResolverImpl(
                 groups,
-                config.advanced().maxInheritanceDepth(),
-                config.general().caseSensitive(),
-                config.general().wildcardsEnabled(),
-                config.general().allowNegations(),
-                config.general().defaultGroup(),
-                config.advanced().conflictResolution(),
+                support,
                 config.advanced().metaFormatting(),
-                platform.logger()::warn,
                 permissionEngine);
 
         var contexts = new ContextManagerImpl(config.advanced(), contextRegistry, stateTracker, contextCalculators);

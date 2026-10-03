@@ -8,9 +8,7 @@ import dev.rono.permissions.api.permission.PermissionNode;
 import dev.rono.permissions.api.permission.PermissionResult;
 import dev.rono.permissions.api.permission.PermissionValue;
 import dev.rono.permissions.api.resolver.CandidateStatus;
-import dev.rono.permissions.api.resolver.PermissionResolution;
 import dev.rono.permissions.api.resolver.QueryOptions;
-import dev.rono.permissions.api.resolver.ResolutionCandidate;
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.api.util.Identifiers;
 import dev.rono.permissions.api.util.Node;
@@ -29,8 +27,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Shared domain-graph permission evaluation used by {@link ResolverImpl} explain
- * traces and by the Casbin policy compiler.
+ * Domain-graph helpers that compile PermissionsExPlus holders into Casbin
+ * policies and supply matching/context utilities for the Casbin engine.
  */
 public final class ResolutionSupport {
     private final GroupManagerImpl groups;
@@ -92,55 +90,18 @@ public final class ResolutionSupport {
         return groups.cache().get(defaultGroup);
     }
 
+    public Consumer<String> conflictWarning() {
+        return conflictWarning;
+    }
+
     public String normalizePermission(String requested) {
         return caseSensitive ? requested.trim() : Identifiers.permission(requested);
     }
 
-    public PermissionResult check(PermissionHolder holder, String permission, QueryOptions options) {
-        return explain(holder, permission, options).result();
-    }
-
-    public PermissionResolution explain(PermissionHolder holder, String requested, QueryOptions options) {
-        Objects.requireNonNull(holder, "holder");
-        Objects.requireNonNull(options, "options");
-        Objects.requireNonNull(requested, "requested");
-
-        var permission = normalizePermission(requested);
-        var candidates = new ArrayList<Candidate>();
-
-        for (var source : sources(holder, options)) {
-            for (var node : source.holder.explicitPermissions()) {
-                CandidateStatus status;
-
-                String detail = null;
-
-                if (node.expired()) {
-                    status = CandidateStatus.EXPIRED;
-                    detail = "node expired";
-                } else if (!applies(node.contexts(), options.contexts())) {
-                    status = CandidateStatus.CONTEXT_MISMATCH;
-                    detail = "node contexts are not active";
-                } else if (!matches(expression(node), permission)) {
-                    status = CandidateStatus.PERMISSION_MISMATCH;
-                } else if (source.excluded != null) {
-                    status = source.excluded;
-                    detail = source.detail;
-                } else {
-                    status = CandidateStatus.OUTRANKED;
-                }
-
-                candidates.add(new Candidate(node, source.holder, source.distance, specificity(node.contexts()), status, Optional.ofNullable(detail), source.weight));
-            }
-        }
-
-        var resolution = resolveCandidates(permission, candidates.stream().filter(value -> value.status == CandidateStatus.OUTRANKED).toList());
-        return new Resolution(resolution.map(Candidate::result).orElse(PermissionResult.UNDEFINED), permission, resolution.map(value -> (ResolutionCandidate) value), List.copyOf(candidates));
-    }
-
     /**
      * Compiles eligible (non-excluded, non-expired) permission nodes for a holder.
-     * Node context matching is deferred to evaluation so one compiled set can serve
-     * multiple active context combinations for the same membership graph.
+     * Node context matching is deferred to Casbin evaluation so one compiled set can
+     * serve multiple active context combinations for the same membership graph.
      */
     public List<CompiledPermission> compile(PermissionHolder holder, QueryOptions options) {
         Objects.requireNonNull(holder, "holder");
@@ -167,7 +128,9 @@ public final class ResolutionSupport {
                         source.weight,
                         encodeContexts(node.contexts()),
                         source.kind,
-                        node.contexts()));
+                        node.contexts(),
+                        node,
+                        source.holder));
             }
         }
 
@@ -298,46 +261,6 @@ public final class ResolutionSupport {
         }
     }
 
-    private Optional<Candidate> resolveCandidates(String permission, List<Candidate> candidates) {
-        if (candidates.isEmpty()) {
-            return Optional.empty();
-        }
-
-        var priority = candidateComparator(permission);
-
-        var best = candidates.stream().max(priority).orElseThrow();
-
-        var tied = candidates.stream().filter(candidate -> priority.compare(candidate, best) == 0).toList();
-
-        var results = tied.stream().map(Candidate::result).collect(Collectors.toSet());
-
-        if (results.size() > 1 && conflictResolution == PermissionConflictResolution.STRICT) {
-            tied.forEach(candidate -> candidate.status = CandidateStatus.CONFLICT);
-
-            conflictWarning.accept("Strict permission conflict for '" + permission + "' between " + tied.stream().map(candidate -> subjectKey(candidate.source)).sorted().distinct().collect(Collectors.joining(", ")) + "; returning undefined");
-
-            return Optional.empty();
-        }
-
-        var preferred = results.size() == 1 ? results.iterator().next() : conflictResolution == PermissionConflictResolution.TRUE_WINS ? PermissionResult.ALLOW : PermissionResult.DENY;
-
-        var winner = tied.stream().filter(candidate -> candidate.result() == preferred)
-                .min(Comparator.comparing((Candidate candidate) -> subjectKey(candidate.source))
-                        .thenComparing(candidate -> candidate.node.permission()))
-                .orElseThrow();
-
-        winner.status = CandidateStatus.WINNER;
-
-        return Optional.of(winner);
-    }
-
-    private Comparator<Candidate> candidateComparator(String permission) {
-        return Comparator.comparingInt((Candidate value) -> matchRank(expression(value.node), permission))
-                .thenComparingInt(Candidate::contextSpecificity)
-                .thenComparing(Comparator.comparingInt(Candidate::inheritanceDistance).reversed())
-                .thenComparingInt(value -> value.weight);
-    }
-
     public Optional<Instant> earliestPolicyExpiry(PermissionHolder holder, QueryOptions options) {
         Objects.requireNonNull(holder, "holder");
         Objects.requireNonNull(options, "options");
@@ -361,32 +284,6 @@ public final class ResolutionSupport {
                 .flatMap(Optional::stream)
                 .filter(expiry -> expiry.isAfter(Instant.now()))
                 .min(Comparator.naturalOrder());
-    }
-
-    public PermissionResult decide(String permission, List<CompiledPermission> matches) {
-        if (matches.isEmpty()) {
-            return PermissionResult.UNDEFINED;
-        }
-
-        var priority = Comparator.comparingInt((CompiledPermission value) -> matchRank(value.expression(), permission))
-                .thenComparingInt(CompiledPermission::specificity)
-                .thenComparing(Comparator.comparingInt(CompiledPermission::distance).reversed())
-                .thenComparingInt(CompiledPermission::weight);
-
-        var best = matches.stream().max(priority).orElseThrow();
-        var tied = matches.stream().filter(candidate -> priority.compare(candidate, best) == 0).toList();
-        var results = tied.stream().map(CompiledPermission::effect).collect(Collectors.toSet());
-
-        if (results.size() > 1 && conflictResolution == PermissionConflictResolution.STRICT) {
-            conflictWarning.accept("Strict permission conflict for '" + permission + "'; returning undefined");
-            return PermissionResult.UNDEFINED;
-        }
-
-        if (results.size() == 1) {
-            return results.iterator().next();
-        }
-
-        return conflictResolution == PermissionConflictResolution.TRUE_WINS ? PermissionResult.ALLOW : PermissionResult.DENY;
     }
 
     private static int weight(PermissionHolder holder) {
@@ -419,59 +316,7 @@ public final class ResolutionSupport {
             int weight,
             String encodedContexts,
             SourceKind kind,
-            ContextSet contexts) {}
-
-    private final class Candidate implements ResolutionCandidate {
-        private final PermissionNode node;
-        private final PermissionHolder source;
-        private final int distance, specificity, weight;
-        private CandidateStatus status;
-        private final Optional<String> detail;
-
-        Candidate(PermissionNode node, PermissionHolder source, int distance, int specificity, CandidateStatus status, Optional<String> detail, int weight) {
-            this.node = node;
-            this.source = source;
-            this.distance = distance;
-            this.specificity = specificity;
-            this.status = status;
-            this.detail = detail;
-            this.weight = weight;
-        }
-
-        PermissionResult result() {
-            return ResolutionSupport.this.candidateResult(node);
-        }
-
-        @Override
-        public PermissionNode node() {
-            return node;
-        }
-
-        @Override
-        public PermissionHolder source() {
-            return source;
-        }
-
-        @Override
-        public int inheritanceDistance() {
-            return distance;
-        }
-
-        @Override
-        public int contextSpecificity() {
-            return specificity;
-        }
-
-        @Override
-        public CandidateStatus status() {
-            return status;
-        }
-
-        @Override
-        public Optional<String> detail() {
-            return detail;
-        }
-    }
-
-    private record Resolution(PermissionResult result, String requestedPermission, Optional<ResolutionCandidate> winner, List<ResolutionCandidate> candidates) implements PermissionResolution {}
+            ContextSet contexts,
+            PermissionNode node,
+            PermissionHolder source) {}
 }

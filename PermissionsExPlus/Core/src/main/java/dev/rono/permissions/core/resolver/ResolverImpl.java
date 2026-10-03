@@ -97,8 +97,21 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
             Consumer<String> conflictWarning,
             PermissionEngine permissionEngine) {
 
-        this.groups = groups;
-        this.support = new ResolutionSupport(groups, maxDepth, caseSensitive, wildcards, negations, defaultGroup, conflictResolution, conflictWarning);
+        this(
+                groups,
+                new ResolutionSupport(groups, maxDepth, caseSensitive, wildcards, negations, defaultGroup, conflictResolution, conflictWarning),
+                metaFormatting,
+                permissionEngine);
+    }
+
+    public ResolverImpl(
+            GroupManagerImpl groups,
+            ResolutionSupport support,
+            MetaFormatting metaFormatting,
+            PermissionEngine permissionEngine) {
+
+        this.groups = Objects.requireNonNull(groups, "groups");
+        this.support = Objects.requireNonNull(support, "support");
         this.metaFormatting = Objects.requireNonNull(metaFormatting, "metaFormatting");
         this.permissionEngine = permissionEngine != null ? permissionEngine : PermissionEngines.create(this.support);
     }
@@ -156,7 +169,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
 
     @Override
     public PermissionResolution explain(PermissionHolder holder, String requested, QueryOptions options) {
-        return support.explain(holder, requested, options);
+        return permissionEngine.explain(holder, requested, options);
     }
 
     @Override
