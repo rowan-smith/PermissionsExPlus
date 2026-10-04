@@ -18,22 +18,18 @@
  */
 package ru.tehkode.permissions.bukkit.commands;
 
-import dev.rono.permissions.core.PexImplProvider;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import ru.tehkode.permissions.PermissionEntity;
-import ru.tehkode.permissions.PermissionGroup;
-import ru.tehkode.permissions.PermissionUser;
+import ru.tehkode.permissions.bukkit.ApiWrapper;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.commands.CommandListener;
 import ru.tehkode.permissions.commands.CommandsManager;
@@ -48,54 +44,28 @@ public abstract class PermissionsCommand implements CommandListener {
         this.manager = manager;
     }
 
-    protected void informGroup(PermissionsEx plugin, PermissionGroup group, String message) {
-        for (PermissionUser user : group.getActiveUsers()) {
-            this.informPlayer(plugin, user, message);
-        }
-    }
-
-    protected void informPlayer(PermissionsEx plugin, PermissionUser user, String message) {
-        if (!plugin.getConfiguration().informPlayers()) {
-            return; // User informing is disabled
-        }
-
-        Player player = user.getPlayer();
+    protected void informPlayer(PermissionsEx plugin, String userName, String message) {
+        Player player = Bukkit.getPlayerExact(userName);
 
         if (player == null) {
-            return;
+            try {
+                UUID id = UUID.fromString(userName);
+                player = Bukkit.getPlayer(id);
+            } catch (IllegalArgumentException ignored) {}
         }
 
-        player.sendMessage(ChatColor.BLUE + "[PermissionsEx] " + ChatColor.RESET + message);
+        if (player != null) {
+            player.sendMessage(ChatColor.BLUE + "[PermissionsEx] " + ChatColor.RESET + message);
+        }
     }
 
     protected String autoCompletePlayerName(String playerName) {
         return autoCompletePlayerName(playerName, "user");
     }
 
-    protected void printEntityInheritance(CommandSender sender, List<PermissionGroup> groups) {
-        for (PermissionGroup group : groups) {
-            String rank = "not ranked";
-
-            if (group.isRanked()) {
-                rank = "rank " + group.getRank() + " @ " + group.getRankLadder();
-            }
-
-            sender.sendMessage("   " + group.getIdentifier() + " (" + rank + ")");
-        }
-    }
-
-    private String nameToUUID(String name) {
-        OfflinePlayer player = Bukkit.getServer().getOfflinePlayer(name);
-
-        if (player != null) {
-            UUID uid = player.getUniqueId();
-
-            if (uid != null) {
-                return uid.toString();
-            }
-        }
-
-        return name;
+    private String nameToUuid(String name) {
+        OfflinePlayer player = Bukkit.getOfflinePlayer(name);
+        return player.getUniqueId() != null ? player.getUniqueId().toString() : name;
     }
 
     protected String autoCompletePlayerName(String playerName, String argName) {
@@ -104,306 +74,131 @@ public abstract class PermissionsCommand implements CommandListener {
         }
 
         if (playerName.startsWith("#")) {
-            return nameToUUID(playerName.substring(1));
+            return nameToUuid(playerName.substring(1));
         }
 
         List<String> players = new LinkedList<>();
 
-        // Collect online Player names
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             if (player.getName().equalsIgnoreCase(playerName)) {
                 return player.getUniqueId().toString();
             }
 
-            if (player.getName().toLowerCase().startsWith(playerName.toLowerCase())
-                    && !players.contains(player.getUniqueId().toString())) {
+            if (player.getName().toLowerCase(Locale.ROOT).startsWith(playerName.toLowerCase(Locale.ROOT))) {
                 players.add(player.getUniqueId().toString());
             }
         }
 
-        // Collect registered PEX user names
-        for (String user : PexImplProvider.get().users().cache().names()) {
-            if (user.equalsIgnoreCase(playerName)) {
-                return nameToUUID(user);
+        for (String name : ApiWrapper.users().cache().names()) {
+            if (name.equalsIgnoreCase(playerName)) {
+                return ApiWrapper.users().cache().get(name).map(user -> user.uniqueId().toString()).orElse(name);
             }
 
-            if (user.toLowerCase().startsWith(playerName.toLowerCase())) {
-                final String uid = nameToUUID(user);
+            if (name.toLowerCase(Locale.ROOT).startsWith(playerName.toLowerCase(Locale.ROOT))) {
+                ApiWrapper.users().cache().get(name).ifPresent(user -> {
+                    String id = user.uniqueId().toString();
 
-                if (!players.contains(uid)) {
-                    players.add(uid);
-                }
+                    if (!players.contains(id)) {
+                        players.add(id);
+                    }
+                });
             }
         }
 
         if (players.size() > 1) {
             throw new AutoCompleteChoicesException(players.toArray(new String[0]), argName);
-        } else if (players.size() == 1) {
-            return players.get(0);
         }
 
-        // Nothing found
+        if (players.size() == 1) {
+            return players.getFirst();
+        }
+
         return playerName;
     }
 
-    protected String describeUser(PermissionUser user) {
-        return user.getIdentifier() + "/" + user.getName();
-    }
-
     protected String autoCompleteGroupName(String groupName) {
-        return this.autoCompleteGroupName(groupName, "group");
+        return autoCompleteGroupName(groupName, "group");
     }
 
     protected String autoCompleteGroupName(String groupName, String argName) {
-
-        if (groupName.startsWith("#")) {
-            return groupName.substring(1);
+        if (groupName == null || groupName.startsWith("#")) {
+            return groupName;
         }
 
-        List<String> groups = new LinkedList<>();
+        List<String> groups = new ArrayList<>();
 
-        for (var group : PexImplProvider.get().groups().cache().identifiers()) {
-            if (group.equalsIgnoreCase(groupName)) {
-                return group;
+        for (String name : ApiWrapper.groups().cache().identifiers()) {
+            if (name.equalsIgnoreCase(groupName)) {
+                return name;
             }
 
-            if (group.toLowerCase().startsWith(groupName.toLowerCase()) && !groups.contains(group)) {
-                groups.add(group);
+            if (name.toLowerCase(Locale.ROOT).startsWith(groupName.toLowerCase(Locale.ROOT))) {
+                groups.add(name);
             }
         }
 
-        if (groups.size() > 1) { // Found several choices
+        if (groups.size() > 1) {
             throw new AutoCompleteChoicesException(groups.toArray(new String[0]), argName);
-        } else if (groups.size() == 1) { // Found one name
-            return groups.get(0);
         }
 
-        // Nothing found
+        if (groups.size() == 1) {
+            return groups.getFirst();
+        }
+
         return groupName;
     }
 
-    protected String autoCompleteWorldName(String worldName) {
-        return this.autoCompleteWorldName(worldName, "world");
-    }
-
-    protected String autoCompleteWorldName(String worldName, String argName) {
-        if (worldName == null || worldName.isEmpty() || "*".equals(worldName)) {
-            return null;
-        }
-
-        List<String> worlds = new LinkedList<>();
-
-        for (World world : Bukkit.getServer().getWorlds()) {
-            if (world.getName().equalsIgnoreCase(worldName)) {
-                return world.getName();
-            }
-
-            if (world.getName().toLowerCase().startsWith(worldName.toLowerCase())
-                    && !worlds.contains(world.getName())) {
-                worlds.add(world.getName());
-            }
-        }
-
-        if (worlds.size() > 1) { // Found several choices
-            throw new AutoCompleteChoicesException(worlds.toArray(new String[0]), argName);
-        } else if (worlds.size() == 1) { // Found one name
-            return worlds.get(0);
-        }
-
-        return worldName;
-    }
-
-    protected String getSafeWorldName(String worldName, PermissionUser user) {
+    protected String getSafeWorldName(String worldName, String userName) {
         if (worldName == null) {
-            Player player = user.getPlayer();
+            Player player = Bukkit.getPlayerExact(userName);
 
             if (player != null) {
-                worldName = player.getWorld().getName();
-            } else {
-                worldName = Bukkit.getServer().getWorlds().get(0).getName();
+                return player.getWorld().getName();
             }
+
+            return null;
         }
 
         return worldName;
     }
 
-    protected String autoCompletePermission(PermissionEntity entity, String permission, String worldName) {
-        return this.autoCompletePermission(entity, permission, worldName, "permission");
+    protected String describeUser(dev.rono.permissions.api.user.User user) {
+        return user.name();
     }
 
-    protected String autoCompletePermission(PermissionEntity entity, String permission, String worldName,
-            String argName) {
-        if (permission == null) {
-            return null;
-        }
-
-        Set<String> permissions = new HashSet<>();
-
-        for (String currentPermission : entity.getPermissions(worldName)) {
-            if (currentPermission.equalsIgnoreCase(permission)) {
-                return currentPermission;
-            }
-
-            if (currentPermission.toLowerCase().startsWith(permission.toLowerCase())) {
-                permissions.add(currentPermission);
-            }
-        }
-
-        if (permissions.size() > 0) {
-            String[] permissionArray = permissions.toArray(new String[0]);
-
-            if (permissionArray.length == 1) {
-                return permissionArray[0];
-            }
-
-            throw new AutoCompleteChoicesException(permissionArray, argName);
-        }
-
-        return permission;
+    protected String worldClause(String worldName) {
+        return worldName != null ? " (in world \"" + worldName + "\") " : "";
     }
 
-    protected int getPosition(String permission, List<String> permissions) {
-        try {
-            // permission is permission index
-            int position = Integer.parseInt(permission) - 1;
-
-            if (position < 0 || position >= permissions.size()) {
-                throw new RuntimeException("Wrong permission index specified!");
-            }
-
-            return position;
-        } catch (NumberFormatException e) {
-            // permission is permission text
-            for (int i = 0; i < permissions.size(); i++) {
-                if (permission.equalsIgnoreCase(permissions.get(i))) {
-                    return i;
-                }
-            }
-        }
-
-        throw new RuntimeException("Specified permission not found");
+    protected void sendError(CommandSender sender, Exception error) {
+        sender.sendMessage(ChatColor.RED + (error.getMessage() != null ? error.getMessage() : error.toString()));
     }
 
-    protected String printHierarchy(PermissionGroup parent, String worldName, int level) {
-        StringBuilder buffer = new StringBuilder();
+    protected String describePermission(dev.rono.permissions.api.permission.PermissionNode node) {
+        StringBuilder builder = new StringBuilder(node.permission());
 
-        List<PermissionGroup> groups;
-
-        if (parent == null) {
-            groups = PermissionsEx.getPermissionManager().getGroupList();
-        } else {
-            groups = parent.getChildGroups(worldName);
+        if (node.value() == dev.rono.permissions.api.permission.PermissionValue.DENY && !node.permission().startsWith("-")) {
+            builder.insert(0, '-');
         }
 
-        for (PermissionGroup group : groups) {
-            if (parent == null && !group.getParents(worldName).isEmpty()) {
-                continue;
-            }
-
-            buffer.append(StringUtils.repeat("  ", level)).append(" - ").append(group.getIdentifier()).append("\n");
-
-            // Groups
-            buffer.append(printHierarchy(group, worldName, level + 1));
-
-            for (PermissionUser user : group.getUsers(worldName)) {
-                buffer.append(StringUtils.repeat("  ", level + 1)).append(" + ").append(describeUser(user))
-                        .append("\n");
-            }
+        if (!node.contexts().isEmpty()) {
+            builder.append(" @").append(node.contexts());
         }
 
-        return buffer.toString();
-    }
-
-    protected String mapPermissions(String worldName, PermissionEntity entity, int level) {
-        StringBuilder builder = new StringBuilder();
-
-        int index = 1;
-
-        for (String permission : this.getPermissionsTree(entity, worldName, 0)) {
-            if (level > 0) {
-                builder.append("   ");
-            } else {
-                builder.append(index++).append(") ");
-            }
-
-            builder.append(permission);
-
-            if (level > 0) {
-                builder.append(" (from ").append(entity.getIdentifier()).append(")");
-            } else {
-                builder.append(" (own)");
-            }
-
-            builder.append("\n");
-        }
-
-        List<PermissionGroup> parents = entity.getParents(worldName);
-
-        level++; // Just increment level once
+        node.expiry().ifPresent(expiry -> builder.append(" (expires ").append(expiry).append(')'));
         return builder.toString();
     }
 
-    protected List<String> getPermissionsTree(PermissionEntity entity, String world, int level) {
-        List<String> permissions = new LinkedList<>();
-
-        Map<String, List<String>> allPermissions = entity.getAllPermissions();
-
-        List<String> worldsPermissions = allPermissions.get(world);
-
-        if (worldsPermissions != null) {
-            permissions.addAll(sprintPermissions(world, worldsPermissions));
-        }
-
-        for (String parentWorld : PermissionsEx.getPermissionManager().getWorldInheritance(world)) {
-            if (parentWorld != null && !parentWorld.isEmpty()) {
-                permissions.addAll(getPermissionsTree(entity, parentWorld, level + 1));
-            }
-        }
-
-        if (level == 0 && world != null && allPermissions.get(null) != null) { // default world permissions
-            permissions.addAll(sprintPermissions("common", allPermissions.get(null)));
-        }
-
-        return permissions;
+    protected String join(Map<String, String> args, String key, String fallback) {
+        String value = args.get(key);
+        return value != null ? value : fallback;
     }
 
-    protected List<String> sprintPermissions(String world, List<String> permissions) {
-        List<String> permissionList = new LinkedList<>();
-
-        if (permissions == null) {
-            return permissionList;
+    protected int parseInteger(String value) {
+        if (value == null || value.isBlank()) {
+            return 0;
         }
 
-        for (String permission : permissions) {
-            permissionList.add(permission + (world != null ? " @" + world : ""));
-        }
-
-        return permissionList;
-    }
-
-    protected Object parseValue(String value) {
-        if (value == null) {
-            return null;
-        }
-
-        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-            return Boolean.parseBoolean(value);
-        }
-
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException ignore) {}
-
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException ignore) {}
-
-        return value;
-    }
-
-    protected void sendMessage(CommandSender sender, String message) {
-        for (String messagePart : message.split("\n")) {
-            sender.sendMessage(messagePart);
-        }
+        return StringUtils.toInteger(value, 0);
     }
 }

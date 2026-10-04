@@ -18,680 +18,526 @@
  */
 package ru.tehkode.permissions.bukkit.commands;
 
-import java.util.LinkedList;
+import dev.rono.permissions.api.group.Group;
+import dev.rono.permissions.api.parent.ParentNode;
+import dev.rono.permissions.api.permission.PermissionResult;
+import dev.rono.permissions.api.user.User;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import ru.tehkode.permissions.PermissionGroup;
-import ru.tehkode.permissions.PermissionUser;
+import ru.tehkode.permissions.bukkit.ApiWrapper;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.commands.Command;
-import ru.tehkode.utils.DateUtils;
-import ru.tehkode.utils.StringUtils;
 
 public class GroupCommands extends PermissionsCommand {
 
     @Command(name = "pex", syntax = "groups list [world]", permission = "permissions.manage.groups.list", description = "List all registered groups")
     public void groupsList(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        List<PermissionGroup> groups = plugin.getPermissionsManager().getGroupList();
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
         sender.sendMessage(ChatColor.WHITE + "Registered groups: ");
 
-        for (PermissionGroup group : groups) {
-            String rank = "";
-
-            if (group.isRanked()) {
-                rank = " (rank: " + group.getRank() + "@" + group.getRankLadder() + ") ";
-            }
-
-            sender.sendMessage(String.format("  %s %s %s %s[%s]", group.getIdentifier(), " #" + group.getWeight(), rank,
-                    ChatColor.DARK_GREEN, StringUtils.implode(group.getParentIdentifiers(worldName), ", ")));
+        for (Group group : ApiWrapper.groups().cache().all()) {
+            String weight = group.weight().isPresent() ? " @" + group.weight().getAsInt() : "";
+            sender.sendMessage(" " + group.name() + weight);
         }
     }
 
     @Command(name = "pex", syntax = "groups", permission = "permissions.manage.groups.list", description = "List all registered groups (alias)")
     public void groupsListAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        this.groupsList(plugin, sender, args);
+        groupsList(plugin, sender, args);
     }
 
     @Command(name = "pex", syntax = "group", permission = "permissions.manage.groups.list", description = "List all registered groups (alias)")
-    public void groupsListAnotherAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        this.groupsList(plugin, sender, args);
+    public void groupAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        groupsList(plugin, sender, args);
     }
 
     @Command(name = "pex", syntax = "group <group> weight [weight]", permission = "permissions.manage.groups.weight.<group>", description = "Display or set group weight")
-    public void groupDisplaySetWeight(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
+    public void groupWeight(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            String groupName = autoCompleteGroupName(args.get("group"));
+            Group group = ApiWrapper.requireOrCreateGroup(groupName);
+            int weight = group.weight().orElse(0);
 
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        if (args.containsKey("weight")) {
-            try {
-                group.setWeight(Integer.parseInt(args.get("weight")));
-            } catch (NumberFormatException e) {
-                sender.sendMessage("Error! Weight should be integer value.");
-
-                return;
+            if (args.containsKey("weight")) {
+                weight = parseInteger(args.get("weight"));
+                int setWeight = weight;
+                ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> modifier.setWeight(setWeight)));
             }
-        }
 
-        sender.sendMessage("Group \"" + group.getIdentifier() + "\" has " + group.getWeight() + " calories.");
+            sender.sendMessage("Group \"" + group.name() + "\" has " + weight + " calories.");
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
     }
 
     @Command(name = "pex", syntax = "group <group> toggle debug", permission = "permissions.manage.groups.debug.<group>", description = "Toggle debug mode for group")
     public void groupToggleDebug(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        group.setDebug(!group.isDebug());
-
-        sender.sendMessage("Debug mode for group " + group.getIdentifier() + " have been "
-                + (group.isDebug() ? "enabled" : "disabled") + "!");
+        sender.sendMessage(ChatColor.YELLOW + "Per-group debug is managed by PermissionsExPlus logging.");
     }
 
-    @Command(name = "pex", syntax = "group <group> prefix [newprefix] [world]", permission = "permissions.manage.groups.prefix.<group>", description = "Get or set <group> prefix.")
+    @Command(name = "pex", syntax = "group <group> prefix [newprefix] [world]", permission = "permissions.manage.groups.prefix.<group>", description = "Get or set group prefix")
     public void groupPrefix(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        if (args.containsKey("newprefix")) {
-            group.setPrefix(args.get("newprefix"), worldName);
-
-            sender.sendMessage(group.getIdentifier() + "'s prefix"
-                    + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " has been set to \""
-                    + group.getPrefix() + "\"");
-        } else {
-            sender.sendMessage(group.getIdentifier() + "'s prefix"
-                    + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " is \"" + group.getPrefix()
-                    + "\"");
-        }
-    }
-
-    @Command(name = "pex", syntax = "group <group> suffix [newsuffix] [world]", permission = "permissions.manage.groups.suffix.<group>", description = "Get or set <group> suffix")
-    public void groupSuffix(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        if (args.containsKey("newsuffix")) {
-            group.setSuffix(args.get("newsuffix"), worldName);
-
-            sender.sendMessage(group.getIdentifier() + "'s suffix"
-                    + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " has been set to \""
-                    + group.getSuffix() + "\"");
-        } else {
-            sender.sendMessage(group.getIdentifier() + "'s suffix"
-                    + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " is \"" + group.getSuffix()
-                    + "\"");
-        }
-    }
-
-    @Command(name = "pex", syntax = "group <group> create [parents]", permission = "permissions.manage.groups.create.<group>", description = "Create <group> and/or set [parents]")
-    public void groupCreate(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        if (!group.isVirtual()) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + args.get("group") + "\" already exists.");
-
-            return;
-        }
-
-        if (args.get("parents") != null) {
-            String[] parents = args.get("parents").split(",");
-
-            List<PermissionGroup> groups = new LinkedList<>();
-
-            for (String parent : parents) {
-                groups.add(plugin.getPermissionsManager().getGroup(parent));
-            }
-
-            group.setParents(groups, null);
-        }
-
-        sender.sendMessage(ChatColor.WHITE + "Group \"" + group.getIdentifier() + "\" created!");
-
-        group.save();
-    }
-
-    @Command(name = "pex", syntax = "group <group> delete", permission = "permissions.manage.groups.remove.<group>", description = "Remove <group>")
-    public void groupDelete(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        sender.sendMessage(ChatColor.WHITE + "Group \"" + group.getIdentifier() + "\" removed!");
-
-        group.remove();
-
-        plugin.getPermissionsManager().resetGroup(group.getIdentifier());
-    }
-
-    /**
-     * Group inheritance
-     */
-    @Command(name = "pex", syntax = "group <group> parents [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "List parents for <group> (alias)")
-    public void groupListParentsAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        this.groupListParents(plugin, sender, args);
-    }
-
-    @Command(name = "pex", syntax = "group <group> parents list [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "List parents for <group>")
-    public void groupListParents(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        List<String> parentNames = group.getParentIdentifiers(worldName);
-
-        if (parentNames.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + group.getIdentifier() + "\" has no parents.");
-
-            return;
-        }
-
-        sender.sendMessage("Group " + group.getIdentifier() + " parents:");
-
-        for (String parent : parentNames) {
-            sender.sendMessage("  " + parent);
-        }
-    }
-
-    @Command(name = "pex", syntax = "group <group> parents set <parents> [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "Set parent(s) for <group> (single or comma-separated list)")
-    public void groupSetParents(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        if (args.get("parents") != null) {
-            String[] parents = args.get("parents").split(",");
-
-            List<PermissionGroup> groups = new LinkedList<>();
-
-            for (String parent : parents) {
-                PermissionGroup parentGroup = plugin.getPermissionsManager()
-                        .getGroup(this.autoCompleteGroupName(parent));
-
-                if (parentGroup != null && !groups.contains(parentGroup)) {
-                    groups.add(parentGroup);
-                }
-            }
-
-            group.setParents(groups, worldName);
-
-            sender.sendMessage(ChatColor.WHITE + "Group " + group.getIdentifier() + " inheritance updated!");
-
-            group.save();
-        }
-    }
-
-    @Command(name = "pex", syntax = "group <group> parents add <parents> [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "Set parent(s) for <group> (single or comma-separated list)")
-    public void groupAddParents(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        if (args.get("parents") != null) {
-            String[] parents = args.get("parents").split(",");
-
-            List<PermissionGroup> groups = new LinkedList<>(group.getOwnParents(worldName));
-
-            for (String parent : parents) {
-                PermissionGroup parentGroup = plugin.getPermissionsManager()
-                        .getGroup(this.autoCompleteGroupName(parent));
-
-                if (parentGroup != null && !groups.contains(parentGroup)) {
-                    groups.add(parentGroup);
-                }
-            }
-
-            group.setParents(groups, worldName);
-
-            sender.sendMessage(ChatColor.WHITE + "Group " + group.getIdentifier() + " inheritance updated!");
-
-            group.save();
-        }
-    }
-
-    @Command(name = "pex", syntax = "group <group> parents remove <parents> [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "Set parent(s) for <group> (single or comma-separated list)")
-    public void groupRemoveParents(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        if (args.get("parents") != null) {
-            String[] parents = args.get("parents").split(",");
-
-            List<PermissionGroup> groups = new LinkedList<>(group.getOwnParents(worldName));
-
-            for (String parent : parents) {
-                PermissionGroup parentGroup = plugin.getPermissionsManager()
-                        .getGroup(this.autoCompleteGroupName(parent));
-
-                groups.remove(parentGroup);
-            }
-
-            group.setParents(groups, worldName);
-
-            sender.sendMessage(ChatColor.WHITE + "Group \"" + group.getIdentifier() + "\" inheritance updated!");
-
-            group.save();
-        }
-    }
-
-    /**
-     * Group permissions
-     */
-    @Command(name = "pex", syntax = "group <group>", permission = "permissions.manage.groups.permissions.<group>", description = "List all <group> permissions (alias)")
-    public void groupListAliasPermissions(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        this.groupListPermissions(plugin, sender, args);
-    }
-
-    @Command(name = "pex", syntax = "group <group> list [world]", permission = "permissions.manage.groups.permissions.<group>", description = "List all <group> permissions in [world]")
-    public void groupListPermissions(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        sender.sendMessage("'" + groupName + "' inherits the following groups:");
-
-        printEntityInheritance(sender, group.getParents());
-
-        Map<String, List<PermissionGroup>> parents = group.getAllParents();
-
-        for (String world : parents.keySet()) {
-            if (world == null) {
-                continue;
-            }
-
-            sender.sendMessage("  @" + world + ":");
-
-            printEntityInheritance(sender, parents.get(world));
-        }
-
-        sender.sendMessage("Group \"" + group.getIdentifier() + "\"'s permissions:");
-
-        this.sendMessage(sender, this.mapPermissions(worldName, group, 0));
-
-        sender.sendMessage("Group \"" + group.getIdentifier() + "\"'s Options: ");
-
-        for (Map.Entry<String, String> option : group.getOptions(worldName).entrySet()) {
-            sender.sendMessage("  " + option.getKey() + " = \"" + option.getValue() + "\"");
-        }
-    }
-
-    @Command(name = "pex", syntax = "group <group> add <permission> [world]", permission = "permissions.manage.groups.permissions.<group>", description = "Add <permission> to <group> in [world]")
-    public void groupAddPermission(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        group.addPermission(args.get("permission"), worldName);
-
-        sender.sendMessage(ChatColor.WHITE + "Permission \"" + args.get("permission") + "\" added to group \""
-                + group.getIdentifier() + "\"!");
-
-        this.informGroup(plugin, group, "Your permissions have been changed");
-    }
-
-    @Command(name = "pex", syntax = "group <group> set <option> <value> [world]", permission = "permissions.manage.groups.permissions.<group>", description = "Set <option> <value> for <group> in [world]")
-    public void groupSetOption(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        group.setOption(args.get("option"), args.get("value"), worldName);
-
-        if (args.containsKey("value") && args.get("value").isEmpty()) {
-            sender.sendMessage(ChatColor.WHITE + "Option \"" + args.get("option") + "\" cleared!");
-        } else {
-            sender.sendMessage(ChatColor.WHITE + "Option \"" + args.get("option") + "\" set!");
-        }
-
-        this.informGroup(plugin, group, "Your permissions has been changed");
-    }
-
-    @Command(name = "pex", syntax = "group <group> remove <permission> [world]", permission = "permissions.manage.groups.permissions.<group>", description = "Remove <permission> from <group> in [world]")
-    public void groupRemovePermission(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        String permission = this.autoCompletePermission(group, args.get("permission"), worldName);
-
-        group.removePermission(permission, worldName);
-
-        group.removeTimedPermission(permission, worldName);
-
-        sender.sendMessage(ChatColor.WHITE + "Permission \"" + permission + "\" removed from group \""
-                + group.getIdentifier() + "\"!");
-
-        this.informGroup(plugin, group, "Your permissions have been changed");
-    }
-
-    @Command(name = "pex", syntax = "group <group> swap <permission> <targetPermission> [world]", permission = "permissions.manage.groups.permissions.<group>", description = "Swap <permission> and <targetPermission> in permission list. Could be number or permission itself")
-    public void userSwapPermission(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
-        }
-
-        List<String> permissions = group.getOwnPermissions(worldName);
-
         try {
-            int sourceIndex = this.getPosition(
-                    this.autoCompletePermission(group, args.get("permission"), worldName, "permission"), permissions);
+            String groupName = autoCompleteGroupName(args.get("group"));
+            Group group = ApiWrapper.requireOrCreateGroup(groupName);
+            String world = args.get("world");
+            String name = group.name();
 
-            int targetIndex = this.getPosition(
-                    this.autoCompletePermission(group, args.get("targetPermission"), worldName, "targetPermission"),
-                    permissions);
-
-            String targetPermission = permissions.get(targetIndex);
-
-            permissions.set(targetIndex, permissions.get(sourceIndex));
-
-            permissions.set(sourceIndex, targetPermission);
-
-            group.setPermissions(permissions, worldName);
-
-            sender.sendMessage("Permissions swapped!");
-        } catch (Throwable e) {
-            sender.sendMessage(ChatColor.RED + "Error: " + e.getMessage());
+            if (args.containsKey("newprefix")) {
+                String prefix = args.get("newprefix");
+                ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> {
+                    if (world != null) {
+                        modifier.setPrefix(prefix, ApiWrapper.world(world));
+                    } else {
+                        modifier.setPrefix(prefix);
+                    }
+                }));
+                sender.sendMessage(name + "'s prefix" + worldClause(world) + (world == null ? " " : "") + "has been set to \"" + prefix + "\"");
+            } else {
+                var value = ApiWrapper.api().resolvers().options().prefix(group, ApiWrapper.query(world));
+                sender.sendMessage(name + "'s prefix" + worldClause(world) + (world == null ? " " : "") + "is \"" + value.orElse("") + "\"");
+            }
+        } catch (Exception error) {
+            sendError(sender, error);
         }
     }
 
-    @Command(name = "pex", syntax = "group <group> timed add <permission> [lifetime] [world]", permission = "permissions.manage.groups.permissions.timed.<group>", description = "Add timed <permission> to <group> with [lifetime] in [world]")
+    @Command(name = "pex", syntax = "group <group> suffix [newsuffix] [world]", permission = "permissions.manage.groups.suffix.<group>", description = "Get or set group suffix")
+    public void groupSuffix(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            String groupName = autoCompleteGroupName(args.get("group"));
+            Group group = ApiWrapper.requireOrCreateGroup(groupName);
+            String world = args.get("world");
+            String name = group.name();
+
+            if (args.containsKey("newsuffix")) {
+                String suffix = args.get("newsuffix");
+                ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> {
+                    if (world != null) {
+                        modifier.setSuffix(suffix, ApiWrapper.world(world));
+                    } else {
+                        modifier.setSuffix(suffix);
+                    }
+                }));
+                sender.sendMessage(name + "'s suffix" + worldClause(world) + (world == null ? " " : "") + "has been set to \"" + suffix + "\"");
+            } else {
+                var value = ApiWrapper.api().resolvers().options().suffix(group, ApiWrapper.query(world));
+                sender.sendMessage(name + "'s suffix" + worldClause(world) + (world == null ? " " : "") + "is \"" + value.orElse("") + "\"");
+            }
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> create [parents]", permission = "permissions.manage.groups.create.<group>", description = "Create group")
+    public void groupCreate(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            String groupName = args.get("group");
+
+            if (ApiWrapper.findGroup(groupName).isPresent()) {
+                sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" already exists.");
+                return;
+            }
+
+            Group group = ApiWrapper.await(ApiWrapper.groups().create(groupName));
+
+            if (args.containsKey("parents")) {
+                List<ParentNode> parents = Arrays.stream(args.get("parents").split(","))
+                        .map(String::trim)
+                        .filter(name -> !name.isEmpty())
+                        .map(name -> ParentNode.builder().group(autoCompleteGroupName(name)).build())
+                        .collect(Collectors.toList());
+                ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> modifier.setParents(parents)));
+            }
+
+            sender.sendMessage(ChatColor.WHITE + "Group \"" + group.name() + "\" created!");
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> delete", permission = "permissions.manage.groups.remove.<group>", description = "Remove group")
+    public void groupDelete(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            String groupName = autoCompleteGroupName(args.get("group"));
+            boolean removed = ApiWrapper.await(ApiWrapper.groups().delete(groupName));
+
+            if (removed) {
+                sender.sendMessage(ChatColor.WHITE + "Group \"" + groupName + "\" removed!");
+            } else {
+                sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+            }
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> parents [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "List parents alias")
+    public void groupListParentsAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        groupListParents(plugin, sender, args);
+    }
+
+    @Command(name = "pex", syntax = "group <group> parents list [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "List parents")
+    public void groupListParents(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            Group group = ApiWrapper.requireGroup(autoCompleteGroupName(args.get("group")));
+            String world = args.get("world");
+            List<String> parents = group.parents().stream()
+                    .filter(node -> world == null || node.contexts().equals(ApiWrapper.world(world)) || node.contexts().isEmpty())
+                    .map(ParentNode::group)
+                    .collect(Collectors.toList());
+
+            if (parents.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "Group \"" + group.name() + "\" has no parents.");
+                return;
+            }
+
+            sender.sendMessage("Group " + group.name() + " parents:");
+            parents.forEach(parent -> sender.sendMessage("  " + parent));
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> parents set <parents> [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "Set parents")
+    public void groupSetParents(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            Group group = ApiWrapper.requireOrCreateGroup(autoCompleteGroupName(args.get("group")));
+            String world = args.get("world");
+            List<ParentNode> parents = Arrays.stream(args.get("parents").split(","))
+                    .map(String::trim)
+                    .filter(name -> !name.isEmpty())
+                    .map(name -> {
+                        String parent = autoCompleteGroupName(name);
+                        return world != null
+                                ? ParentNode.builder().group(parent).contexts(ApiWrapper.world(world)).build()
+                                : ParentNode.builder().group(parent).build();
+                    })
+                    .collect(Collectors.toList());
+
+            ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> modifier.setParents(parents)));
+            sender.sendMessage(ChatColor.WHITE + "Group " + group.name() + " inheritance updated!");
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> parents add <parents> [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "Add parents")
+    public void groupAddParents(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            Group group = ApiWrapper.requireOrCreateGroup(autoCompleteGroupName(args.get("group")));
+            String world = args.get("world");
+
+            ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> {
+                for (String raw : args.get("parents").split(",")) {
+                    String parent = autoCompleteGroupName(raw.trim());
+
+                    if (parent.isEmpty()) {
+                        continue;
+                    }
+
+                    if (world != null) {
+                        modifier.addParent(parent, ApiWrapper.world(world));
+                    } else {
+                        modifier.addParent(parent);
+                    }
+                }
+            }));
+
+            sender.sendMessage(ChatColor.WHITE + "Group " + group.name() + " inheritance updated!");
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> parents remove <parents> [world]", permission = "permissions.manage.groups.inheritance.<group>", description = "Remove parents")
+    public void groupRemoveParents(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            Group group = ApiWrapper.requireGroup(autoCompleteGroupName(args.get("group")));
+            String world = args.get("world");
+
+            ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> {
+                for (String raw : args.get("parents").split(",")) {
+                    String parent = autoCompleteGroupName(raw.trim());
+
+                    if (parent.isEmpty()) {
+                        continue;
+                    }
+
+                    if (world != null) {
+                        modifier.removeParent(parent, ApiWrapper.world(world));
+                    } else {
+                        modifier.removeParent(parent);
+                    }
+                }
+            }));
+
+            sender.sendMessage(ChatColor.WHITE + "Group \"" + group.name() + "\" inheritance updated!");
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group>", permission = "permissions.manage.groups.permissions.<group>", description = "List group permissions alias")
+    public void groupInfoAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        groupListPermissions(plugin, sender, args);
+    }
+
+    @Command(name = "pex", syntax = "group <group> list [world]", permission = "permissions.manage.groups.permissions.<group>", description = "List group permissions")
+    public void groupListPermissions(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            Group group = ApiWrapper.requireGroup(autoCompleteGroupName(args.get("group")));
+            String world = args.get("world");
+
+            sender.sendMessage("Group \"" + group.name() + "\"'s permissions:");
+            group.explicitPermissions().stream()
+                    .filter(node -> world == null || node.contexts().equals(ApiWrapper.world(world)) || node.contexts().isEmpty())
+                    .forEach(node -> sender.sendMessage("  " + describePermission(node)));
+
+            sender.sendMessage("Group \"" + group.name() + "\"'s Options: ");
+            group.explicitOptions().stream()
+                    .filter(node -> world == null || node.contexts().equals(ApiWrapper.world(world)) || node.contexts().isEmpty())
+                    .forEach(node -> sender.sendMessage("  " + node.key() + " = \"" + node.value() + "\""));
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> add <permission> [world]", permission = "permissions.manage.groups.permissions.<group>", description = "Add permission")
+    public void groupAddPermission(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            Group group = ApiWrapper.requireOrCreateGroup(autoCompleteGroupName(args.get("group")));
+            String permission = args.get("permission");
+            boolean deny = permission.startsWith("-");
+            String node = deny ? permission.substring(1) : permission;
+            String world = args.get("world");
+
+            ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> {
+                if (deny) {
+                    if (world != null) {
+                        modifier.denyPermission(node, ApiWrapper.world(world));
+                    } else {
+                        modifier.denyPermission(node);
+                    }
+                } else if (world != null) {
+                    modifier.allowPermission(node, ApiWrapper.world(world));
+                } else {
+                    modifier.allowPermission(node);
+                }
+            }));
+
+            sender.sendMessage(ChatColor.WHITE + "Permission \"" + permission + "\" added to group \"" + group.name() + "\"!");
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> set <option> <value> [world]", permission = "permissions.manage.groups.permissions.<group>", description = "Set option")
+    public void groupSetOption(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            Group group = ApiWrapper.requireOrCreateGroup(autoCompleteGroupName(args.get("group")));
+            String world = args.get("world");
+
+            ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> {
+                if (world != null) {
+                    modifier.setOption(args.get("option"), args.get("value"), ApiWrapper.world(world));
+                } else {
+                    modifier.setOption(args.get("option"), args.get("value"));
+                }
+            }));
+
+            sender.sendMessage(ChatColor.WHITE + "Option \"" + args.get("option") + "\" set!");
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> remove <permission> [world]", permission = "permissions.manage.groups.permissions.<group>", description = "Remove permission")
+    public void groupRemovePermission(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            Group group = ApiWrapper.requireGroup(autoCompleteGroupName(args.get("group")));
+            String permission = args.get("permission");
+            String node = permission.startsWith("-") ? permission.substring(1) : permission;
+            String world = args.get("world");
+
+            ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> {
+                if (world != null) {
+                    modifier.removePermission(node, ApiWrapper.world(world));
+                } else {
+                    modifier.removePermission(node);
+                }
+            }));
+
+            sender.sendMessage(ChatColor.WHITE + "Permission \"" + permission + "\" removed from group \"" + group.name() + "\"!");
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
+
+    @Command(name = "pex", syntax = "group <group> swap <permission> <targetPermission> [world]", permission = "permissions.manage.groups.permissions.<group>", description = "Swap permissions")
+    public void groupSwapPermission(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        sender.sendMessage(ChatColor.YELLOW + "Permission swap is not supported by the PermissionsExPlus adapter.");
+    }
+
+    @Command(name = "pex", syntax = "group <group> timed add <permission> [lifetime] [world]", permission = "permissions.manage.groups.permissions.timed.<group>", description = "Add timed permission")
     public void groupAddTimedPermission(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-        String worldName = this.autoCompleteWorldName(args.get("world"));
+        try {
+            Group group = ApiWrapper.requireOrCreateGroup(autoCompleteGroupName(args.get("group")));
+            String permission = args.get("permission");
+            boolean deny = permission.startsWith("-");
+            String node = deny ? permission.substring(1) : permission;
+            int lifetime = parseInteger(args.get("lifetime"));
+            Duration duration = lifetime > 0 ? Duration.ofSeconds(lifetime) : Duration.ofDays(1);
+            String world = args.get("world");
 
-        int lifetime = 0;
+            ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> {
+                if (deny) {
+                    if (world != null) {
+                        modifier.denyTimedPermission(node, ApiWrapper.world(world), duration);
+                    } else {
+                        modifier.denyTimedPermission(node, duration);
+                    }
+                } else if (world != null) {
+                    modifier.allowTimedPermission(node, ApiWrapper.world(world), duration);
+                } else {
+                    modifier.allowTimedPermission(node, duration);
+                }
+            }));
 
-        if (args.containsKey("lifetime")) {
-            lifetime = DateUtils.parseInterval(args.get("lifetime"));
+            sender.sendMessage(ChatColor.WHITE + "Timed permission added!");
+        } catch (Exception error) {
+            sendError(sender, error);
         }
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-            return;
-        }
-
-        group.addTimedPermission(args.get("permission"), worldName, lifetime);
-
-        sender.sendMessage(ChatColor.WHITE + "Timed permission added!");
-
-        this.informGroup(plugin, group, "Your permissions have been changed!");
-
-        plugin.getLogger().info("Group " + groupName + " get timed permission \"" + args.get("permission") + "\" "
-                + (lifetime > 0 ? "for " + lifetime + " seconds " : " ") + "from " + sender.getName());
     }
 
-    @Command(name = "pex", syntax = "group <group> timed remove <permission> [world]", permission = "permissions.manage.groups.permissions.timed.<group>", description = "Remove timed <permissions> for <group> in [world]")
+    @Command(name = "pex", syntax = "group <group> timed remove <permission> [world]", permission = "permissions.manage.groups.permissions.timed.<group>", description = "Remove timed permission")
     public void groupRemoveTimedPermission(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
+        try {
+            Group group = ApiWrapper.requireGroup(autoCompleteGroupName(args.get("group")));
+            String permission = args.get("permission");
+            String node = permission.startsWith("-") ? permission.substring(1) : permission;
+            String world = args.get("world");
 
-        String worldName = this.autoCompleteWorldName(args.get("world"));
+            ApiWrapper.await(ApiWrapper.groups().modify(group.name(), modifier -> {
+                if (world != null) {
+                    modifier.removePermission(node, ApiWrapper.world(world));
+                } else {
+                    modifier.removePermission(node);
+                }
+            }));
 
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
+            sender.sendMessage(ChatColor.WHITE + "Timed permission \"" + permission + "\" removed!");
+        } catch (Exception error) {
+            sendError(sender, error);
         }
-
-        group.removeTimedPermission(args.get("permission"), worldName);
-
-        sender.sendMessage(ChatColor.WHITE + "Timed permission \"" + args.get("permission") + "\" removed!");
-
-        this.informGroup(plugin, group, "Your permissions have been changed!");
     }
 
-    /**
-     * Group users management
-     */
-    @Command(name = "pex", syntax = "group <group> users", permission = "permissions.manage.membership.<group>", description = "List all users in <group>")
+    @Command(name = "pex", syntax = "group <group> users", permission = "permissions.manage.membership.<group>", description = "List users in group")
     public void groupUsersList(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
+        try {
+            String groupName = autoCompleteGroupName(args.get("group"));
+            List<User> users = new ArrayList<>();
 
-        Set<PermissionUser> users = plugin.getPermissionsManager().getUsers(groupName);
+            for (User user : ApiWrapper.users().cache().all()) {
+                boolean member = user.groups().stream().anyMatch(node -> node.group().equalsIgnoreCase(groupName));
 
-        if (users == null || users.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+                if (member) {
+                    users.add(user);
+                }
+            }
 
-            return;
-        }
-
-        if (users.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" has no users.");
-
-            return;
-        }
-
-        sender.sendMessage("Group \"" + groupName + "\"'s users (" + users.size() + "):");
-
-        for (PermissionUser user : users) {
-            sender.sendMessage("   " + describeUser(user));
-        }
-    }
-
-    @Command(name = "pex", syntax = "group <group> user add <user> [world]", permission = "permissions.manage.membership.<group>", description = "Add <user> (single or comma-separated list) to <group>")
-    public void groupUsersAdd(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        String users[];
-
-        if (!args.get("user").contains(",")) {
-            users = new String[]{args.get("user")};
-        } else {
-            users = args.get("user").split(",");
-        }
-
-        for (String userName : users) {
-            userName = this.autoCompletePlayerName(userName);
-
-            PermissionUser user = plugin.getPermissionsManager().getUser(userName);
-
-            if (user == null) {
-                sender.sendMessage(ChatColor.RED + "User \"" + userName + "\" doesn't exist.");
-
+            if (users.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" has no users.");
                 return;
             }
 
-            user.addGroup(groupName, worldName);
+            sender.sendMessage("Group \"" + groupName + "\"'s users (" + users.size() + "):");
 
-            sender.sendMessage(ChatColor.WHITE + "User " + user.getName() + " added to " + groupName + " !");
-
-            this.informPlayer(plugin, user, "You are assigned to \"" + groupName + "\" group");
-        }
-    }
-
-    @Command(name = "pex", syntax = "group <group> user remove <user> [world]", permission = "permissions.manage.membership.<group>", description = "Add <user> (single or comma-separated list) to <group>")
-    public void groupUsersRemove(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        String users[];
-
-        if (!args.get("user").contains(",")) {
-            users = new String[]{args.get("user")};
-        } else {
-            users = args.get("user").split(",");
-        }
-
-        for (String userName : users) {
-            userName = this.autoCompletePlayerName(userName);
-
-            PermissionUser user = plugin.getPermissionsManager().getUser(userName);
-
-            if (user == null) {
-                sender.sendMessage(ChatColor.RED + "User \"" + userName + "\" doesn't exist.");
-
-                return;
+            for (User user : users) {
+                sender.sendMessage("   " + describeUser(user));
             }
-
-            user.removeGroup(groupName, worldName);
-
-            sender.sendMessage(
-                    ChatColor.WHITE + "User " + user.getName() + " removed from " + args.get("group") + " !");
-
-            this.informPlayer(plugin, user, "You were removed from \"" + groupName + "\" group");
+        } catch (Exception error) {
+            sendError(sender, error);
         }
     }
 
-    @Command(name = "pex", syntax = "default group [world]", permission = "permissions.manage.groups.inheritance", description = "Display default group for specified world")
-    public void groupDefaultCheck(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String worldName = this.autoCompleteWorldName(args.get("world"));
+    @Command(name = "pex", syntax = "group <group> user add <user> [world]", permission = "permissions.manage.membership.<group>", description = "Add users to group")
+    public void groupAddUser(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            String groupName = autoCompleteGroupName(args.get("group"));
+            ApiWrapper.requireOrCreateGroup(groupName);
+            String world = args.get("world");
 
-        List<PermissionGroup> defaultGroups = plugin.getPermissionsManager().getDefaultGroups(worldName);
-
-        sender.sendMessage("Default groups in world \"" + worldName + "\" are:");
-
-        for (PermissionGroup grp : defaultGroups) {
-            sender.sendMessage("  - " + grp.getIdentifier());
+            for (String raw : args.get("user").split(",")) {
+                User user = ApiWrapper.requireUser(autoCompletePlayerName(raw.trim()));
+                ApiWrapper.await(ApiWrapper.users().modify(user.uniqueId(), modifier -> {
+                    if (world != null) {
+                        modifier.addGroup(groupName, ApiWrapper.world(world));
+                    } else {
+                        modifier.addGroup(groupName);
+                    }
+                }));
+                sender.sendMessage(ChatColor.WHITE + "User " + user.name() + " added to " + groupName + " !");
+                informPlayer(plugin, user.name(), "You are assigned to \"" + groupName + "\" group");
+            }
+        } catch (Exception error) {
+            sendError(sender, error);
         }
     }
 
-    @Command(name = "pex", syntax = "set default group <group> <value> [world]", permission = "permissions.manage.groups.inheritance", description = "Set default group for specified world")
-    public void groupDefaultSet(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
+    @Command(name = "pex", syntax = "group <group> user remove <user> [world]", permission = "permissions.manage.membership.<group>", description = "Remove users from group")
+    public void groupRemoveUser(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            String groupName = autoCompleteGroupName(args.get("group"));
+            String world = args.get("world");
 
-        boolean def = Boolean.parseBoolean(args.get("value"));
-
-        String worldName = this.autoCompleteWorldName(args.get("world"));
-
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
-
-        if (group == null || group.isVirtual()) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
-
-            return;
+            for (String raw : args.get("user").split(",")) {
+                User user = ApiWrapper.requireUser(autoCompletePlayerName(raw.trim()));
+                ApiWrapper.await(ApiWrapper.users().modify(user.uniqueId(), modifier -> {
+                    if (world != null) {
+                        modifier.removeGroup(groupName, ApiWrapper.world(world));
+                    } else {
+                        modifier.removeGroup(groupName);
+                    }
+                }));
+                sender.sendMessage(ChatColor.WHITE + "User " + user.name() + " removed from " + groupName + " !");
+                informPlayer(plugin, user.name(), "You were removed from \"" + groupName + "\" group");
+            }
+        } catch (Exception error) {
+            sendError(sender, error);
         }
+    }
 
-        group.setDefault(def, worldName);
+    @Command(name = "pex", syntax = "default group [world]", permission = "permissions.manage.groups.inheritance", description = "Print default group")
+    public void defaultGroup(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        var defaultGroup = ApiWrapper.api().resolvers().defaultGroups().resolve();
 
-        sender.sendMessage("Group \"" + groupName + "\" is " + (def ? "now" : "no longer") + " default in world \""
-                + worldName + "\"");
+        if (defaultGroup.isPresent()) {
+            sender.sendMessage("Default group: " + defaultGroup.get().name());
+        } else {
+            sender.sendMessage("No default group configured");
+        }
+    }
+
+    @Command(name = "pex", syntax = "set default group <group> <value> [world]", permission = "permissions.manage.groups.inheritance", description = "Set default group")
+    public void setDefaultGroup(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        sender.sendMessage(ChatColor.YELLOW + "Default group is configured in PermissionsExPlus config.yml (default-group).");
+    }
+
+    @Command(name = "pex", syntax = "group <group> check <permission> [world]", permission = "permissions.manage.groups.permissions.<group>", description = "Check group permission")
+    public void groupCheckPermission(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            Group group = ApiWrapper.requireGroup(autoCompleteGroupName(args.get("group")));
+            PermissionResult result = ApiWrapper.api().resolvers().permissions()
+                    .check(group, args.get("permission"), ApiWrapper.query(args.get("world")));
+            sender.sendMessage("\"" + args.get("permission") + "\" = " + result.name().toLowerCase());
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
     }
 }

@@ -18,169 +18,107 @@
  */
 package ru.tehkode.permissions.bukkit.commands;
 
+import dev.rono.permissions.api.ladder.PromotionResult;
+import dev.rono.permissions.api.ladder.PromotionStatus;
+import java.util.ArrayList;
 import java.util.Map;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import ru.tehkode.permissions.PermissionGroup;
-import ru.tehkode.permissions.PermissionUser;
+import ru.tehkode.permissions.bukkit.ApiWrapper;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.commands.Command;
-import ru.tehkode.permissions.exceptions.RankingException;
 
 public class PromotionCommands extends PermissionsCommand {
 
-    @Command(name = "pex", syntax = "group <group> rank [rank] [ladder]", description = "Get or set <group> [rank] [ladder]", isPrimary = true, permission = "permissions.groups.rank.<group>")
-    public void rankGroup(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String groupName = this.autoCompleteGroupName(args.get("group"));
+    @Command(name = "pex", syntax = "group <group> rank [rank] [ladder]", description = "Get or set group rank on ladder", isPrimary = true, permission = "permissions.groups.rank.<group>")
+    public void groupRank(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        try {
+            String groupName = autoCompleteGroupName(args.get("group"));
+            String ladderName = args.getOrDefault("ladder", "default");
+            ApiWrapper.requireOrCreateGroup(groupName);
 
-        PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
+            if (!args.containsKey("rank")) {
+                var ladder = ApiWrapper.await(ApiWrapper.ladders().find(ladderName));
 
-        if (group == null) {
-            sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" not found");
+                if (ladder.isEmpty()) {
+                    sender.sendMessage("Group " + groupName + " is unranked");
+                    return;
+                }
 
-            return;
-        }
+                var position = ladder.get().positionOf(groupName);
 
-        if (args.get("rank") != null) {
-            String newRank = args.get("rank").trim();
+                if (position.isEmpty()) {
+                    sender.sendMessage("Group " + groupName + " is unranked");
+                } else {
+                    sender.sendMessage("Group " + groupName + " rank is " + position.getAsInt() + " (ladder = " + ladderName + ")");
+                }
 
-            try {
-                group.setRank(Integer.parseInt(newRank));
-            } catch (NumberFormatException e) {
-                sender.sendMessage("Wrong rank. Make sure it's number.");
+                return;
             }
 
-            if (args.containsKey("ladder")) {
-                group.setRankLadder(args.get("ladder"));
-            }
-        }
+            int rank = parseInteger(args.get("rank"));
+            var ladder = ApiWrapper.await(ApiWrapper.ladders().find(ladderName))
+                    .orElseGet(() -> ApiWrapper.await(ApiWrapper.ladders().create(ladderName)));
 
-        int rank = group.getRank();
+            ApiWrapper.await(ApiWrapper.ladders().modify(ladder.name(), modifier -> {
+                var groups = new ArrayList<>(ladder.groups());
+                groups.removeIf(name -> name.equalsIgnoreCase(groupName));
 
-        if (rank > 0) {
-            sender.sendMessage("Group " + group.getIdentifier() + " rank is " + rank + " (ladder = "
-                    + group.getRankLadder() + ")");
-        } else {
-            sender.sendMessage("Group " + group.getIdentifier() + " is unranked");
+                int position = Math.max(0, Math.min(rank, groups.size()));
+                groups.add(position, groupName);
+                modifier.setGroups(groups);
+            }));
+
+            sender.sendMessage("Group " + groupName + " rank is " + rank + " (ladder = " + ladderName + ")");
+        } catch (Exception error) {
+            sendError(sender, error);
         }
     }
 
-    @Command(name = "pex", syntax = "promote <user> [ladder]", description = "Promotes <user> to next group on [ladder]", isPrimary = true)
+    @Command(name = "pex", syntax = "promote <user> [ladder]", description = "Promotes user on ladder", isPrimary = true)
     public void promoteUser(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String userName = this.autoCompletePlayerName(args.get("user"));
-
-        PermissionUser user = plugin.getPermissionsManager().getUser(userName);
-
-        if (user == null) {
-            sender.sendMessage("Specified user \"" + args.get("user") + "\" not found!");
-
-            return;
-        }
-
-        String promoterName = "console";
-
-        String ladder = "default";
-
-        if (args.containsKey("ladder")) {
-            ladder = args.get("ladder");
-        }
-
-        PermissionUser promoter = null;
-
-        if (sender instanceof Player) {
-            promoter = plugin.getPermissionsManager().getUser((Player) sender);
-
-            if (promoter == null
-                    || !promoter.has("permissions.user.promote." + ladder, ((Player) sender).getWorld().getName())) {
-                sender.sendMessage(ChatColor.RED + "You don't have enough permissions to promote on this ladder");
-
-                return;
-            }
-
-            promoterName = promoter.getName();
-        }
-
         try {
-            PermissionGroup targetGroup = user.promote(promoter, ladder);
-
-            this.informPlayer(plugin, user, "You have been promoted on " + targetGroup.getRankLadder() + " ladder to "
-                    + targetGroup.getIdentifier() + " group");
-
-            sender.sendMessage("User " + describeUser(user) + " promoted to " + targetGroup.getIdentifier() + " group");
-
-            plugin.getLogger()
-                    .info("User " + describeUser(user) + " has been promoted to " + targetGroup.getIdentifier()
-                            + " group on " + targetGroup.getRankLadder() + " ladder by " + promoterName);
-        } catch (RankingException e) {
-            sender.sendMessage(ChatColor.RED + "Promotion error: " + e.getMessage());
-
-            plugin.getLogger().severe(
-                    "Ranking Error (" + promoterName + " > " + describeUser(e.getTarget()) + "): " + e.getMessage());
+            var user = ApiWrapper.requireUser(autoCompletePlayerName(args.get("user")));
+            String ladder = args.getOrDefault("ladder", "default");
+            PromotionResult result = ApiWrapper.await(ApiWrapper.ladders().promote(user, ladder));
+            sendPromotion(plugin, sender, user.name(), ladder, result, true);
+        } catch (Exception error) {
+            sendError(sender, error);
         }
     }
 
-    @Command(name = "pex", syntax = "demote <user> [ladder]", description = "Demotes <user> to previous group or [ladder]", isPrimary = true)
+    @Command(name = "pex", syntax = "demote <user> [ladder]", description = "Demotes user on ladder", isPrimary = true)
     public void demoteUser(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String userName = this.autoCompletePlayerName(args.get("user"));
+        try {
+            var user = ApiWrapper.requireUser(autoCompletePlayerName(args.get("user")));
+            String ladder = args.getOrDefault("ladder", "default");
+            PromotionResult result = ApiWrapper.await(ApiWrapper.ladders().demote(user, ladder));
+            sendPromotion(plugin, sender, user.name(), ladder, result, false);
+        } catch (Exception error) {
+            sendError(sender, error);
+        }
+    }
 
-        PermissionUser user = plugin.getPermissionsManager().getUser(userName);
+    @Command(name = "promote", syntax = "<user> [ladder]", description = "Promotes user", isPrimary = true, permission = "permissions.user.rank.promote")
+    public void promoteAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        promoteUser(plugin, sender, args);
+    }
 
-        if (user == null) {
-            sender.sendMessage(ChatColor.RED + "Specified user \"" + args.get("user") + "\" not found!");
+    @Command(name = "demote", syntax = "<user> [ladder]", description = "Demotes user", isPrimary = true, permission = "permissions.user.rank.demote")
+    public void demoteAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        demoteUser(plugin, sender, args);
+    }
 
+    private void sendPromotion(PermissionsEx plugin, CommandSender sender, String user, String ladder, PromotionResult result, boolean promote) {
+        if (result.status() == PromotionStatus.PROMOTED || result.status() == PromotionStatus.DEMOTED) {
+            String newGroup = result.newGroup().orElse("?");
+            sender.sendMessage("User " + user + " " + (promote ? "promoted" : "demoted") + " to " + newGroup + " group");
+            informPlayer(plugin, user, "You have been " + (promote ? "promoted" : "demoted") + " on " + ladder
+                    + " ladder to " + newGroup + " group");
             return;
         }
 
-        String demoterName = "console";
-
-        String ladder = "default";
-
-        if (args.containsKey("ladder")) {
-            ladder = args.get("ladder");
-        }
-
-        PermissionUser demoter = null;
-
-        if (sender instanceof Player) {
-            demoter = plugin.getPermissionsManager().getUser((Player) sender);
-
-            if (demoter == null
-                    || !demoter.has("permissions.user.demote." + ladder, ((Player) sender).getWorld().getName())) {
-                sender.sendMessage(ChatColor.RED + "You don't have enough permissions to demote on this ladder");
-
-                return;
-            }
-
-            demoterName = demoter.getName();
-        }
-
-        try {
-            PermissionGroup targetGroup = user.demote(demoter, args.get("ladder"));
-
-            this.informPlayer(plugin, user, "You have been demoted on " + targetGroup.getRankLadder() + " ladder to "
-                    + targetGroup.getIdentifier() + " group");
-
-            sender.sendMessage("User " + describeUser(user) + " demoted to " + targetGroup.getIdentifier() + " group");
-
-            plugin.getLogger().info("User " + describeUser(user) + " has been demoted to " + targetGroup.getIdentifier()
-                    + " group on " + targetGroup.getRankLadder() + " ladder by " + demoterName);
-        } catch (RankingException e) {
-            sender.sendMessage(ChatColor.RED + "Demotion error: " + e.getMessage());
-
-            plugin.getLogger().severe("Ranking Error (" + demoterName + " demotes " + describeUser(e.getTarget())
-                    + "): " + e.getMessage());
-        }
-    }
-
-    @Command(name = "promote", syntax = "<user> [ladder]", description = "Promotes <user> to next group", isPrimary = true, permission = "permissions.user.rank.promote")
-    public void promoteUserAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        this.promoteUser(plugin, sender, args);
-    }
-
-    @Command(name = "demote", syntax = "<user> [ladder]", description = "Demotes <user> to previous group", isPrimary = true, permission = "permissions.user.rank.demote")
-    public void demoteUserAlias(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        this.demoteUser(plugin, sender, args);
+        String label = promote ? "Promotion" : "Demotion";
+        sender.sendMessage(ChatColor.RED + label + " error: " + result.status().name());
     }
 }

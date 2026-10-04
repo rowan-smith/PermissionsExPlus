@@ -2,17 +2,20 @@
 
 ## Legacy command compatibility shim
 
-Provides the legacy `/pex`, `/promote`, and `/demote` command formats while delegating
-every lookup and mutation to `PermissionsExPlusApi`. It intentionally publishes no
-`ru.tehkode.permissions` API contracts; consumers needing the legacy binary API must
-use `PermissionsExApiAdapter`.
+Provides the legacy `/pex`, `/promote`, and `/demote` command formats while
+delegating every lookup and mutation to PermissionsExPlus. It publishes no
+`ru.tehkode.permissions` API contracts; consumers needing the legacy binary API
+must use `PermissionsExApiAdapter`.
 
-## Implementation
-- The command adapter imports `PermissionsExPlus/Core` directly so it can
-  use `PexImplProvider.get()` to enable and disable existing command framework,
-  essentially we use an **unsupported** api to use this.
-- `api.commands().clear()` is used to clear the existing command set and
-  `api.commands().register()` is used to register the new commands.
+## Behaviour
+
+- On enable, clears the PermissionsExPlus Cloud command tree via
+  `api.commands().clear()`.
+- Registers the original PEX `@Command` handlers through a local
+  `CommandsManager`.
+- All handlers call into `PexImplProvider` / `PexApi` (users, groups, ladders,
+  resolvers).
 
 ## Hard dependency
+
 - PermissionsExPlus

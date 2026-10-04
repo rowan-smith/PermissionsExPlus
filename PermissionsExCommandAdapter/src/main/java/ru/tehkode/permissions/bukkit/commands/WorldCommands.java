@@ -18,108 +18,48 @@
  */
 package ru.tehkode.permissions.bukkit.commands;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.commands.Command;
-import ru.tehkode.utils.StringUtils;
 
 public class WorldCommands extends PermissionsCommand {
 
     @Command(name = "pex", syntax = "worlds", description = "Print loaded worlds", isPrimary = true, permission = "permissions.manage.worlds")
-    public void worldsTree(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        List<World> worlds = plugin.getServer().getWorlds();
-
-        PermissionManager manager = plugin.getPermissionsManager();
-
+    public void worldsList(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
         sender.sendMessage("Worlds on server: ");
 
-        for (World world : worlds) {
-            List<String> parentWorlds = manager.getWorldInheritance(world.getName());
-
-            String output = "  " + world.getName();
-
-            if (!parentWorlds.isEmpty()) {
-                output += ChatColor.GREEN + " [" + ChatColor.WHITE + StringUtils.implode(parentWorlds, ", ")
-                        + ChatColor.GREEN + "]";
-            }
-
-            sender.sendMessage(output);
+        for (World world : Bukkit.getWorlds()) {
+            sender.sendMessage(" " + world.getName());
         }
     }
 
-    @Command(name = "pex", syntax = "world <world>", description = "Print <world> inheritance info", permission = "permissions.manage.worlds")
-    public void worldPrintInheritance(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String worldName = this.autoCompleteWorldName(args.get("world"));
+    @Command(name = "pex", syntax = "world <world>", description = "Print world info", permission = "permissions.manage.worlds")
+    public void worldInfo(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        String world = args.get("world");
+        World bukkitWorld = Bukkit.getWorld(world);
 
-        PermissionManager manager = plugin.getPermissionsManager();
-
-        if (plugin.getServer().getWorld(worldName) == null) {
-            sender.sendMessage("Specified world \"" + args.get("world") + "\" not found.");
-
+        if (bukkitWorld == null) {
+            sender.sendMessage("Specified world \"" + world + "\" not found.");
             return;
         }
 
-        List<String> parentWorlds = manager.getWorldInheritance(worldName);
-
-        if (parentWorlds.isEmpty()) {
-            sender.sendMessage("World \"" + worldName + "\" inherits nothing.");
-
-            return;
-        }
-
-        sender.sendMessage("World \"" + worldName + "\" inherits:");
-
-        for (String parentWorld : parentWorlds) {
-            List<String> parents = manager.getWorldInheritance(parentWorld);
-
-            String output = "  " + parentWorld;
-
-            if (!parents.isEmpty()) {
-                output += ChatColor.GREEN + " [" + ChatColor.WHITE + StringUtils.implode(parents, ", ")
-                        + ChatColor.GREEN + "]";
-            }
-
-            sender.sendMessage(output);
-        }
+        sender.sendMessage("World \"" + bukkitWorld.getName() + "\" inherits nothing.");
     }
 
-    @Command(name = "pex", syntax = "world <world> inherit <parentWorlds>", description = "Set <parentWorlds> for <world>", permission = "permissions.manage.worlds.inheritance")
-    public void worldSetInheritance(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-        String worldName = this.autoCompleteWorldName(args.get("world"));
+    @Command(name = "pex", syntax = "world <world> inherit <parentWorlds>", description = "Set world inheritance", permission = "permissions.manage.worlds.inheritance")
+    public void worldInherit(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
+        String world = args.get("world");
 
-        PermissionManager manager = plugin.getPermissionsManager();
-
-        if (plugin.getServer().getWorld(worldName) == null) {
-            sender.sendMessage("Specified world \"" + args.get("world") + "\" not found.");
-
+        if (Bukkit.getWorld(world) == null) {
+            sender.sendMessage("Specified world \"" + world + "\" not found.");
             return;
         }
 
-        List<String> parents = new ArrayList<>();
-
-        String parentWorlds = args.get("parentWorlds");
-
-        if (parentWorlds.contains(",")) {
-            for (String world : parentWorlds.split(",")) {
-                world = this.autoCompleteWorldName(world, "parentWorlds");
-
-                if (!parents.contains(world)) {
-                    parents.add(world.trim());
-                }
-            }
-        } else {
-            parents.add(parentWorlds.trim());
-        }
-
-        manager.setWorldInheritance(worldName, parents);
-
-        sender.sendMessage("World \"" + worldName + "\" inherits " + StringUtils.implode(parents, ", "));
+        sender.sendMessage(ChatColor.YELLOW + "World inheritance is not managed by the command adapter.");
+        sender.sendMessage(ChatColor.DARK_GRAY + "Use PermissionsExPlus context configuration / permission contexts instead.");
     }
 }

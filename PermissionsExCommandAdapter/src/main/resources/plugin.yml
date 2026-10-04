@@ -3,7 +3,7 @@ main: ru.tehkode.permissions.bukkit.PermissionsEx
 version: "${project.version}"
 author: [t3hk0d3, zml, Rono]
 api-version: 1.13
-description: PermissionsEx Command Adapter - A Command Adapter for PermissionsEx.
+description: Legacy PermissionsEx command surface for PermissionsExPlus.
 depend: [PermissionsExPlus]
 commands:
   pex:
