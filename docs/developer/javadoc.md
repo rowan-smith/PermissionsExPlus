@@ -2,7 +2,7 @@
 
 Java documentation for PermissionsExPlus and its legacy components.
 
-## PermissionsExPlus 1.0.0-SNAPSHOT
+## PermissionsExPlus 2.0.0-SNAPSHOT
 The current documentation for the PermissionsExPlus API.
 
 [View Javadoc](pathname:///javadoc/index.html)

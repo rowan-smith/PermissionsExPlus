@@ -22,7 +22,7 @@ var api = PexProvider.get();
 <dependency>
     <groupId>dev.rono.permissions</groupId>
     <artifactId>PermissionsExPlusApi</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <scope>provided</scope>
 </dependency>
 ```
