@@ -237,6 +237,13 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
     }
 
     @Override
+    public List<String> onTabComplete(@NonNull CommandSender sender, @NonNull Command command, @NonNull String alias, @NonNull String[] args) {
+        // Command UX is owned by PermissionsExCommandAdapter; this override exists so the
+        // PermissionsEx 1.23.5 binary surface (TabCompleter) remains intact for dependents.
+        return java.util.Collections.emptyList();
+    }
+
+    @Override
     public boolean onCommand(@NonNull CommandSender sender, @NonNull Command command, @NonNull String commandLabel, @NonNull String[] args) {
         try {
             PluginDescriptionFile pdf = this.getDescription();

@@ -46,6 +46,7 @@ public abstract class PEXTestBase {
     public static class MockBackend extends PermissionBackend {
         private final Map<String, MemoryData> users = new ConcurrentHashMap<>();
         private final Map<String, MemoryData> groups = new ConcurrentHashMap<>();
+        private final Map<String, List<String>> worldInheritance = new ConcurrentHashMap<>();
 
         public MockBackend(PermissionManager manager, ConfigurationSection config) throws PermissionBackendException {
             super(manager, config);
@@ -111,16 +112,32 @@ public abstract class PEXTestBase {
 
         @Override
         public List<String> getWorldInheritance(String world) {
-            return Collections.emptyList();
+            List<String> parents = worldInheritance.get(world);
+            return parents == null ? Collections.emptyList() : parents;
         }
 
         @Override
         public Map<String, List<String>> getAllWorldInheritance() {
-            return Collections.emptyMap();
+            return Collections.unmodifiableMap(worldInheritance);
         }
 
         @Override
-        public void setWorldInheritance(String world, List<String> inheritance) {}
+        public void setWorldInheritance(String world, List<String> inheritance) {
+            if (inheritance == null || inheritance.isEmpty()) {
+                worldInheritance.remove(world);
+            } else {
+                worldInheritance.put(world, List.copyOf(inheritance));
+            }
+        }
+
+        /** Test helper: drop persisted entity rows the way a durable backend would after {@code remove()}. */
+        public void forgetGroup(String groupName) {
+            groups.remove(groupName);
+        }
+
+        public void forgetUser(String userName) {
+            users.remove(userName);
+        }
 
         @Override
         public void writeContents(Writer writer) throws IOException {}
