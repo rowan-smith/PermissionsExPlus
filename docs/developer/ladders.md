@@ -80,4 +80,4 @@ for (Map.Entry<Integer, PermissionGroup> entry : ladder.entrySet()) {
 
 Empty map means no ranked groups use that ladder name.
 
-Next: [Promote / demote](promote-demote). For the command-side walkthrough, see [Ranks & Ladders](/docs/concepts-guides/ranks-ladders).
+Next: [Promote / demote](promote-demote). For the command-side walkthrough, see [Ranks & Ladders](/docs/next/concepts-guides/ranks-ladders).

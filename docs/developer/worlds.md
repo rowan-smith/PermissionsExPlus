@@ -6,7 +6,7 @@ sidebar_position: 7
 
 World inheritance lets one world fall back to another world's permissions and options (then to global). This is separate from per-world nodes on a user or group.
 
-For the admin concept guide, see [World Permissions](/docs/concepts-guides/world-permissions).
+For the admin concept guide, see [World Permissions](/docs/next/concepts-guides/world-permissions).
 
 ## Read inheritance
 

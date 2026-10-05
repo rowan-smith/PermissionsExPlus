@@ -39,7 +39,7 @@ Map<String, String> options = group.getOptions(null);
 Map<String, Map<String, String>> all = group.getAllOptions();
 ```
 
-Common keys: `prefix`, `suffix`, `weight`, `rank`, `rank-ladder`, `default`, plus custom keys for chat plugins. See [Options](/docs/concepts-guides/options).
+Common keys: `prefix`, `suffix`, `weight`, `rank`, `rank-ladder`, `default`, plus custom keys for chat plugins. See [Options](/docs/next/concepts-guides/options).
 
 ## User options override groups
 

@@ -34,7 +34,7 @@ PermissionBackend other = manager.createBackend("sql");
 // transfer with backend APIs / admin tools, then setBackend when ready
 ```
 
-Backend settings still come from `config.yml` (see [Storage Backends](/docs/configuration/storage)).
+Backend settings still come from `config.yml` (see [Storage Backends](/docs/next/configuration/storage)).
 
 ## Reload / reset
 

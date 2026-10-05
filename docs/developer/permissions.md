@@ -34,7 +34,7 @@ user.addPermission("-essentials.fly");
 user.addPermission("-myplugin.admin", "creative");
 ```
 
-See [Negation](/docs/concepts-guides/negation) for inheritance and wildcards.
+See [Negation](/docs/next/concepts-guides/negation) for inheritance and wildcards.
 
 ## Remove a permission
 

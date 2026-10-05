@@ -74,23 +74,40 @@ This starts a local dev server at `http://localhost:3000` with hot reload.
 
 ```text
 docs/
-  documentation/         # Documentation navbar tab
-    getting-started/     # install and first steps
-    concepts-guides/     # inheritance, weight, ladders, etc.
-    configuration/       # config.yml and permissions.yml reference
-    commands/            # command reference pages
-    common-setups/       # example configurations
-    integrations/        # Vault, PlaceholderAPI, Adventure
-    troubleshooting/     # issue-specific help
-    contributing.md
-  developer/             # Developer navbar tab (plugin API)
+  documentation/              # Current / next docs (Documentation tab)
+  developer/                  # Current / next docs (Developer tab)
+  versioned_docs/             # Frozen Documentation versions (e.g. 1.23.5)
+  developer_versioned_docs/   # Frozen Developer versions
+  versions.json               # Documentation version list
+  developer_versions.json     # Developer version list
 ```
 
 Sidebars live in `docs/sidebarsDocumentation.ts` and `docs/sidebarsDeveloper.ts`. Each tree is its own Docusaurus docs plugin (`/docs` and `/developer`).
 
+### Versioning
+
+The site ships **1.23.5** as the default (stable) docs and **2.0.0** as the unreleased `current` docs under `/docs/next` and `/developer/next`.
+
+| Edit these folders | Served as |
+|--------------------|-----------|
+| `documentation/`, `developer/` | 2.0.0 (Next) |
+| `versioned_docs/version-1.23.5/`, `developer_versioned_docs/version-1.23.5/` | 1.23.5 (stable) |
+
+When you cut a release from the next line:
+
+```bash
+cd docs
+npm run docs:version -- 2.0.0
+npm run docs:version:developer -- 2.0.0
+```
+
+Then update `lastVersion` and the `versions` map in `docusaurus.config.ts` so both plugins stay aligned.
+
+Cross-links between Documentation and Developer in the **next** (current) tree should use `/docs/next/...` and `/developer/next/...`. Stable (1.23.5) pages should use `/docs/...` and `/developer/...`.
+
 ### Adding or updating pages
 
-1. Create or edit the relevant `.md` file under `docs/documentation/` or `docs/developer/`
+1. Create or edit the relevant `.md` file under `docs/documentation/` or `docs/developer/` (for 2.0.0), or under the matching `versioned_*` folder for a patch on 1.23.5
 2. Use frontmatter to set sidebar position and title:
    ```yaml
    ---
@@ -116,8 +133,8 @@ Sidebars live in `docs/sidebarsDocumentation.ts` and `docs/sidebarsDeveloper.ts`
    ```markdown
    [Page Name](other-page)
    [Section](other-page#section-id)
-   [Developer overview](/developer/overview)
-   [Docs intro](/docs/intro)
+   [Developer overview](/developer/next/overview)
+   [Docs intro](/docs/next/intro)
    ```
 
 ### Style guide

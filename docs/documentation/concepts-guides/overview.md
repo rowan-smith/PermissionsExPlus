@@ -18,4 +18,4 @@ Learn how to configure and manage your PermissionsExPlus setup.
 
 - [Ranks & Ladders](ranks-ladders): set up promotion and demotion systems with named ladders. Covers rank assignment (lower number = higher on the ladder), weight vs rank, multiple ladders, and how `/promote` and `/demote` work.
 
-For plugin developers integrating with PermissionsExPlus, see the [Developer](/developer/overview) tab.
+For plugin developers integrating with PermissionsExPlus, see the [Developer](/developer/next/overview) tab.

@@ -6,7 +6,7 @@ sidebar_position: 1
 
 PermissionsExPlus exposes a Bukkit API for plugins that need to manage users, groups, permissions, options, and rank ladders at runtime.
 
-Use this section if you are writing a plugin that integrates with PermissionsExPlus. For server setup and commands, see [Documentation](/docs/intro).
+Use this section if you are writing a plugin that integrates with PermissionsExPlus. For server setup and commands, see [Documentation](/docs/next/intro).
 
 ## Quick start
 

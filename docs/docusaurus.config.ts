@@ -1,7 +1,28 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import type { Options as DocsOptions } from '@docusaurus/plugin-content-docs';
 import rehypeCommandSyntax from './src/remark/rehypeCommandSyntax';
+
+/** Shared version labels for Documentation + Developer (keep in sync). */
+const docsVersions: NonNullable<DocsOptions['versions']> = {
+  current: {
+    label: '2.0.0',
+    path: 'next',
+    banner: 'unreleased',
+  },
+  '1.23.5': {
+    label: '1.23.5',
+    banner: 'none',
+  },
+};
+
+const sharedDocsOptions = {
+  lastVersion: '1.23.5',
+  includeCurrentVersion: true,
+  versions: docsVersions,
+  rehypePlugins: [rehypeCommandSyntax],
+} satisfies Partial<DocsOptions>;
 
 const config: Config = {
   title: 'PermissionsExPlus',
@@ -28,8 +49,8 @@ const config: Config = {
         path: 'developer',
         routeBasePath: 'developer',
         sidebarPath: './sidebarsDeveloper.ts',
-        rehypePlugins: [rehypeCommandSyntax],
-      },
+        ...sharedDocsOptions,
+      } satisfies DocsOptions,
     ],
     [
       require.resolve('@easyops-cn/docusaurus-search-local'),
@@ -57,7 +78,7 @@ const config: Config = {
           path: 'documentation',
           routeBasePath: 'docs',
           sidebarPath: './sidebarsDocumentation.ts',
-          rehypePlugins: [rehypeCommandSyntax],
+          ...sharedDocsOptions,
         },
         blog: false,
         theme: {
@@ -92,6 +113,19 @@ const config: Config = {
           sidebarId: 'developerSidebar',
           position: 'left',
           label: 'Developer',
+        },
+        {
+          type: 'docsVersionDropdown',
+          position: 'right',
+          dropdownActiveClassDisabled: true,
+          className: 'navbar-version-dropdown navbar-version-dropdown--docs',
+        },
+        {
+          type: 'docsVersionDropdown',
+          docsPluginId: 'developer',
+          position: 'right',
+          dropdownActiveClassDisabled: true,
+          className: 'navbar-version-dropdown navbar-version-dropdown--developer',
         },
         {
           type: 'search',

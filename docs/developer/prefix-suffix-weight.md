@@ -62,4 +62,4 @@ manager.getGroup("moderator").setWeight(50);
 manager.getGroup("admin").setWeight(100);
 ```
 
-Weight is independent of ladder **rank**. See [Weight](/docs/concepts-guides/weight) and [Options](options).
+Weight is independent of ladder **rank**. See [Weight](/docs/next/concepts-guides/weight) and [Options](options).

@@ -40,6 +40,19 @@
   border-bottom: 1px solid var(--ifm-toc-border-color);
 }
 
+/* One version dropdown at a time: Documentation vs Developer plugin */
+.navbar-version-dropdown--developer {
+  display: none !important;
+}
+
+html.plugin-docs.plugin-id-developer .navbar-version-dropdown--docs {
+  display: none !important;
+}
+
+html.plugin-docs.plugin-id-developer .navbar-version-dropdown--developer {
+  display: flex !important;
+}
+
 .navbar__brand {
   font-weight: 800;
   font-size: 1.2rem;
