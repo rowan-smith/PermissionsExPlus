@@ -3,7 +3,10 @@ package ru.tehkode.permissions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import dev.rono.permissions.core.PexImplProvider;
+import dev.rono.permissions.core.manager.LadderManagerImpl;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 public class PermissionGroupTest extends PEXTestBase {
@@ -32,23 +35,21 @@ public class PermissionGroupTest extends PEXTestBase {
         PermissionGroup group1 = manager.getGroup("Group1");
         PermissionGroup group2 = manager.getGroup("Group2");
 
-        group1.setRank(100);
-        group1.setRankLadder("default");
-        group2.setRank(50);
-        group2.setRankLadder("default");
+        // Touch groups so Plus has them before ladder creation.
+        assertEquals("Group1", group1.getIdentifier());
+        assertEquals("Group2", group2.getIdentifier());
 
-        assertEquals(100, group1.getRank());
-        assertEquals(50, group2.getRank());
+        var ladders = (LadderManagerImpl) PexImplProvider.get().ladders();
+        ladders.create("default").toCompletableFuture().join();
+        ladders.modify("default", modifier -> modifier.setGroups(List.of("group1", "group2")))
+                .toCompletableFuture()
+                .join();
 
         PermissionUser user = manager.getUser("TestUser");
         user.addGroup(group1);
 
         assertTrue(user.inGroup(group1));
 
-        // Force manager to load all groups into its cache and backend
-        manager.getGroups();
-
-        // Promotion logic
         user.promote(null, "default");
 
         assertTrue(user.inGroup(group2), "User should be promoted to Group2");

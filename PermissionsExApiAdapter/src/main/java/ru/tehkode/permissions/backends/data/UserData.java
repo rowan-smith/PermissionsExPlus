@@ -1,13 +1,11 @@
 package ru.tehkode.permissions.backends.data;
 
-import dev.rono.permissions.api.PexApi;
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.parent.ParentNode;
 import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.permission.PermissionNode;
 import dev.rono.permissions.api.user.User;
-import dev.rono.permissions.core.manager.UserManagerImpl;
-import java.nio.charset.StandardCharsets;
+import dev.rono.permissions.core.PexImplProvider;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -15,32 +13,16 @@ import java.util.UUID;
 import ru.tehkode.permissions.PermissionsUserData;
 
 final class UserData extends AbstractData implements PermissionsUserData {
-    UserData(PexApi api, String identifier) {
-        super(api, identifier);
+    UserData(String identifier) {
+        super(identifier);
     }
 
-    static Optional<User> find(PexApi api, String identifier) {
-        try {
-            return api.users().find(UUID.fromString(identifier)).toCompletableFuture().join();
-        } catch (IllegalArgumentException ignored) {
-            return api.users().find(identifier).toCompletableFuture().join();
-        }
+    static Optional<User> find(String identifier) {
+        return Holders.findUser(identifier);
     }
 
     private User user() {
-        return find(api, identifier).orElseGet(this::create);
-    }
-
-    private User create() {
-        UUID id;
-
-        try {
-            id = UUID.fromString(identifier);
-        } catch (IllegalArgumentException ignored) {
-            id = UUID.nameUUIDFromBytes(("OfflinePlayer:" + identifier).getBytes(StandardCharsets.UTF_8));
-        }
-
-        return ((UserManagerImpl) api.users()).create(id, identifier).toCompletableFuture().join();
+        return Holders.user(identifier);
     }
 
     @Override
@@ -55,11 +37,11 @@ final class UserData extends AbstractData implements PermissionsUserData {
 
     @Override
     protected void replacePermissions(ContextSet contexts, List<String> permissions) {
+        var api = PexImplProvider.get();
         var user = user();
 
         api.users().modify(user, modifier -> {
             modifier.clearPermissions(contexts);
-
             permissions.forEach(value -> modifier.setPermission(PermissionNode
                     .builder().permission(value).contexts(contexts).build()));
         }).toCompletableFuture().join();
@@ -67,17 +49,18 @@ final class UserData extends AbstractData implements PermissionsUserData {
 
     @Override
     protected void replaceParents(ContextSet contexts, List<String> parents) {
+        var api = PexImplProvider.get();
         var user = user();
 
         api.users().modify(user, modifier -> {
             user.groups().stream().filter(node -> node.contexts().equals(contexts)).forEach(modifier::removeGroup);
-
             parents.forEach(value -> modifier.addGroup(value, contexts));
         }).toCompletableFuture().join();
     }
 
     @Override
     protected void setOptionNode(ContextSet contexts, String key, String value) {
+        var api = PexImplProvider.get();
         var user = user();
 
         api.users().modify(user, modifier -> {
@@ -86,23 +69,23 @@ final class UserData extends AbstractData implements PermissionsUserData {
             } else {
                 modifier.setOption(key, value, contexts);
             }
-        }).toCompletableFuture().join();
 
-        if ("name".equalsIgnoreCase(key) && value != null && contexts.isEmpty()) {
-            api.users().modify(user.uniqueId(), userModifier -> {
-                userModifier.updateName(value);
-            });
-        }
+            if ("name".equalsIgnoreCase(key) && value != null && contexts.isEmpty()) {
+                modifier.updateName(value);
+            }
+        }).toCompletableFuture().join();
     }
 
     @Override
     public boolean isVirtual() {
-        return find(api, identifier).isEmpty();
+        return find(identifier).isEmpty();
     }
 
     @Override
     public void remove() {
-        find(api, identifier).ifPresent(user -> ((UserManagerImpl) api.users()).delete(user.uniqueId()).toCompletableFuture().join());
+        var api = PexImplProvider.get();
+
+        find(identifier).ifPresent(user -> api.users().delete(user.uniqueId()).toCompletableFuture().join());
     }
 
     @Override
@@ -111,37 +94,29 @@ final class UserData extends AbstractData implements PermissionsUserData {
             return true;
         }
 
-        var current = find(api, identifier).orElse(null);
+        var api = PexImplProvider.get();
+        var current = find(identifier).orElse(null);
 
-        if (current == null || find(api, value).isPresent()) {
+        if (current == null || find(value).isPresent()) {
             return false;
         }
 
         try {
             var id = UUID.fromString(value);
-
-            var replacement = ((UserManagerImpl) api.users()).create(id, current.name()).toCompletableFuture().join();
+            var replacement = api.users().loadOrCreateUser(id, current.name()).toCompletableFuture().join();
 
             api.users().modify(replacement.uniqueId(), modifier -> {
                 current.explicitPermissions().forEach(modifier::setPermission);
-
                 current.explicitOptions().forEach(modifier::setOption);
-
                 modifier.setGroups(current.groups());
             }).toCompletableFuture().join();
 
-            ((UserManagerImpl) api.users()).delete(current.uniqueId()).toCompletableFuture().join();
-
+            api.users().delete(current.uniqueId()).toCompletableFuture().join();
             identifier = value;
-
             return true;
         } catch (IllegalArgumentException ignored) {
-            api.users().modify(current.uniqueId(), userModifier -> {
-                userModifier.updateName(value);
-            });
-
+            api.users().modify(current.uniqueId(), modifier -> modifier.updateName(value)).toCompletableFuture().join();
             identifier = value;
-
             return true;
         }
     }

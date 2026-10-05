@@ -18,7 +18,6 @@
  */
 package ru.tehkode.permissions;
 
-import dev.rono.permissions.api.PexApi;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,7 +55,6 @@ public class PermissionManager {
     protected ConcurrentMap<String, PermissionUser> users = new ConcurrentHashMap<>();
     protected ConcurrentMap<String, PermissionGroup> groups = new ConcurrentHashMap<>();
     protected PermissionBackend backend = null;
-    private final PexApi api;
     private final PermissionsExConfig config;
     private final NativeInterface nativeI;
     private final Logger logger;
@@ -69,14 +67,9 @@ public class PermissionManager {
     protected PermissionMatcher matcher = new RegExpMatcher();
 
     public PermissionManager(PermissionsExConfig config, Logger logger, NativeInterface nativeI) throws PermissionBackendException {
-        this(config, logger, nativeI, null);
-    }
-
-    public PermissionManager(PermissionsExConfig config, Logger logger, NativeInterface nativeI, PexApi api) throws PermissionBackendException {
         this.config = config;
         this.logger = logger;
         this.nativeI = nativeI;
-        this.api = api;
         this.debugMode = config.isDebug();
         this.allowOps = config.allowOps();
         this.userAddGroupsLast = config.userAddGroupsLast();
@@ -674,13 +667,15 @@ public class PermissionManager {
      *            Name of the configuration section which describes this backend
      */
     public PermissionBackend createBackend(String backendName) throws PermissionBackendException {
-        ConfigurationSection config = this.config.getBackendConfig(backendName);
-        String backendType = config.getString("type");
-        if (backendType == null) {
-            config.set("type", backendType = backendName);
+        // Always the Plus data bridge. Legacy aliases remain constructible for binary
+        // compatibility but are never selected as the live backend.
+        String backendType = PermissionBackend.DEFAULT_BACKEND;
+        ConfigurationSection config = this.config.getBackendConfig(backendType);
+        if (config.getString("type") == null) {
+            config.set("type", backendType);
         }
 
-        return PermissionBackend.getBackend(backendType, this, config, PermissionBackend.DEFAULT_BACKEND, api);
+        return PermissionBackend.getBackend(backendType, this, config, PermissionBackend.DEFAULT_BACKEND);
     }
 
     /**

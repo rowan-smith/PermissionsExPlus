@@ -73,9 +73,10 @@ class PermissionsDataAndBackendContractTest extends PEXTestBase {
     void classicBackendAliasesRemainRegistered() throws Exception {
         assertEquals(FileBackend.class, PermissionBackend.getBackendClass("file"));
         assertEquals(MemoryBackend.class, PermissionBackend.getBackendClass("memory"));
-        assertEquals(MockBackend.class, PermissionBackend.getBackendClass("mock"));
+        assertEquals(ru.tehkode.permissions.backends.data.PermissionBackend.class,
+                PermissionBackend.getBackendClass("data"));
         assertNotNull(PermissionBackend.getBackendClassName("file"));
-        assertEquals("file", PermissionBackend.DEFAULT_BACKEND);
+        assertEquals("data", PermissionBackend.DEFAULT_BACKEND);
     }
 
     @Test

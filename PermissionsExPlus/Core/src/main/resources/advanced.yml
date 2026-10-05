@@ -92,8 +92,8 @@ cache:
   #   - allow: Grant standard default rank permissions temporarily.
   cache-failure-fallback: "deny"
 
-  # Periodic safety checkpoint for YAML/JSON storage. Normal mutations are still
-  # written through immediately; this interval is measured in minutes.
+  # Periodic write-behind flush for YAML/JSON storage (minutes). Mutations update
+  # memory immediately and are persisted on this interval, on shutdown, or via reload.
   auto-save-interval: 5
 
   # Log successful periodic storage checkpoints to the console.

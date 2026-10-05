@@ -1,8 +1,5 @@
 package ru.tehkode.permissions.backends;
 
-import dev.rono.permissions.api.PexApi;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
@@ -24,7 +21,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionsGroupData;
 import ru.tehkode.permissions.PermissionsUserData;
-import ru.tehkode.permissions.bukkit.ErrorReport;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
@@ -54,21 +50,12 @@ public abstract class PermissionBackend {
     protected PermissionBackend(PermissionManager manager, ConfigurationSection backendConfig) throws PermissionBackendException {
         this.manager = manager;
         this.backendConfig = backendConfig;
+        // Persistence is owned by PermissionsExPlus — keep an immediate executor for ABI/tests.
         this.asyncExecutor = Executors.newSingleThreadExecutor();
-        this.onThreadExecutor = new Executor() {
-            @Override
-            public void execute(Runnable runnable) {
-                runnable.run();
-            }
-        };
-        this.activeExecutor = asyncExecutor; // Default
+        this.onThreadExecutor = Runnable::run;
+        this.activeExecutor = onThreadExecutor;
 
-        this.activeExecutorPtr = new Executor() {
-            @Override
-            public void execute(Runnable runnable) {
-                PermissionBackend.this.activeExecutor.execute(runnable);
-            }
-        };
+        this.activeExecutorPtr = runnable -> PermissionBackend.this.activeExecutor.execute(runnable);
     }
 
     protected void addSchemaUpdate(SchemaUpdate update) {
@@ -77,37 +64,11 @@ public abstract class PermissionBackend {
     }
 
     protected void performSchemaUpdate() {
-        int version = getSchemaVersion();
-        int newVersion = version;
-        try {
-            for (SchemaUpdate update : schemaUpdates) {
-                try {
-                    if (update.getUpdateVersion() <= version) {
-                        continue;
-                    }
-
-                    if (newVersion == version) { // No updates have been performed yet
-                        backupDatabase();
-                    }
-
-                    update.performUpdate();
-                    newVersion = Math.max(update.getUpdateVersion(), newVersion);
-                } catch (Throwable t) {
-                    ErrorReport.handleError("While updating to " + update.getUpdateVersion() + " from " + newVersion, t);
-                    break;
-                }
-            }
-        } finally {
-            if (newVersion != version) {
-                setSchemaVersion(newVersion);
-            }
-        }
+        // No-op: schema ownership moved to PermissionsExPlus.
     }
 
     protected void backupDatabase() throws IOException {
-        try (Writer w = new FileWriter(new File(manager.getConfiguration().getBasedir(), getConfig().getName() + "-backup." + getSchemaVersion() + ".bak"))) {
-            writeContents(w);
-        }
+        // No-op: persistence is owned by PermissionsExPlus.
     }
 
     /**
@@ -277,11 +238,8 @@ public abstract class PermissionBackend {
     }
 
     public void setPersistent(boolean persistent) {
-        if (persistent) {
-            this.activeExecutor = asyncExecutor;
-        } else {
-            this.activeExecutor = onThreadExecutor;
-        }
+        // Always immediate — Plus owns durable writes.
+        this.activeExecutor = onThreadExecutor;
     }
 
     /**
@@ -294,7 +252,7 @@ public abstract class PermissionBackend {
 
     // -- Backend lookup/creation
 
-    public final static String DEFAULT_BACKEND = "file";
+    public final static String DEFAULT_BACKEND = "data";
 
     /**
      * Array of backend aliases
@@ -417,26 +375,6 @@ public abstract class PermissionBackend {
      * @return new instance of PermissionBackend object
      */
     public static PermissionBackend getBackend(String backendName, PermissionManager manager, ConfigurationSection config, String fallBackBackend) throws PermissionBackendException {
-        return getBackend(backendName, manager, config, fallBackBackend, null);
-    }
-
-    /**
-     * Returns new Backend class instance for specified backendName
-     *
-     * @param backendName
-     *            Class name or alias of backend
-     * @param manager
-     *            PermissionManager object
-     * @param config
-     *            Configuration object to access backend settings
-     * @param fallBackBackend
-     *            name of backend that should be used if specified backend was not
-     *            found or failed to initialize
-     * @param api
-     *            PexApi object
-     * @return new instance of PermissionBackend object
-     */
-    public static PermissionBackend getBackend(String backendName, PermissionManager manager, ConfigurationSection config, String fallBackBackend, PexApi api) throws PermissionBackendException {
         if (backendName == null || backendName.isEmpty()) {
             backendName = DEFAULT_BACKEND;
         }
@@ -447,13 +385,6 @@ public abstract class PermissionBackend {
             Class<? extends PermissionBackend> backendClass = getBackendClass(backendName);
 
             manager.getLogger().info("Initializing " + backendName + " backend");
-
-            try {
-                if (api != null) {
-                    Constructor<? extends PermissionBackend> constructor = backendClass.getConstructor(PermissionManager.class, ConfigurationSection.class, PexApi.class);
-                    return constructor.newInstance(manager, config, api);
-                }
-            } catch (NoSuchMethodException ignore) {}
 
             Constructor<? extends PermissionBackend> constructor = backendClass.getConstructor(PermissionManager.class, ConfigurationSection.class);
             return constructor.newInstance(manager, config);
@@ -466,7 +397,7 @@ public abstract class PermissionBackend {
             }
 
             if (!className.equals(getBackendClassName(fallBackBackend))) {
-                return getBackend(fallBackBackend, manager, config, null, api);
+                return getBackend(fallBackBackend, manager, config, null);
             } else {
                 throw new RuntimeException(e);
             }

@@ -89,11 +89,13 @@ class PermissionEngineParityTest {
         assertEquals(PermissionResult.ALLOW, runtime.resolvers.permissions().check(user, "cache.test", QueryOptions.global()));
         assertTrue(cached.hitCount() >= 1);
 
-        var before = cached.revision();
         user = await(runtime.users.modify(user, modifier -> modifier.denyPermission("cache.test")));
-        assertTrue(cached.revision() > before);
 
         assertEquals(PermissionResult.DENY, runtime.resolvers.permissions().check(user, "cache.test", QueryOptions.global()));
+        // Subject-scoped invalidation must miss for the mutated user.
+        long hitsAfterDeny = cached.hitCount();
+        assertEquals(PermissionResult.DENY, runtime.resolvers.permissions().check(user, "cache.test", QueryOptions.global()));
+        assertTrue(cached.hitCount() > hitsAfterDeny);
     }
 
     @Test

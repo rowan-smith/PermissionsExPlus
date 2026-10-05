@@ -46,4 +46,31 @@ public class PermissionUserTest extends PEXTestBase {
         assertEquals("[Prefix]", user.getPrefix(null));
         assertEquals("[Suffix]", user.getSuffix(null));
     }
+
+    @Test
+    public void testRemoveGroupClearsInheritance() {
+        PermissionUser user = manager.getUser("Member");
+        PermissionGroup group = manager.getGroup("MemberGroup");
+
+        group.addPermission("member.only");
+        user.addGroup(group);
+        assertTrue(user.has("member.only"));
+
+        user.removeGroup(group);
+        assertFalse(user.has("member.only"));
+    }
+
+    @Test
+    public void testOwnPermissionsMapExcludesInherited() {
+        PermissionUser user = manager.getUser("OwnMap");
+        PermissionGroup group = manager.getGroup("Inherited");
+
+        group.addPermission("inherited.perm");
+        user.addGroup(group);
+        user.addPermission("own.perm");
+
+        assertTrue(user.getOwnPermissions(null).contains("own.perm"));
+        assertFalse(user.getOwnPermissions(null).contains("inherited.perm"));
+        assertTrue(user.has("inherited.perm"));
+    }
 }

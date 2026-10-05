@@ -158,7 +158,7 @@ public class PermissionGroup extends PermissionEntity implements Comparable<Perm
                 continue;
             }
 
-            if (group.getIdentifier().equals(parentGroup)) {
+            if (group.getIdentifier().equalsIgnoreCase(parentGroup)) {
                 return true;
             }
 

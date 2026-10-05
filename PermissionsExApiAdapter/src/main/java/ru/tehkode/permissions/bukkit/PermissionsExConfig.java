@@ -1,118 +1,84 @@
 package ru.tehkode.permissions.bukkit;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import dev.rono.permissions.api.PexProvider;
+import dev.rono.permissions.core.PexImplProvider;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 import ru.tehkode.permissions.backends.PermissionBackend;
 
 /**
- * @author zml2008
+ * Compatibility facade for the legacy PermissionsEx configuration type.
+ *
+ * <p>
+ * The adapter no longer owns a {@code config.yml}. Durable settings live in
+ * PermissionsExPlus ({@code config.yml}, {@code advanced.yml},
+ * {@code database.yml}). Public getters remain for binary compatibility.
+ * </p>
  */
 public class PermissionsExConfig {
-    private final Configuration config;
     private final PermissionsEx plugin;
 
-    private final boolean debug;
-    private final boolean allowOps;
-    private final boolean userAddGroupsLast;
-    private final boolean logPlayers;
-    private final boolean createUserRecords;
-    private final boolean saveDefaultGroup;
-    private final String defaultBackend;
-    private final boolean informPlayers;
-    private final String basedir;
-
     public PermissionsExConfig(Configuration config, PermissionsEx plugin) {
-        this.config = config;
         this.plugin = plugin;
-        this.debug = getBoolean("permissions.debug", false);
-        this.allowOps = getBoolean("permissions.allowOps", false);
-        this.userAddGroupsLast = getBoolean("permissions.user-add-groups-last", false);
-        this.logPlayers = getBoolean("permissions.log-players", false);
-        this.createUserRecords = getBoolean("permissions.createUserRecords", false);
-        this.saveDefaultGroup = getBoolean("permissions.save-default-group", false);
-        this.defaultBackend = getString("permissions.backend", PermissionBackend.DEFAULT_BACKEND);
-        this.informPlayers = getBoolean("permissions.informplayers.changes", false);
-        this.basedir = getString("permissions.basedir", "plugins/PermissionsEx");
     }
 
-    private boolean getBoolean(String key, boolean def) {
-        if (!config.isSet(key)) {
-            config.set(key, def);
-        }
-
-        return config.getBoolean(key, def);
-    }
-
-    private String getString(String key, String def) {
-        String ret = config.getString(key);
-        if (ret == null) {
-            ret = def;
-            config.set(key, ret);
-        }
-
-        return ret;
-    }
-
-    private List<String> getStringList(String key, String... def) {
-        List<String> ret = config.getStringList(key);
-
-        if (ret == null) {
-            ret = Arrays.asList(def);
-            config.set(key, ret);
-        }
-
-        return Collections.unmodifiableList(ret);
+    /** Constructs a Plus-backed facade with no Bukkit configuration. */
+    public PermissionsExConfig(PermissionsEx plugin) {
+        this(new MemoryConfiguration(), plugin);
     }
 
     public boolean isDebug() {
-        return debug;
+        if (!PexProvider.available()) {
+            return false;
+        }
+
+        return PexImplProvider.get().config().general().verboseDebug();
     }
 
     public boolean allowOps() {
-        return allowOps;
+        return false;
     }
 
     public boolean userAddGroupsLast() {
-        return userAddGroupsLast;
+        return false;
     }
 
     public String getDefaultBackend() {
-        return defaultBackend;
+        return PermissionBackend.DEFAULT_BACKEND;
     }
 
     public boolean shouldLogPlayers() {
-        return logPlayers;
+        return false;
     }
 
     public boolean createUserRecords() {
-        return createUserRecords;
+        return false;
     }
 
     public boolean saveDefaultGroup() {
-        return saveDefaultGroup;
+        return false;
     }
 
     public boolean informPlayers() {
-        return informPlayers;
+        return false;
     }
 
     public String getBasedir() {
-        return basedir;
+        if (plugin != null) {
+            return plugin.getDataFolder().getPath();
+        }
+
+        return "plugins/PermissionsEx";
     }
 
     public ConfigurationSection getBackendConfig(String backend) {
-        ConfigurationSection section = config.getConfigurationSection("permissions.backends." + backend);
-        if (section == null) {
-            section = config.createSection("permissions.backends." + backend);
-        }
-
+        ConfigurationSection section = new MemoryConfiguration().createSection(backend);
+        section.set("type", backend != null && !backend.isEmpty() ? backend : PermissionBackend.DEFAULT_BACKEND);
         return section;
     }
 
     public void save() {
-        plugin.saveConfig();
+        // No-op: PermissionsExPlus owns configuration persistence.
     }
 }

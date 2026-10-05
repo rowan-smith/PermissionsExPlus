@@ -3,12 +3,20 @@ package ru.tehkode.permissions.backends.file;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+/**
+ * Compatibility stub for the legacy file-backend config type.
+ *
+ * <p>
+ * Retained so plugins referencing {@link FileBackend#permissions} keep a binary-
+ * compatible field type. Persistence is owned by PermissionsExPlus; load/save
+ * are no-ops.
+ * </p>
+ */
 public class FileConfig extends YamlConfiguration {
     private final List<String> lowerCaseSections;
     private final File file, tempFile, oldFile;
@@ -34,25 +42,11 @@ public class FileConfig extends YamlConfiguration {
     }
 
     public void load() throws IOException, InvalidConfigurationException {
-        this.load(file);
+        // No-op: PermissionsExPlus owns persistence.
     }
 
     public void save() throws IOException {
-        if (!saveSuppressed) {
-            this.save(tempFile);
-            oldFile.delete();
-            if (file.exists()) {
-                if (!file.renameTo(oldFile)) {
-                    throw new IOException("Unable to prepare replace of config file " + file);
-                }
-            }
-
-            if (!tempFile.renameTo(file)) {
-                throw new IOException("Unable to overwrite config with temporary file! New config is at " + tempFile + ", old config at" + oldFile);
-            }
-
-            oldFile.delete();
-        }
+        // No-op: PermissionsExPlus owns persistence.
     }
 
     public boolean isSaveSuppressed() {
@@ -63,37 +57,19 @@ public class FileConfig extends YamlConfiguration {
         this.saveSuppressed = saveSuppressed;
     }
 
-    @Override
-    public void loadFromString(String contents) throws InvalidConfigurationException {
-        synchronized (lock) {
-            super.loadFromString(contents);
-            for (String sectionKey : lowerCaseSections) {
-                ConfigurationSection section = getConfigurationSection(sectionKey);
-                if (section != null) {
-                    for (Map.Entry<String, Object> entry : section.getValues(false).entrySet()) {
-                        final String lowerString = entry.getKey().toLowerCase();
-                        if (!lowerString.equals(entry.getKey())) {
-                            section.set(entry.getKey(), null);
-                            if (entry.getValue() instanceof ConfigurationSection) {
-                                section.createSection(lowerString, ((ConfigurationSection) entry.getValue()).getValues(false));
-                            } else {
-                                section.set(lowerString, entry.getValue());
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    Object lock() {
+        return lock;
     }
 
-    @Override
-    public String saveToString() {
-        synchronized (lock) {
-            return super.saveToString();
-        }
+    File tempFile() {
+        return tempFile;
     }
 
-    public boolean isLowerCased(String basePath) {
-        return lowerCaseSections.contains(basePath);
+    File oldFile() {
+        return oldFile;
+    }
+
+    List<String> lowerCaseSections() {
+        return Collections.unmodifiableList(lowerCaseSections);
     }
 }

@@ -1,177 +1,66 @@
 package ru.tehkode.permissions;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.World;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.TempDir;
 import ru.tehkode.permissions.backends.PermissionBackend;
+import ru.tehkode.permissions.backends.data.PlusTestFixture;
 import ru.tehkode.permissions.backends.file.FileBackend;
 import ru.tehkode.permissions.backends.memory.MemoryBackend;
-import ru.tehkode.permissions.backends.memory.MemoryData;
-import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.bukkit.PermissionsExConfig;
 import ru.tehkode.permissions.events.PermissionEvent;
-import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
+/**
+ * Boots a real PermissionsExPlus runtime and a PermissionManager shim on top.
+ */
 public abstract class PEXTestBase {
+    @TempDir
+    Path tempDir;
+
     protected PermissionManager manager;
     protected PermissionsExConfig config;
-    protected PermissionsEx plugin;
     protected NativeInterface nativeI;
     protected Server server;
     protected World world;
-    protected YamlConfiguration yamlConfig;
-
-    public static class MockBackend extends PermissionBackend {
-        private final Map<String, MemoryData> users = new ConcurrentHashMap<>();
-        private final Map<String, MemoryData> groups = new ConcurrentHashMap<>();
-        private final Map<String, List<String>> worldInheritance = new ConcurrentHashMap<>();
-
-        public MockBackend(PermissionManager manager, ConfigurationSection config) throws PermissionBackendException {
-            super(manager, config);
-        }
-
-        @Override
-        public PermissionsUserData getUserData(String userName) {
-            MemoryData data = users.get(userName);
-            if (data == null) {
-                data = new MemoryData(userName);
-                users.put(userName, data);
-            }
-
-            return data;
-        }
-
-        @Override
-        public PermissionsGroupData getGroupData(String groupName) {
-            MemoryData data = groups.get(groupName);
-            if (data == null) {
-                data = new MemoryData(groupName);
-                groups.put(groupName, data);
-            }
-
-            return data;
-        }
-
-        @Override
-        public boolean hasUser(String userName) {
-            return users.containsKey(userName);
-        }
-
-        @Override
-        public boolean hasGroup(String group) {
-            return groups.containsKey(group);
-        }
-
-        @Override
-        public Collection<String> getUserIdentifiers() {
-            return users.keySet();
-        }
-
-        @Override
-        public Collection<String> getUserNames() {
-            return users.keySet();
-        }
-
-        @Override
-        public Collection<String> getGroupNames() {
-            return groups.keySet();
-        }
-
-        @Override
-        public int getSchemaVersion() {
-            return 0;
-        }
-
-        @Override
-        protected void setSchemaVersion(int version) {}
-
-        @Override
-        public void reload() throws PermissionBackendException {}
-
-        @Override
-        public List<String> getWorldInheritance(String world) {
-            List<String> parents = worldInheritance.get(world);
-            return parents == null ? Collections.emptyList() : parents;
-        }
-
-        @Override
-        public Map<String, List<String>> getAllWorldInheritance() {
-            return Collections.unmodifiableMap(worldInheritance);
-        }
-
-        @Override
-        public void setWorldInheritance(String world, List<String> inheritance) {
-            if (inheritance == null || inheritance.isEmpty()) {
-                worldInheritance.remove(world);
-            } else {
-                worldInheritance.put(world, List.copyOf(inheritance));
-            }
-        }
-
-        /** Test helper: drop persisted entity rows the way a durable backend would after {@code remove()}. */
-        public void forgetGroup(String groupName) {
-            groups.remove(groupName);
-        }
-
-        public void forgetUser(String userName) {
-            users.remove(userName);
-        }
-
-        @Override
-        public void writeContents(Writer writer) throws IOException {}
-    }
+    protected PlusTestFixture fixture;
 
     static {
-        PermissionBackend.registerBackendAlias("mock", MockBackend.class);
         PermissionBackend.registerBackendAlias("memory", MemoryBackend.class);
         PermissionBackend.registerBackendAlias("file", FileBackend.class);
+        PermissionBackend.registerBackendAlias("data", ru.tehkode.permissions.backends.data.PermissionBackend.class);
     }
 
     @BeforeEach
     public void setUp() throws Exception {
-        world = (World) Proxy.newProxyInstance(World.class.getClassLoader(), new Class[]{World.class}, new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                if (method.getName().equals("getName")) {
-                    return "world";
-                }
+        fixture = new PlusTestFixture(tempDir);
 
-                if (method.getName().equals("equals")) {
-                    return proxy == args[0];
-                }
-
-                if (method.getName().equals("hashCode")) {
-                    return System.identityHashCode(proxy);
-                }
-
-                if (method.getName().equals("toString")) {
-                    return "MockWorld";
-                }
-
-                return null;
-            }
+        world = (World) Proxy.newProxyInstance(World.class.getClassLoader(), new Class[]{World.class}, (proxy, method, args) -> {
+            return switch (method.getName()) {
+                case "getName" -> "world";
+                case "equals" -> proxy == args[0];
+                case "hashCode" -> System.identityHashCode(proxy);
+                case "toString" -> "MockWorld";
+                default -> null;
+            };
         });
 
         server = (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class[]{Server.class}, new InvocationHandler() {
@@ -180,104 +69,65 @@ public abstract class PEXTestBase {
 
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                if (method.getName().equals("equals")) {
-                    return proxy == args[0];
-                }
-
-                if (method.getName().equals("hashCode")) {
-                    return System.identityHashCode(proxy);
-                }
-
-                if (method.getName().equals("toString")) {
-                    return "MockServer";
-                }
-
-                if (method.getName().equals("getPluginManager")) {
-                    if (pluginManager == null) {
-                        pluginManager = Proxy.newProxyInstance(PluginManager.class.getClassLoader(), new Class[]{PluginManager.class}, new InvocationHandler() {
-                            @Override
-                            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                                if (method.getName().equals("equals")) {
-                                    return proxy == args[0];
-                                }
-
-                                if (method.getName().equals("hashCode")) {
-                                    return System.identityHashCode(proxy);
-                                }
-
-                                if (method.getName().equals("toString")) {
-                                    return "MockPluginManager";
-                                }
-
-                                if (method.getName().equals("getPermissions")) {
-                                    return Collections.emptySet();
-                                }
-
-                                if (method.getName().equals("registerEvents")) {
-                                    Listener listener = (Listener) args[0];
-                                    for (Method m : listener.getClass().getMethods()) {
-                                        if (m.isAnnotationPresent(EventHandler.class) && m.getParameterCount() == 1) {
-                                            Class<? extends Event> eventClass = (Class<? extends Event>) m.getParameterTypes()[0];
-                                            listeners.computeIfAbsent(eventClass, k -> new ArrayList<>()).add(listener);
+                return switch (method.getName()) {
+                    case "equals" -> proxy == args[0];
+                    case "hashCode" -> System.identityHashCode(proxy);
+                    case "toString" -> "MockServer";
+                    case "getLogger" -> Logger.getLogger("Minecraft");
+                    case "getName" -> "TestServer";
+                    case "getVersion", "getBukkitVersion" -> "1.0";
+                    case "getWorlds" -> Collections.singletonList(world);
+                    case "getWorld" -> world;
+                    case "getOnlinePlayers" -> Collections.emptyList();
+                    case "getPluginManager" -> {
+                        if (pluginManager == null) {
+                            pluginManager = Proxy.newProxyInstance(PluginManager.class.getClassLoader(),
+                                    new Class[]{PluginManager.class}, (pm, pmMethod, pmArgs) -> {
+                                        if (pmMethod.getName().equals("equals")) {
+                                            return pm == pmArgs[0];
                                         }
-                                    }
-
-                                    return null;
-                                }
-
-                                if (method.getName().equals("callEvent")) {
-                                    Event event = (Event) args[0];
-                                    List<Listener> eventListeners = listeners.get(event.getClass());
-                                    if (eventListeners != null) {
-                                        for (Listener l : eventListeners) {
-                                            for (Method m : l.getClass().getMethods()) {
-                                                if (m.isAnnotationPresent(EventHandler.class) && m.getParameterCount() == 1 && m.getParameterTypes()[0].isAssignableFrom(event.getClass())) {
-                                                    m.invoke(l, event);
+                                        if (pmMethod.getName().equals("hashCode")) {
+                                            return System.identityHashCode(pm);
+                                        }
+                                        if (pmMethod.getName().equals("toString")) {
+                                            return "MockPluginManager";
+                                        }
+                                        if (pmMethod.getName().equals("getPermissions")) {
+                                            return Collections.emptySet();
+                                        }
+                                        if (pmMethod.getName().equals("registerEvents")) {
+                                            Listener listener = (Listener) pmArgs[0];
+                                            for (Method m : listener.getClass().getMethods()) {
+                                                if (m.isAnnotationPresent(EventHandler.class) && m.getParameterCount() == 1) {
+                                                    @SuppressWarnings("unchecked")
+                                                    Class<? extends Event> eventClass = (Class<? extends Event>) m.getParameterTypes()[0];
+                                                    listeners.computeIfAbsent(eventClass, k -> new ArrayList<>()).add(listener);
                                                 }
                                             }
+                                            return null;
                                         }
-                                    }
-
-                                    return null;
-                                }
-
-                                return null;
-                            }
-                        });
+                                        if (pmMethod.getName().equals("callEvent")) {
+                                            Event event = (Event) pmArgs[0];
+                                            List<Listener> eventListeners = listeners.get(event.getClass());
+                                            if (eventListeners != null) {
+                                                for (Listener l : eventListeners) {
+                                                    for (Method m : l.getClass().getMethods()) {
+                                                        if (m.isAnnotationPresent(EventHandler.class) && m.getParameterCount() == 1
+                                                                && m.getParameterTypes()[0].isAssignableFrom(event.getClass())) {
+                                                            m.invoke(l, event);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            return null;
+                                        }
+                                        return null;
+                                    });
+                        }
+                        yield pluginManager;
                     }
-
-                    return pluginManager;
-                }
-
-                if (method.getName().equals("getLogger")) {
-                    return Logger.getLogger("Minecraft");
-                }
-
-                if (method.getName().equals("getName")) {
-                    return "TestServer";
-                }
-
-                if (method.getName().equals("getVersion")) {
-                    return "1.0";
-                }
-
-                if (method.getName().equals("getBukkitVersion")) {
-                    return "1.0";
-                }
-
-                if (method.getName().equals("getWorlds")) {
-                    return Collections.singletonList(world);
-                }
-
-                if (method.getName().equals("getWorld")) {
-                    return world;
-                }
-
-                if (method.getName().equals("getOnlinePlayers")) {
-                    return Collections.emptyList();
-                }
-
-                return null;
+                    default -> null;
+                };
             }
         });
 
@@ -288,21 +138,11 @@ public abstract class PEXTestBase {
         } catch (Exception e) {
             try {
                 Bukkit.setServer(server);
-            } catch (UnsupportedOperationException ex) {
-                // Ignore
+            } catch (UnsupportedOperationException ignored) {
             }
         }
 
-        plugin = null;
-        yamlConfig = new YamlConfiguration();
-        yamlConfig.set("permissions.backend", "mock");
-        config = new PermissionsExConfig(yamlConfig, plugin) {
-            @Override
-            public void save() {
-                // do nothing
-            }
-        };
-
+        config = new PermissionsExConfig(null);
         nativeI = new NativeInterface() {
             @Override
             public String UUIDToName(UUID uid) {
@@ -333,9 +173,20 @@ public abstract class PEXTestBase {
         manager = new PermissionManager(config, Logger.getLogger("PEX"), nativeI);
     }
 
+    @AfterEach
+    public void tearDown() {
+        if (manager != null) {
+            try {
+                manager.end();
+            } catch (Exception ignored) {
+            }
+        }
+        if (fixture != null) {
+            fixture.close();
+        }
+    }
+
     public void waitForExecutor() throws InterruptedException {
-        // Since we use a single thread executor, we can just submit a task and wait for
-        // it to finish
         java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
         manager.getExecutor().execute(latch::countDown);
         latch.await(5, java.util.concurrent.TimeUnit.SECONDS);

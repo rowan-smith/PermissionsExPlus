@@ -1,6 +1,5 @@
 package ru.tehkode.permissions.backends.data;
 
-import dev.rono.permissions.api.PexApi;
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.options.OptionNode;
 import dev.rono.permissions.api.parent.ParentNode;
@@ -17,11 +16,9 @@ import java.util.Set;
 import ru.tehkode.permissions.PermissionsData;
 
 abstract class AbstractData implements PermissionsData {
-    protected final PexApi api;
     protected String identifier;
 
-    AbstractData(PexApi api, String identifier) {
-        this.api = Objects.requireNonNull(api, "api");
+    AbstractData(String identifier) {
         this.identifier = Objects.requireNonNull(identifier, "identifier");
     }
 

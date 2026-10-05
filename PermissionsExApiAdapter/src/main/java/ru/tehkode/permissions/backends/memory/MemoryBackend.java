@@ -18,114 +18,21 @@
  */
 package ru.tehkode.permissions.backends.memory;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.bukkit.configuration.ConfigurationSection;
 import ru.tehkode.permissions.PermissionManager;
-import ru.tehkode.permissions.PermissionsGroupData;
-import ru.tehkode.permissions.PermissionsUserData;
-import ru.tehkode.permissions.backends.PermissionBackend;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
 /**
- * Memory Backend
- * Zero Persistence. Does not attempt to save any and all permissions.
+ * Legacy {@code memory} backend alias.
  *
+ * <p>
+ * Storage is provided by PermissionsExPlus via the data bridge. The public type
+ * remains for binary compatibility.
+ * </p>
  */
-public class MemoryBackend extends PermissionBackend {
-    private final Map<String, MemoryData> users = new ConcurrentHashMap<>();
-    private final Map<String, MemoryData> groups = new ConcurrentHashMap<>();
-    private final Map<String, List<String>> worldInheritance = new ConcurrentHashMap<>();
-
+public class MemoryBackend extends ru.tehkode.permissions.backends.data.PermissionBackend {
     public MemoryBackend(PermissionManager manager, ConfigurationSection config) throws PermissionBackendException {
         super(manager, config);
+        manager.getLogger().info("memory backend alias redirects to PermissionsExPlus data storage");
     }
-
-    @Override
-    public int getSchemaVersion() {
-        return -1;
-    }
-
-    @Override
-    protected void setSchemaVersion(int version) {
-        // no-op
-    }
-
-    @Override
-    public void reload() throws PermissionBackendException {}
-
-    @Override
-    public PermissionsUserData getUserData(String userName) {
-        MemoryData data = users.get(userName.toLowerCase());
-        if (data == null) {
-            data = new MemoryData(userName);
-            users.put(userName.toLowerCase(), data);
-        }
-
-        return data;
-    }
-
-    @Override
-    public PermissionsGroupData getGroupData(String groupName) {
-        MemoryData data = groups.get(groupName);
-        if (data == null) {
-            data = new MemoryData(groupName);
-            groups.put(groupName, data);
-        }
-
-        return data;
-    }
-
-    @Override
-    public boolean hasUser(String userName) {
-        return users.containsKey(userName.toLowerCase());
-    }
-
-    @Override
-    public boolean hasGroup(String group) {
-        return groups.containsKey(group);
-    }
-
-    @Override
-    public Collection<String> getUserIdentifiers() {
-        return Collections.unmodifiableCollection(users.keySet());
-    }
-
-    @Override
-    public Collection<String> getUserNames() {
-        return Collections.unmodifiableCollection(users.keySet());
-    }
-
-    @Override
-    public Collection<String> getGroupNames() {
-        return Collections.unmodifiableCollection(groups.keySet());
-    }
-
-    @Override
-    public List<String> getWorldInheritance(String world) {
-        return worldInheritance.getOrDefault(world, Collections.emptyList());
-    }
-
-    @Override
-    public Map<String, List<String>> getAllWorldInheritance() {
-        return Collections.unmodifiableMap(worldInheritance);
-    }
-
-    @Override
-    public void setWorldInheritance(String world, List<String> inheritance) {
-        if (inheritance == null || inheritance.isEmpty()) {
-            worldInheritance.remove(world);
-        } else {
-            worldInheritance.put(world, Collections.unmodifiableList(inheritance));
-        }
-    }
-
-    @Override
-    public void writeContents(Writer writer) throws IOException {}
 }

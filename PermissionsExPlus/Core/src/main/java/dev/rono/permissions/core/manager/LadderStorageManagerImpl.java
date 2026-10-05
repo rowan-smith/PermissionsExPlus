@@ -5,8 +5,6 @@ import dev.rono.permissions.api.ladder.LadderStorageManager;
 import dev.rono.permissions.api.util.Identifiers;
 import dev.rono.permissions.core.model.LadderSnapshot;
 import dev.rono.permissions.core.store.DataStore;
-import dev.rono.permissions.core.store.SnapshotCodec;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,8 +13,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 
 public final class LadderStorageManagerImpl implements LadderStorageManager {
-
-    private static final String CATEGORY = "ladders";
 
     private final DataStore store;
     private final Executor executor;
@@ -32,28 +28,22 @@ public final class LadderStorageManagerImpl implements LadderStorageManager {
     }
 
     public CompletionStage<Set<String>> identifiers() {
-        return Stages.call(() -> Set.copyOf(store.all(CATEGORY).keySet()), executor);
+        return Stages.call(() -> Set.copyOf(store.allLadders().keySet()), executor);
     }
 
     Optional<LadderSnapshot> getNow(String name) {
-        return store.get(CATEGORY, Identifiers.ladder(name)).map(SnapshotCodec::ladder);
+        return store.getLadder(Identifiers.ladder(name));
     }
 
     Map<String, LadderSnapshot> allNow() {
-        var ladders = new LinkedHashMap<String, LadderSnapshot>();
-
-        store.all(CATEGORY).forEach((key, value) -> {
-            ladders.put(key, SnapshotCodec.ladder(value));
-        });
-
-        return Map.copyOf(ladders);
+        return store.allLadders();
     }
 
     void saveNow(LadderSnapshot ladder) {
-        store.put(CATEGORY, ladder.name(), SnapshotCodec.ladder(ladder));
+        store.putLadder(ladder);
     }
 
     boolean deleteNow(String name) {
-        return store.remove(CATEGORY, Identifiers.ladder(name));
+        return store.removeLadder(Identifiers.ladder(name));
     }
 }

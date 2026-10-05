@@ -319,10 +319,11 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
         events.subscribe(UserModifiedEvent.class, event -> {
             placeholders.invalidate(event.current().uniqueId());
-            permissionEngine.invalidate();
+            permissionEngine.invalidateSubject("user:" + event.current().uniqueId());
         });
         events.subscribe(GroupModifiedEvent.class, event -> {
             placeholders.invalidateAll();
+            // Group membership fans out to many users — full invalidation is required.
             permissionEngine.invalidate();
         });
 

@@ -16,8 +16,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import org.casbin.jcasbin.main.EnforceResult;
 import org.casbin.jcasbin.main.Enforcer;
 import org.casbin.jcasbin.model.Model;
 
@@ -25,10 +27,11 @@ import org.casbin.jcasbin.model.Model;
  * Authoritative jCasbin-backed permission engine.
  *
  * <p>
- * Domain permissions are compiled into the Casbin policy store. Matching uses
- * Casbin custom functions ({@code pexMatch}/{@code pexCtx}). Ternary
- * ALLOW/DENY/UNDEFINED decisions, precedence, and conflict resolution are owned
- * by this engine — not by a parallel native evaluator.
+ * Domain permissions are compiled into the Casbin policy store. Matching is
+ * performed by Casbin ({@code pexMatch}/{@code pexCtx}); matched policy rows
+ * from {@link Enforcer#enforceEx} drive both {@link #check} and
+ * {@link #explain}. Ternary ALLOW/DENY/UNDEFINED, precedence, and conflict
+ * resolution are applied to that Casbin-matched set.
  * </p>
  */
 public final class CasbinPermissionEngine implements PermissionEngine {
@@ -48,8 +51,10 @@ public final class CasbinPermissionEngine implements PermissionEngine {
 
     private final ResolutionSupport support;
     private final Enforcer enforcer;
+    private final PexCollectingEffector effector = new PexCollectingEffector();
     private final AtomicLong revision = new AtomicLong();
-    private final Object lock = new Object();
+    private final ConcurrentHashMap<String, Integer> syncedHashes = new ConcurrentHashMap<>();
+    private final Object policyLock = new Object();
     private volatile int compiledPolicies;
 
     public CasbinPermissionEngine(ResolutionSupport support) {
@@ -59,6 +64,7 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         this.enforcer = new Enforcer(model);
         this.enforcer.addFunction("pexMatch", new PexMatchFunction(support));
         this.enforcer.addFunction("pexCtx", new PexContextFunction());
+        this.enforcer.setEffector(effector);
         this.enforcer.enableAutoSave(false);
     }
 
@@ -96,16 +102,33 @@ public final class CasbinPermissionEngine implements PermissionEngine {
 
     @Override
     public void rebuild() {
-        synchronized (lock) {
-            enforcer.clearPolicy();
-            compiledPolicies = 0;
-            revision.incrementAndGet();
-        }
+        invalidate();
     }
 
     @Override
     public void invalidate() {
-        rebuild();
+        syncedHashes.clear();
+
+        synchronized (policyLock) {
+            enforcer.clearPolicy();
+            compiledPolicies = 0;
+        }
+
+        revision.incrementAndGet();
+    }
+
+    @Override
+    public void invalidateSubject(String subjectKey) {
+        Objects.requireNonNull(subjectKey, "subjectKey");
+
+        syncedHashes.remove(subjectKey);
+
+        synchronized (policyLock) {
+            enforcer.removeFilteredPolicy(0, subjectKey);
+            compiledPolicies = enforcer.getPolicy().size();
+        }
+
+        // Do not bump the global revision — callers use subject-scoped decision cache keys.
     }
 
     @Override
@@ -118,35 +141,116 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         Objects.requireNonNull(permission, "permission");
         Objects.requireNonNull(options, "options");
 
-        synchronized (lock) {
-            var subject = ResolutionSupport.subjectKey(holder);
-            var normalized = support.normalizePermission(permission);
-            var compiled = support.compile(holder, options);
+        var subject = ResolutionSupport.subjectKey(holder);
+        var normalized = support.normalizePermission(permission);
+        // Always compile from the live domain graph; cache only the Casbin sync hash
+        // so unchanged subjects skip removeFilteredPolicy/addPolicy on the hot path.
+        var compiled = List.copyOf(support.compile(holder, options));
+        var encodedContexts = ResolutionSupport.encodeContexts(options.contexts());
+
+        ensureSynced(subject, compiled);
+
+        var collector = effector.begin();
+        List<ResolutionSupport.CompiledPermission> matches;
+
+        try {
+            synchronized (policyLock) {
+                EnforceResult casbinResult;
+
+                try {
+                    casbinResult = enforcer.enforceEx(subject, normalized, encodedContexts);
+                } catch (RuntimeException error) {
+                    throw new IllegalStateException(
+                            "Casbin permission evaluation failed for " + subject + " / " + normalized, error);
+                }
+
+                matches = mapCasbinMatches(collector.matchedIndexes(), compiled, casbinResult, enforcer.getPolicy());
+            }
+        } finally {
+            effector.end();
+        }
+
+        return resolve(normalized, matches, holder, options);
+    }
+
+    private void ensureSynced(String subject, List<ResolutionSupport.CompiledPermission> compiled) {
+        var hash = compiled.hashCode();
+        var current = syncedHashes.get(subject);
+
+        if (current != null && current == hash) {
+            return;
+        }
+
+        synchronized (policyLock) {
+            current = syncedHashes.get(subject);
+            if (current != null && current == hash) {
+                return;
+            }
 
             syncSubject(subject, compiled);
-
-            var matches = new ArrayList<ResolutionSupport.CompiledPermission>();
-
-            for (var policy : compiled) {
-                if (casbinMatches(policy, normalized, options)) {
-                    matches.add(policy);
-                }
-            }
-
-            try {
-                enforcer.enforceEx(subject, normalized, ResolutionSupport.encodeContexts(options.contexts()));
-            } catch (RuntimeException error) {
-                throw new IllegalStateException("Casbin permission evaluation failed for " + subject + " / " + normalized, error);
-            }
-
-            return resolve(normalized, matches, holder, options);
+            syncedHashes.put(subject, hash);
         }
     }
 
-    private boolean casbinMatches(ResolutionSupport.CompiledPermission policy, String normalized, QueryOptions options) {
-        // Same predicates registered with Casbin as pexMatch / pexCtx.
-        return support.matches(policy.expression(), normalized)
-                && ResolutionSupport.applies(policy.contexts(), options.contexts());
+    private List<ResolutionSupport.CompiledPermission> mapCasbinMatches(
+            List<Integer> matchedIndexes,
+            List<ResolutionSupport.CompiledPermission> compiled,
+            EnforceResult casbinResult,
+            List<List<String>> policies) {
+
+        var matches = new ArrayList<ResolutionSupport.CompiledPermission>();
+
+        for (var index : matchedIndexes) {
+            if (index < 0 || index >= policies.size()) {
+                continue;
+            }
+
+            var match = findCompiled(compiled, policies.get(index));
+
+            if (match != null) {
+                matches.add(match);
+            }
+        }
+
+        // Fallback: if the collector missed rows but Casbin explained one, map it.
+        if (matches.isEmpty() && casbinResult != null && casbinResult.getExplain() != null && casbinResult.getExplain().size() >= 7) {
+            var match = findCompiled(compiled, casbinResult.getExplain());
+            if (match != null) {
+                matches.add(match);
+            }
+        }
+
+        return matches;
+    }
+
+    private static ResolutionSupport.CompiledPermission findCompiled(
+            List<ResolutionSupport.CompiledPermission> compiled,
+            List<String> row) {
+
+        // p = sub, obj, eft, specificity, distance, weight, ctx
+        if (row.size() < 7) {
+            return null;
+        }
+
+        var expression = row.get(1);
+        var effect = "allow".equals(row.get(2)) ? PermissionResult.ALLOW : PermissionResult.DENY;
+        var specificity = Integer.parseInt(row.get(3));
+        var distance = Integer.parseInt(row.get(4));
+        var weight = Integer.parseInt(row.get(5));
+        var contexts = row.get(6);
+
+        for (var policy : compiled) {
+            if (policy.expression().equals(expression)
+                    && policy.effect() == effect
+                    && policy.specificity() == specificity
+                    && policy.distance() == distance
+                    && policy.weight() == weight
+                    && policy.encodedContexts().equals(contexts)) {
+                return policy;
+            }
+        }
+
+        return null;
     }
 
     private PermissionResolution resolve(
@@ -155,7 +259,7 @@ public final class CasbinPermissionEngine implements PermissionEngine {
             PermissionHolder holder,
             QueryOptions options) {
 
-        var candidates = diagnosticCandidates(holder, permission, options);
+        var candidates = diagnosticCandidates(holder, permission, options, matches);
         var decision = decide(permission, matches);
 
         if (matches.isEmpty()) {
@@ -202,7 +306,13 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         return new Resolution(preferred, permission, Optional.ofNullable(winner), List.copyOf(candidates));
     }
 
-    private List<EngineCandidate> diagnosticCandidates(PermissionHolder holder, String permission, QueryOptions options) {
+    private List<EngineCandidate> diagnosticCandidates(
+            PermissionHolder holder,
+            String permission,
+            QueryOptions options,
+            List<ResolutionSupport.CompiledPermission> matches) {
+
+        var matchedNodes = matches.stream().map(ResolutionSupport.CompiledPermission::node).collect(Collectors.toSet());
         var candidates = new ArrayList<EngineCandidate>();
 
         for (var source : support.sources(holder, options)) {
@@ -221,8 +331,13 @@ public final class CasbinPermissionEngine implements PermissionEngine {
                 } else if (source.excluded() != null) {
                     status = source.excluded();
                     detail = source.detail();
-                } else {
+                } else if (matchedNodes.contains(node)) {
+                    // Casbin matched this node — eligible for WINNER/OUTRANKED/CONFLICT.
                     status = CandidateStatus.OUTRANKED;
+                } else {
+                    // Eligible in the domain graph but Casbin did not match (should be rare).
+                    status = CandidateStatus.PERMISSION_MISMATCH;
+                    detail = "not matched by Casbin";
                 }
 
                 candidates.add(new EngineCandidate(

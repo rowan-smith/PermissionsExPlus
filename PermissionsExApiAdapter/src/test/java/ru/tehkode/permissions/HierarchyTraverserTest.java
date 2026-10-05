@@ -1,9 +1,11 @@
 package ru.tehkode.permissions;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import dev.rono.permissions.api.exception.InheritanceCycleException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
 
 public class HierarchyTraverserTest extends PEXTestBase {
@@ -42,15 +44,13 @@ public class HierarchyTraverserTest extends PEXTestBase {
     }
 
     @Test
-    public void testCircularInheritance() {
+    public void testCircularInheritanceRejected() {
         PermissionGroup g1 = manager.getGroup("G1");
         PermissionGroup g2 = manager.getGroup("G2");
 
         g1.setParents(Arrays.asList(g2));
-        g2.setParents(Arrays.asList(g1));
 
-        // This should not throw StackOverflowError
-        List<String> permissions = g1.getPermissions(null);
-        assertNotNull(permissions);
+        CompletionException thrown = assertThrows(CompletionException.class, () -> g2.setParents(Arrays.asList(g1)));
+        assertTrue(thrown.getCause() instanceof InheritanceCycleException || thrown.getMessage().toLowerCase().contains("cycle"));
     }
 }

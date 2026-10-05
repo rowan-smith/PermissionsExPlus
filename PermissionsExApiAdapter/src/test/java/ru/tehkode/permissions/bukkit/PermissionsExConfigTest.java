@@ -2,35 +2,35 @@ package ru.tehkode.permissions.bukkit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
 public class PermissionsExConfigTest {
 
     @Test
-    public void testConfigDefaults() {
-        YamlConfiguration yaml = new YamlConfiguration();
-        PermissionsExConfig config = new PermissionsExConfig(yaml, null);
-
-        assertEquals("file", config.getDefaultBackend());
-        assertFalse(config.isDebug());
-        assertFalse(config.allowOps());
-        assertFalse(config.createUserRecords());
-        assertEquals("plugins/PermissionsEx", config.getBasedir());
-    }
-
-    @Test
-    public void testConfigOverrides() {
+    public void facadeIgnoresBukkitYamlAndDefaultsToDataBackend() {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("permissions.backend", "sql");
         yaml.set("permissions.debug", true);
         yaml.set("permissions.basedir", "custom/dir");
+        yaml.set("permissions.allowOps", true);
 
         PermissionsExConfig config = new PermissionsExConfig(yaml, null);
 
-        assertEquals("sql", config.getDefaultBackend());
-        assertTrue(config.isDebug());
-        assertEquals("custom/dir", config.getBasedir());
+        assertEquals("data", config.getDefaultBackend());
+        assertFalse(config.isDebug());
+        assertFalse(config.allowOps());
+        assertFalse(config.createUserRecords());
+        assertFalse(config.shouldLogPlayers());
+        assertFalse(config.saveDefaultGroup());
+        assertFalse(config.informPlayers());
+        assertEquals("plugins/PermissionsEx", config.getBasedir());
+        assertEquals("data", config.getBackendConfig("data").getString("type"));
+    }
+
+    @Test
+    public void saveIsNoOp() {
+        PermissionsExConfig config = new PermissionsExConfig(null);
+        config.save();
     }
 }

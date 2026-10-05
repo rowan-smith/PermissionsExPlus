@@ -13,11 +13,22 @@ import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+/**
+ * Flat-file {@link DataStore} with write-behind persistence.
+ *
+ * <p>
+ * Mutations update the in-memory map immediately and mark the store dirty.
+ * Durable writes happen on {@link #checkpoint()}, {@link #close()}, or an
+ * explicit flush. The API scheduler already invokes {@code checkpoint()} on
+ * {@code auto-save-interval}.
+ * </p>
+ */
 public final class FlatDataStore implements DataStore {
     private final Path file;
     private final boolean yaml;
 
     private final Map<String, Map<String, String>> data = new LinkedHashMap<>();
+    private boolean dirty;
 
     public FlatDataStore(Path directory, boolean yaml) {
         this.yaml = yaml;
@@ -38,6 +49,8 @@ public final class FlatDataStore implements DataStore {
 
                 data.put(String.valueOf(category), values);
             });
+
+            dirty = false;
         } catch (IOException error) {
             throw new IllegalStateException("Unable to open API flat-file storage", error);
         }
@@ -56,7 +69,7 @@ public final class FlatDataStore implements DataStore {
     @Override
     public synchronized void put(String category, String key, String payload) {
         data.computeIfAbsent(category, ignored -> new LinkedHashMap<>()).put(key, payload);
-        save();
+        dirty = true;
     }
 
     @Override
@@ -69,7 +82,7 @@ public final class FlatDataStore implements DataStore {
                 data.remove(category);
             }
 
-            save();
+            dirty = true;
         }
 
         return changed;
@@ -77,7 +90,10 @@ public final class FlatDataStore implements DataStore {
 
     @Override
     public synchronized void checkpoint() {
-        save();
+        if (dirty) {
+            save();
+            dirty = false;
+        }
     }
 
     @Override
@@ -97,8 +113,17 @@ public final class FlatDataStore implements DataStore {
 
     @Override
     public synchronized void close() {
-        save();
+        if (dirty) {
+            save();
+            dirty = false;
+        }
+
         data.clear();
+    }
+
+    /** Whether mutations are pending a durable write. */
+    public synchronized boolean dirty() {
+        return dirty;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

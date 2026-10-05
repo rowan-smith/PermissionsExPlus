@@ -1,6 +1,5 @@
 package ru.tehkode.permissions.bukkit;
 
-import com.google.common.cache.CacheBuilder;
 import dev.rono.permissions.api.PexProvider;
 import dev.rono.permissions.core.PexImplProvider;
 import java.lang.reflect.Field;
@@ -117,19 +116,13 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
     @Override
     public void onLoad() {
         try {
-            this.config = new PermissionsExConfig(this.getConfig(), this);
+            // Config is owned by PermissionsExPlus — keep a thin facade only.
+            this.config = new PermissionsExConfig(this);
             this.commandsManager = new CommandsManager(this);
 
             if (!getServer().getOnlineMode()) {
                 getLogger().log(Level.WARNING, "This server is in offline mode. Unless this server is configured to integrate with a supported proxy (see http://dft.ba/-8ous), UUIDs *may not be stable*!");
             }
-
-            // this.permissionsManager = new PermissionManager(this.config);
-            /*
-             * } catch (PermissionBackendException e) {
-             * logBackendExc(e);
-             * errored = true;
-             */
         } catch (Throwable t) {
             ErrorReport.handleError("In onLoad", t);
             errored = true;
@@ -147,8 +140,6 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
             return;
         }
 
-        var api = PexImplProvider.get();
-
         if (errored) {
             getLogger().severe("==== PermissionsEx could not be enabled due to an earlier error. Look at the previous server log for more info ====");
             this.getPluginLoader().disablePlugin(this);
@@ -156,32 +147,11 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
         }
 
         try {
-            try {
-                CacheBuilder.class.getMethod("maximumSize", long.class);
-            } catch (NoSuchMethodException e) {
-                getLogger().severe("=================================================================================");
-                getLogger().severe("As of version 1.23, PEX is only compatible with versions of Minecraft 1.8 or greater. " +
-                        "Please downgrade to the most recent 1.22.x series version of PEX to continue.");
-                getLogger().severe("=================================================================================");
-                getPluginLoader().disablePlugin(this);
-                return;
-            }
+            // Ensure Plus is initialized before the shim runs.
+            PexImplProvider.get();
 
             if (this.permissionsManager == null) {
-                this.permissionsManager = new PermissionManager(config, getLogger(), this, api);
-            }
-
-            try {
-                OfflinePlayer.class.getMethod("getUniqueId");
-            } catch (NoSuchMethodException e) {
-                getLogger().severe("=================================================================================");
-                getLogger().severe("As of version 1.21, PEX requires a version of Bukkit with UUID support to function (>1.7.5). Please download a non-UUID version of PermissionsEx to continue.");
-                getLogger().severe("Beginning reversion of potential invalid UUID conversion");
-                getPermissionsManager().getBackend().revertUUID();
-                getLogger().severe("Reversion complete, disabling. PermissionsEx will not work until downgrade is complete");
-                getLogger().severe("=================================================================================");
-                getPluginLoader().disablePlugin(this);
-                return;
+                this.permissionsManager = new PermissionManager(config, getLogger(), this);
             }
 
             // Register Player permissions cleaner
@@ -190,15 +160,6 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 
             // Register service
             this.getServer().getServicesManager().register(PermissionManager.class, this.permissionsManager, this, ServicePriority.Normal);
-
-            // PermissionsExPlus owns Bukkit injection; skip legacy RegexPermissions/Superperms.
-            if (getServer().getPluginManager().getPlugin("PermissionsExPlus") == null) {
-                regexPerms = new RegexPermissions(this);
-                superms = new SuperpermsListener(this);
-                this.getServer().getPluginManager().registerEvents(superms, this);
-            }
-
-            this.saveConfig();
 
             // Start timed permissions cleaner timer
             this.permissionsManager.initTimer();
@@ -232,8 +193,6 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
         } catch (Throwable t) {
             ErrorReport.handleError("While disabling", t);
         }
-
-        ErrorReport.shutdown();
     }
 
     @Override
@@ -245,21 +204,18 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 
     @Override
     public boolean onCommand(@NonNull CommandSender sender, @NonNull Command command, @NonNull String commandLabel, @NonNull String[] args) {
-        try {
+        // Command UX is owned by PermissionsExCommandAdapter; keep TabCompleter/CommandExecutor surface.
+        if (args.length == 0) {
             PluginDescriptionFile pdf = this.getDescription();
-            if (args.length > 0) {
-                return this.commandsManager.execute(sender, command, args);
-            } else {
-                if (sender instanceof Player) {
-                    sender.sendMessage("[" + ChatColor.RED + "PermissionsEx" + ChatColor.WHITE + "] version [" + ChatColor.BLUE + pdf.getVersion() + ChatColor.WHITE + "]");
-
-                    return this.permissionsManager == null || !this.permissionsManager.has((Player) sender, "permissions.manage");
-                } else {
-                    sender.sendMessage("[PermissionsEx] version [" + pdf.getVersion() + "]");
-
-                    return false;
-                }
+            if (sender instanceof Player) {
+                sender.sendMessage("[" + ChatColor.RED + "PermissionsEx" + ChatColor.WHITE + "] version [" + ChatColor.BLUE + pdf.getVersion() + ChatColor.WHITE + "]");
+                return this.permissionsManager == null || !this.permissionsManager.has((Player) sender, "permissions.manage");
             }
+            sender.sendMessage("[PermissionsEx] version [" + pdf.getVersion() + "]");
+            return false;
+        }
+        try {
+            return this.commandsManager != null && this.commandsManager.execute(sender, command, args);
         } catch (Throwable t) {
             ErrorReport.handleError("While " + sender.getName() + " was executing /" + command.getName() + " " + StringUtils.implode(args, " "), t, sender);
             return true;

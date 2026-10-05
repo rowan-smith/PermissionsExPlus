@@ -34,9 +34,6 @@ public class PermissionManagerTest extends PEXTestBase {
     @Test
     public void testDefaultGroup() {
         PermissionGroup defaultGroup = manager.getGroup("default");
-        defaultGroup.setDefault(true, null);
-
-        // Force manager to see the group in its group list
         manager.getGroups();
 
         assertTrue(defaultGroup.isDefault(null));
@@ -60,5 +57,27 @@ public class PermissionManagerTest extends PEXTestBase {
 
         Collection<PermissionGroup> groups = manager.getGroupList();
         assertTrue(groups.size() >= 2, "Should have at least 2 groups, but had " + groups.size());
+    }
+
+    @Test
+    public void testDefaultBackendConstantIsData() {
+        assertEquals("data", ru.tehkode.permissions.backends.PermissionBackend.DEFAULT_BACKEND);
+    }
+
+    @Test
+    public void testUserByNameAndUuidShareCache() {
+        String uuid = UUID.randomUUID().toString();
+        PermissionUser byId = manager.getUser(uuid);
+        byId.setOption("name", "CachedName", null);
+
+        PermissionUser again = manager.getUser(uuid);
+        assertSame(byId, again);
+        assertEquals("CachedName", again.getOption("name"));
+    }
+
+    @Test
+    public void testBackendIsDataBridge() {
+        assertNotNull(manager.getBackend());
+        assertTrue(manager.getBackend() instanceof ru.tehkode.permissions.backends.data.PermissionBackend);
     }
 }

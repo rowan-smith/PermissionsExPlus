@@ -2,6 +2,9 @@ package dev.rono.permissions.core.store;
 
 import dev.rono.permissions.core.config.DatabasePool;
 import dev.rono.permissions.core.config.DdlGeneration;
+import dev.rono.permissions.core.model.GroupSnapshot;
+import dev.rono.permissions.core.model.LadderSnapshot;
+import dev.rono.permissions.core.model.UserSnapshot;
 import dev.rono.permissions.core.store.dto.ContextDto;
 import dev.rono.permissions.core.store.dto.GroupDto;
 import dev.rono.permissions.core.store.dto.LadderDto;
@@ -17,11 +20,16 @@ import dev.rono.permissions.core.store.repository.UserRepository;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
 
+/**
+ * Relational {@link DataStore} that persists typed snapshots through Hibernate
+ * repositories without a JSON encode/decode round-trip.
+ */
 public final class HibernateDataStore implements DataStore {
     private final String name, url, driver, username, password;
     private final DatabasePool pool;
@@ -85,40 +93,69 @@ public final class HibernateDataStore implements DataStore {
 
     @Override
     public Optional<String> get(String category, String key) {
-        try (var session = session()) {
-            return switch (category) {
-                case "users" -> users.find(session, key).map(SnapshotCodec::user);
-                case "groups" -> groups.find(session, key).map(SnapshotCodec::group);
-                case "ladders" -> ladders.find(session, key).map(SnapshotCodec::ladder);
-                default -> throw unknownCategory(category);
-            };
-        }
+        return switch (category) {
+            case "users" -> getUser(UUID.fromString(key)).map(SnapshotCodec::user);
+            case "groups" -> getGroup(key).map(SnapshotCodec::group);
+            case "ladders" -> getLadder(key).map(SnapshotCodec::ladder);
+            default -> throw unknownCategory(category);
+        };
     }
 
     @Override
     public Map<String, String> all(String category) {
-        try (var session = session()) {
-            var result = new LinkedHashMap<String, String>();
+        var result = new LinkedHashMap<String, String>();
 
-            switch (category) {
-                case "users" -> users.all(session).forEach((key, value) -> result.put(key, SnapshotCodec.user(value)));
-                case "groups" -> groups.all(session).forEach((key, value) -> result.put(key, SnapshotCodec.group(value)));
-                case "ladders" -> ladders.all(session).forEach((key, value) -> result.put(key, SnapshotCodec.ladder(value)));
-                default -> throw unknownCategory(category);
-            }
-
-            return Map.copyOf(result);
+        switch (category) {
+            case "users" -> allUsers().forEach((key, value) -> result.put(key, SnapshotCodec.user(value)));
+            case "groups" -> allGroups().forEach((key, value) -> result.put(key, SnapshotCodec.group(value)));
+            case "ladders" -> allLadders().forEach((key, value) -> result.put(key, SnapshotCodec.ladder(value)));
+            default -> throw unknownCategory(category);
         }
+
+        return Map.copyOf(result);
     }
 
     @Override
     public void put(String category, String key, String payload) {
+        switch (category) {
+            case "users" -> putUser(SnapshotCodec.user(payload));
+            case "groups" -> putGroup(SnapshotCodec.group(payload));
+            case "ladders" -> putLadder(SnapshotCodec.ladder(payload));
+            default -> throw unknownCategory(category);
+        }
+    }
+
+    @Override
+    public boolean remove(String category, String key) {
+        return switch (category) {
+            case "users" -> removeUser(UUID.fromString(key));
+            case "groups" -> removeGroup(key);
+            case "ladders" -> removeLadder(key);
+            default -> throw unknownCategory(category);
+        };
+    }
+
+    @Override
+    public Optional<UserSnapshot> getUser(UUID id) {
+        try (var session = session()) {
+            return users.find(session, id.toString());
+        }
+    }
+
+    @Override
+    public Map<String, UserSnapshot> allUsers() {
+        try (var session = session()) {
+            return Map.copyOf(users.all(session));
+        }
+    }
+
+    @Override
+    public void putUser(UserSnapshot user) {
         try (var session = session()) {
             var tx = session.beginTransaction();
 
             try {
-                save(session, category, payload);
-
+                users.save(session, user);
                 tx.commit();
             } catch (RuntimeException error) {
                 if (tx.isActive()) {
@@ -131,20 +168,115 @@ public final class HibernateDataStore implements DataStore {
     }
 
     @Override
-    public boolean remove(String category, String key) {
+    public boolean removeUser(UUID id) {
         try (var session = session()) {
             var tx = session.beginTransaction();
 
             try {
-                var changed = switch (category) {
-                    case "users" -> users.delete(session, key);
-                    case "groups" -> groups.delete(session, key);
-                    case "ladders" -> ladders.delete(session, key);
-                    default -> throw unknownCategory(category);
-                };
-
+                var changed = users.delete(session, id.toString());
                 tx.commit();
+                return changed;
+            } catch (RuntimeException error) {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
 
+                throw error;
+            }
+        }
+    }
+
+    @Override
+    public Optional<GroupSnapshot> getGroup(String name) {
+        try (var session = session()) {
+            return groups.find(session, name);
+        }
+    }
+
+    @Override
+    public Map<String, GroupSnapshot> allGroups() {
+        try (var session = session()) {
+            return Map.copyOf(groups.all(session));
+        }
+    }
+
+    @Override
+    public void putGroup(GroupSnapshot group) {
+        try (var session = session()) {
+            var tx = session.beginTransaction();
+
+            try {
+                groups.save(session, group);
+                tx.commit();
+            } catch (RuntimeException error) {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
+
+                throw error;
+            }
+        }
+    }
+
+    @Override
+    public boolean removeGroup(String name) {
+        try (var session = session()) {
+            var tx = session.beginTransaction();
+
+            try {
+                var changed = groups.delete(session, name);
+                tx.commit();
+                return changed;
+            } catch (RuntimeException error) {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
+
+                throw error;
+            }
+        }
+    }
+
+    @Override
+    public Optional<LadderSnapshot> getLadder(String name) {
+        try (var session = session()) {
+            return ladders.find(session, name);
+        }
+    }
+
+    @Override
+    public Map<String, LadderSnapshot> allLadders() {
+        try (var session = session()) {
+            return Map.copyOf(ladders.all(session));
+        }
+    }
+
+    @Override
+    public void putLadder(LadderSnapshot ladder) {
+        try (var session = session()) {
+            var tx = session.beginTransaction();
+
+            try {
+                ladders.save(session, ladder);
+                tx.commit();
+            } catch (RuntimeException error) {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
+
+                throw error;
+            }
+        }
+    }
+
+    @Override
+    public boolean removeLadder(String name) {
+        try (var session = session()) {
+            var tx = session.beginTransaction();
+
+            try {
+                var changed = ladders.delete(session, name);
+                tx.commit();
                 return changed;
             } catch (RuntimeException error) {
                 if (tx.isActive()) {
@@ -180,15 +312,6 @@ public final class HibernateDataStore implements DataStore {
         }
 
         return factory.openSession();
-    }
-
-    private void save(Session session, String category, String payload) {
-        switch (category) {
-            case "users" -> users.save(session, SnapshotCodec.user(payload));
-            case "groups" -> groups.save(session, SnapshotCodec.group(payload));
-            case "ladders" -> ladders.save(session, SnapshotCodec.ladder(payload));
-            default -> throw unknownCategory(category);
-        }
     }
 
     private IllegalArgumentException unknownCategory(String category) {

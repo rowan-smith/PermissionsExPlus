@@ -1,5 +1,7 @@
 package dev.rono.permissions.core;
 
+import dev.rono.permissions.api.event.group.GroupModifiedEvent;
+import dev.rono.permissions.api.event.user.UserModifiedEvent;
 import dev.rono.permissions.core.config.MetaFormatting;
 import dev.rono.permissions.core.config.PermissionConflictResolution;
 import dev.rono.permissions.core.engine.PermissionEngine;
@@ -52,8 +54,8 @@ final class RuntimeFixture {
                 MetaFormatting.HIGHEST_WEIGHT,
                 permissionEngine);
 
-        events.subscribe(dev.rono.permissions.api.event.user.UserModifiedEvent.class, event -> permissionEngine.invalidate());
-        events.subscribe(dev.rono.permissions.api.event.group.GroupModifiedEvent.class, event -> permissionEngine.invalidate());
+        events.subscribe(UserModifiedEvent.class, event -> permissionEngine.invalidateSubject("user:" + event.current().uniqueId()));
+        events.subscribe(GroupModifiedEvent.class, event -> permissionEngine.invalidate());
     }
 
     static <T> T await(java.util.concurrent.CompletionStage<T> stage) {

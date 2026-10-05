@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
@@ -22,10 +23,10 @@ import java.util.concurrent.atomic.LongAdder;
  * Revision-aware permission decision cache.
  *
  * <p>
- * Cache keys include the engine revision so any policy-changing mutation can
- * invalidate prior decisions by bumping the revision. Context order does not
- * affect identity. Entries contributed by timed policy expire at or before the
- * earliest relevant expiry.
+ * Cache keys include global and per-subject revisions so full invalidation and
+ * subject-scoped invalidation both discard stale decisions without flushing
+ * unrelated holders. Context order does not affect identity. Entries
+ * contributed by timed policy expire at or before the earliest relevant expiry.
  * </p>
  */
 public final class CachedPermissionEngine implements PermissionEngine {
@@ -33,6 +34,7 @@ public final class CachedPermissionEngine implements PermissionEngine {
 
     private final PermissionEngine delegate;
     private final AtomicLong revision = new AtomicLong();
+    private final ConcurrentHashMap<String, AtomicLong> subjectRevisions = new ConcurrentHashMap<>();
     private final Cache<PermissionCacheKey, CachedDecision> cache;
     private final LongAdder hits = new LongAdder();
     private final LongAdder misses = new LongAdder();
@@ -108,6 +110,7 @@ public final class CachedPermissionEngine implements PermissionEngine {
     public void rebuild() {
         delegate.rebuild();
         revision.incrementAndGet();
+        subjectRevisions.clear();
         cache.invalidateAll();
     }
 
@@ -115,7 +118,17 @@ public final class CachedPermissionEngine implements PermissionEngine {
     public void invalidate() {
         delegate.invalidate();
         revision.incrementAndGet();
+        subjectRevisions.clear();
         cache.invalidateAll();
+    }
+
+    @Override
+    public void invalidateSubject(String subjectKey) {
+        Objects.requireNonNull(subjectKey, "subjectKey");
+
+        delegate.invalidateSubject(subjectKey);
+        subjectRevisions.computeIfAbsent(subjectKey, ignored -> new AtomicLong()).incrementAndGet();
+        cache.asMap().keySet().removeIf(key -> key.holder().equals(subjectKey));
     }
 
     @Override
@@ -142,13 +155,19 @@ public final class CachedPermissionEngine implements PermissionEngine {
     }
 
     private PermissionCacheKey key(PermissionHolder holder, String permission, QueryOptions options) {
+        var holderKey = holderKey(holder);
         return new PermissionCacheKey(
-                holderKey(holder),
+                holderKey,
                 permission,
                 ResolutionSupport.encodeContexts(options.contexts()),
                 options.includeInheritance(),
                 options.includeDefaults(),
-                revision.get() + ":" + delegate.revision());
+                revision.get() + ":" + subjectRevision(holderKey));
+    }
+
+    private long subjectRevision(String holderKey) {
+        var counter = subjectRevisions.get(holderKey);
+        return counter == null ? 0L : counter.get();
     }
 
     private static String holderKey(PermissionHolder holder) {

@@ -19,6 +19,10 @@
 package ru.tehkode.permissions;
 
 import com.google.common.collect.Maps;
+import dev.rono.permissions.api.ladder.PromotionStatus;
+import dev.rono.permissions.api.user.User;
+import dev.rono.permissions.api.util.Identifiers;
+import dev.rono.permissions.core.PexImplProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -146,16 +150,17 @@ public class PermissionUser extends PermissionEntity {
             return;
         }
 
+        String normalized = Identifiers.group(groupName);
         List<String> groups = new ArrayList<>(getOwnParentIdentifiers(worldName));
 
-        if (groups.contains(groupName)) {
+        if (groups.stream().anyMatch(value -> Identifiers.group(value).equals(normalized))) {
             return;
         }
 
         if (this.manager.userAddGroupsLast) {
-            groups.add(groupName);
+            groups.add(normalized);
         } else {
-            groups.add(0, groupName); // add group to start of list
+            groups.add(0, normalized); // add group to start of list
         }
 
         this.setParentsIdentifier(groups, worldName);
@@ -203,12 +208,13 @@ public class PermissionUser extends PermissionEntity {
             return;
         }
 
+        String normalized = Identifiers.group(groupName);
         List<String> groups = new ArrayList<>(getOwnParentIdentifiers(worldName));
-        if (!groups.contains(groupName)) {
+        boolean removed = groups.removeIf(value -> Identifiers.group(value).equals(normalized));
+        if (!removed) {
             return;
         }
 
-        groups.remove(groupName);
         this.setParentsIdentifier(groups, worldName);
     }
 
@@ -343,38 +349,20 @@ public class PermissionUser extends PermissionEntity {
             ladderName = "default";
         }
 
-        int promoterRank = getPromoterRankAndCheck(promoter, ladderName);
-        int rank = this.getRank(ladderName);
+        ensureOnLadder(promoter, ladderName);
 
-        PermissionGroup sourceGroup = this.getRankLadders().get(ladderName);
-        PermissionGroup targetGroup = null;
+        var result = PexImplProvider.get().ladders()
+                .promote(plusUser().uniqueId(), Identifiers.ladder(ladderName))
+                .toCompletableFuture()
+                .join();
 
-        for (Map.Entry<Integer, PermissionGroup> entry : this.manager.getRankLadder(ladderName).entrySet()) {
-            int groupRank = entry.getValue().getRank();
-            if (groupRank >= rank) { // group have equal or lower than current rank
-                continue;
-            }
-
-            if (groupRank <= promoterRank) { // group have higher rank than promoter
-                continue;
-            }
-
-            if (targetGroup != null && groupRank <= targetGroup.getRank()) { // group have higher rank than target group
-                continue;
-            }
-
-            targetGroup = entry.getValue();
-        }
-
-        if (targetGroup == null) {
+        if (result.status() != PromotionStatus.PROMOTED) {
             throw new RankingException("User are not promoteable", this, promoter);
         }
 
-        this.swapGroups(sourceGroup, targetGroup);
-
+        clearCache();
         this.callEvent(PermissionEntityEvent.Action.RANK_CHANGED);
-
-        return targetGroup;
+        return manager.getGroup(result.newGroup().orElseThrow());
     }
 
     /**
@@ -394,38 +382,38 @@ public class PermissionUser extends PermissionEntity {
             ladderName = "default";
         }
 
-        int promoterRank = getPromoterRankAndCheck(demoter, ladderName);
-        int rank = this.getRank(ladderName);
+        ensureOnLadder(demoter, ladderName);
 
-        PermissionGroup sourceGroup = this.getRankLadders().get(ladderName);
-        PermissionGroup targetGroup = null;
+        var result = PexImplProvider.get().ladders()
+                .demote(plusUser().uniqueId(), Identifiers.ladder(ladderName))
+                .toCompletableFuture()
+                .join();
 
-        for (Map.Entry<Integer, PermissionGroup> entry : this.manager.getRankLadder(ladderName).entrySet()) {
-            int groupRank = entry.getValue().getRank();
-            if (groupRank <= rank) { // group have equal or higher than current rank
-                continue;
-            }
-
-            if (groupRank <= promoterRank) { // group have higher rank than promoter
-                continue;
-            }
-
-            if (targetGroup != null && groupRank >= targetGroup.getRank()) { // group have lower rank than target group
-                continue;
-            }
-
-            targetGroup = entry.getValue();
-        }
-
-        if (targetGroup == null) {
+        if (result.status() != PromotionStatus.DEMOTED) {
             throw new RankingException("User are not demoteable", this, demoter);
         }
 
-        this.swapGroups(sourceGroup, targetGroup);
-
+        clearCache();
         this.callEvent(PermissionEntityEvent.Action.RANK_CHANGED);
+        return manager.getGroup(result.newGroup().orElseThrow());
+    }
 
-        return targetGroup;
+    private void ensureOnLadder(PermissionUser actor, String ladderName) throws RankingException {
+        var ladder = PexImplProvider.get().ladders().find(Identifiers.ladder(ladderName))
+                .toCompletableFuture()
+                .join()
+                .orElseThrow(() -> new RankingException("User are not in this ladder", this, actor));
+
+        var onLadder = plusUser().groups().stream()
+                .anyMatch(node -> !node.expired() && ladder.contains(node.group()));
+
+        if (!onLadder) {
+            throw new RankingException("User are not in this ladder", this, actor);
+        }
+    }
+
+    private User plusUser() {
+        return (User) resolveUser(getIdentifier());
     }
 
     /**

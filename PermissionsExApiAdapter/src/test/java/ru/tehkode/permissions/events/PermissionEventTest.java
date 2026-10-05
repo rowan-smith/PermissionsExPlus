@@ -29,7 +29,7 @@ public class PermissionEventTest extends PEXTestBase {
         super.setUp();
         events = new ArrayList<>();
         // Register a listener to capture events
-        server.getPluginManager().registerEvents(new TestListener(), plugin);
+        server.getPluginManager().registerEvents(new TestListener(), null);
     }
 
     @Test
@@ -38,7 +38,7 @@ public class PermissionEventTest extends PEXTestBase {
         user.setPermissions(Collections.singletonList("test.perm"), null);
 
         assertEquals(1, events.size(), "One event should be fired");
-        PermissionEntityEvent event = events.get(0);
+        PermissionEntityEvent event = events.getFirst();
         assertEquals(user, event.getEntity());
         assertEquals(PermissionEntityEvent.Action.PERMISSIONS_CHANGED, event.getAction());
     }
@@ -49,7 +49,7 @@ public class PermissionEventTest extends PEXTestBase {
         group.setOption("test-opt", "val", null);
 
         assertEquals(1, events.size(), "One event should be fired");
-        PermissionEntityEvent event = events.get(0);
+        PermissionEntityEvent event = events.getFirst();
         assertEquals(group, event.getEntity());
         assertEquals(PermissionEntityEvent.Action.OPTIONS_CHANGED, event.getAction());
     }

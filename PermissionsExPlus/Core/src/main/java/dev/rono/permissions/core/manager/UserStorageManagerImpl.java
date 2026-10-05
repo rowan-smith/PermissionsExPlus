@@ -5,7 +5,6 @@ import dev.rono.permissions.api.user.UserStorageManager;
 import dev.rono.permissions.api.util.Identifiers;
 import dev.rono.permissions.core.model.UserSnapshot;
 import dev.rono.permissions.core.store.DataStore;
-import dev.rono.permissions.core.store.SnapshotCodec;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,8 +15,6 @@ import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 public final class UserStorageManagerImpl implements UserStorageManager {
-
-    private static final String CATEGORY = "users";
 
     private final DataStore store;
     private final Executor executor;
@@ -39,7 +36,7 @@ public final class UserStorageManagerImpl implements UserStorageManager {
 
     @Override
     public CompletionStage<Set<UUID>> identifiers() {
-        return Stages.call(() -> store.all(CATEGORY)
+        return Stages.call(() -> store.allUsers()
                 .keySet()
                 .stream()
                 .map(UUID::fromString)
@@ -48,41 +45,36 @@ public final class UserStorageManagerImpl implements UserStorageManager {
 
     @Override
     public CompletionStage<Set<String>> names() {
-        return Stages.call(() -> store.all(CATEGORY)
+        return Stages.call(() -> store.allUsers()
                 .values()
                 .stream()
-                .map(SnapshotCodec::user)
                 .map(UserSnapshot::name)
                 .collect(Collectors.toUnmodifiableSet()), executor);
     }
 
     Optional<UserSnapshot> getNow(UUID id) {
-        return store.get(CATEGORY, id.toString()).map(SnapshotCodec::user);
+        return store.getUser(id);
     }
 
     Optional<UserSnapshot> getNow(String username) {
         var lookup = Identifiers.usernameLookup(username);
 
-        return store.all(CATEGORY)
+        return store.allUsers()
                 .values()
                 .stream()
-                .map(SnapshotCodec::user)
                 .filter(user -> Identifiers.usernameLookup(user.name()).equals(lookup))
                 .findFirst();
     }
 
     Map<String, UserSnapshot> allNow() {
-        return store.all(CATEGORY)
-                .entrySet()
-                .stream()
-                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, entry -> SnapshotCodec.user(entry.getValue())));
+        return store.allUsers();
     }
 
     void saveNow(UserSnapshot user) {
-        store.put(CATEGORY, user.uniqueId().toString(), SnapshotCodec.user(user));
+        store.putUser(user);
     }
 
     boolean deleteNow(UUID id) {
-        return store.remove(CATEGORY, id.toString());
+        return store.removeUser(id);
     }
 }

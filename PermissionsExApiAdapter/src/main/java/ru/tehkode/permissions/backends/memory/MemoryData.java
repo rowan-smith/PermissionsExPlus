@@ -10,16 +10,19 @@ import ru.tehkode.permissions.PermissionsGroupData;
 import ru.tehkode.permissions.PermissionsUserData;
 
 /**
- * Data for in-memory permissions
+ * Public in-memory {@link PermissionsUserData}/{@link PermissionsGroupData} type.
+ *
+ * <p>
+ * Retained for binary compatibility. Production storage is owned by
+ * PermissionsExPlus; {@link MemoryBackend} redirects to the data bridge and does
+ * not use this class.
+ * </p>
  */
 public class MemoryData implements PermissionsGroupData, PermissionsUserData {
     private String name;
-    private final HashMap<String, String> worldPrefix = new HashMap<>();
-    private final HashMap<String, String> worldSuffix = new HashMap<>();
     private final HashMap<String, List<String>> worldsPermissions = new HashMap<>();
     private final Map<String, Map<String, String>> worldsOptions = new HashMap<>();
     private final Map<String, List<String>> parents = new HashMap<>();
-    private final Map<String, Boolean> defaultVals = new HashMap<>();
 
     public MemoryData(String name) {
         this.name = name;
@@ -62,7 +65,7 @@ public class MemoryData implements PermissionsGroupData, PermissionsUserData {
 
     @Override
     public Set<String> getWorlds() {
-        return Sets.union(worldsOptions.keySet(), worldPrefix.keySet());
+        return Sets.union(worldsOptions.keySet(), worldsPermissions.keySet());
     }
 
     @Override

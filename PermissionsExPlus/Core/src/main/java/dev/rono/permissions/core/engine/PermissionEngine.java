@@ -42,10 +42,18 @@ public interface PermissionEngine {
     void rebuild();
 
     /**
-     * Invalidate derived authorization state. Implementations should bump their
-     * policy revision so cached decisions are discarded.
+     * Invalidate all derived authorization state. Implementations should bump
+     * their policy revision so cached decisions are discarded.
      */
     void invalidate();
+
+    /**
+     * Invalidate derived state for a single subject key ({@code user:<uuid>} or
+     * {@code group:<name>}). Default falls back to full invalidation.
+     */
+    default void invalidateSubject(String subjectKey) {
+        invalidate();
+    }
 
     long revision();
 }

@@ -1,29 +1,27 @@
 package ru.tehkode.permissions.backends.data;
 
-import dev.rono.permissions.api.PexApi;
+import dev.rono.permissions.core.PexImplProvider;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import org.bukkit.configuration.ConfigurationSection;
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionsGroupData;
 import ru.tehkode.permissions.PermissionsUserData;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
-/** Legacy PermissionsEx storage view backed by the live API managers. */
-public final class PermissionBackend extends ru.tehkode.permissions.backends.PermissionBackend {
-    private final PexApi api;
-
+/**
+ * Legacy PermissionsEx storage view backed by PermissionsExPlus managers.
+ * Plus is resolved via {@code PexImplProvider.get()}.
+ */
+public class PermissionBackend extends ru.tehkode.permissions.backends.PermissionBackend {
     private final Map<String, List<String>> worldInheritance = new LinkedHashMap<>();
 
-    public PermissionBackend(PermissionManager manager, ConfigurationSection config, PexApi api) throws PermissionBackendException {
+    public PermissionBackend(PermissionManager manager, ConfigurationSection config) throws PermissionBackendException {
         super(manager, config);
-
-        this.api = Objects.requireNonNull(api, "api");
     }
 
     @Override
@@ -39,36 +37,44 @@ public final class PermissionBackend extends ru.tehkode.permissions.backends.Per
 
     @Override
     public PermissionsUserData getUserData(String userName) {
-        return new UserData(api, userName);
+        return new UserData(userName);
     }
 
     @Override
     public PermissionsGroupData getGroupData(String groupName) {
-        return new GroupData(api, groupName);
+        return new GroupData(groupName);
     }
 
     @Override
     public boolean hasUser(String userName) {
-        return UserData.find(api, userName).isPresent();
+        return UserData.find(userName).isPresent();
     }
 
     @Override
     public boolean hasGroup(String group) {
+        var api = PexImplProvider.get();
+
         return api.groups().find(group).toCompletableFuture().join().isPresent();
     }
 
     @Override
     public Collection<String> getUserIdentifiers() {
+        var api = PexImplProvider.get();
+
         return api.users().cache().identifiers().stream().map(Object::toString).sorted().toList();
     }
 
     @Override
     public Collection<String> getUserNames() {
+        var api = PexImplProvider.get();
+
         return api.users().cache().names().stream().sorted().toList();
     }
 
     @Override
     public Collection<String> getGroupNames() {
+        var api = PexImplProvider.get();
+
         return api.groups().cache().identifiers();
     }
 
@@ -98,9 +104,7 @@ public final class PermissionBackend extends ru.tehkode.permissions.backends.Per
     @Override
     public void writeContents(Writer writer) throws IOException {
         writer.write("# PermissionsEx compatibility view backed by PermissionsExPlus API\n");
-
         writer.write("groups: " + String.join(",", getGroupNames()) + "\n");
-
         writer.write("users: " + String.join(",", getUserIdentifiers()) + "\n");
     }
 }

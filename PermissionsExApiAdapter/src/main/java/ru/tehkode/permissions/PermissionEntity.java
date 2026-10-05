@@ -18,6 +18,11 @@
  */
 package ru.tehkode.permissions;
 
+import dev.rono.permissions.api.context.ContextSet;
+import dev.rono.permissions.api.permission.PermissionHolder;
+import dev.rono.permissions.api.permission.PermissionResult;
+import dev.rono.permissions.core.PexImplProvider;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import ru.tehkode.permissions.events.PermissionEntityEvent;
@@ -127,14 +132,9 @@ public abstract class PermissionEntity {
      * @return prefix
      */
     public String getPrefix(String worldName) {
-        String ret = new HierarchyTraverser<String>(this, worldName) {
-            @Override
-            protected String fetchLocal(PermissionEntity entity, String world) {
-                final String ret = entity.getOwnPrefix(world);
-                return ret == null || ret.isEmpty() ? null : ret;
-            }
-        }.traverse();
-        return ret == null ? "" : ret;
+        return PexImplProvider.get().resolvers().options()
+                .prefix(plusHolder(), worldContext(worldName))
+                .orElse("");
     }
 
     /**
@@ -163,14 +163,9 @@ public abstract class PermissionEntity {
      * @return suffix
      */
     public String getSuffix(String worldName) {
-        String ret = new HierarchyTraverser<String>(this, worldName) {
-            @Override
-            protected String fetchLocal(PermissionEntity entity, String world) {
-                final String ret = entity.getOwnSuffix(world);
-                return ret == null || ret.isEmpty() ? null : ret;
-            }
-        }.traverse();
-        return ret == null ? "" : ret;
+        return PexImplProvider.get().resolvers().options()
+                .suffix(plusHolder(), worldContext(worldName))
+                .orElse("");
     }
 
     public String getSuffix() {
@@ -214,13 +209,15 @@ public abstract class PermissionEntity {
             return true;
         }
 
-        String expression = getMatchingExpression(permission, world);
+        boolean allowed = PexImplProvider.get().resolvers().permissions()
+                .hasPermission(plusHolder(), permission, worldContext(world));
 
         if (this.isDebug()) {
-            manager.getLogger().info("User " + this.getIdentifier() + " checked for \"" + permission + "\", " + (expression == null ? "no permission found" : "\"" + expression + "\" found"));
+            manager.getLogger().info("User " + this.getIdentifier() + " checked for \"" + permission + "\", "
+                    + (allowed ? "allowed" : "denied") + " via PermissionsExPlus");
         }
 
-        return explainExpression(expression);
+        return allowed;
     }
 
     /**
@@ -269,32 +266,33 @@ public abstract class PermissionEntity {
     }
 
     protected List<String> getPermissionsInternal(String worldName) {
-        final List<String> ret = new ArrayList<>();
+        var options = dev.rono.permissions.api.resolver.QueryOptions.builder()
+                .contexts(worldContext(worldName))
+                .build();
+        var map = PexImplProvider.get().resolvers()
+                .resolve(plusHolder(), options)
+                .permissions()
+                .permissionMap();
 
-        new HierarchyTraverser<Void>(this, worldName) {
-            @Override
-            protected Void fetchLocal(PermissionEntity entity, String world) {
-                for (String perm : entity.getOwnPermissions(world)) {
-                    if (perm.startsWith(NON_INHERITABLE_PREFIX) && !PermissionEntity.this.getParents(world).contains(entity)) {
-                        continue;
-                    }
-
-                    ret.add(perm);
-                    entity.getInheritedChildPermissions(perm, ret);
-                }
-
-                for (String perm : entity.getTimedPermissions(world)) {
-                    if (perm.startsWith(NON_INHERITABLE_PREFIX) && !PermissionEntity.this.getParents(world).contains(entity)) {
-                        continue;
-                    }
-
-                    ret.add(perm);
-                    entity.getInheritedChildPermissions(perm, ret);
-                }
-
-                return null;
+        List<String> ret = new ArrayList<>(map.size());
+        for (var entry : map.entrySet()) {
+            String expression = entry.getKey();
+            if (entry.getValue() == PermissionResult.DENY && !expression.startsWith("-")) {
+                expression = "-" + expression;
+            } else if (entry.getValue() == PermissionResult.ALLOW && expression.startsWith("-")) {
+                expression = expression.substring(1);
             }
-        }.traverse();
+
+            ret.add(expression);
+            getInheritedChildPermissions(expression, ret);
+        }
+
+        for (String perm : getTimedPermissions(worldName)) {
+            if (!ret.contains(perm)) {
+                ret.add(perm);
+                getInheritedChildPermissions(perm, ret);
+            }
+        }
 
         return ret;
     }
@@ -422,18 +420,42 @@ public abstract class PermissionEntity {
      * @return Value of option as String
      */
     public String getOption(final String option, String world, String defaultValue) {
-        String ret = new HierarchyTraverser<String>(this, world) {
-            @Override
-            protected String fetchLocal(PermissionEntity entity, String world) {
-                return entity.getOwnOption(option, world, null);
-            }
-        }.traverse();
+        return PexImplProvider.get().resolvers().options()
+                .resolve(plusHolder(), option, worldContext(world))
+                .orElse(defaultValue);
+    }
 
-        if (ret == null) {
-            ret = defaultValue;
+    /**
+     * Resolve this entity to a PermissionsExPlus {@link PermissionHolder}.
+     */
+    protected PermissionHolder plusHolder() {
+        return getType() == Type.USER ? resolveUser(getIdentifier()) : resolveGroup(getIdentifier());
+    }
+
+    protected static ContextSet worldContext(String world) {
+        return world == null || world.isBlank() ? ContextSet.empty() : ContextSet.builder().add("world", world).build();
+    }
+
+    protected static PermissionHolder resolveUser(String identifier) {
+        var api = PexImplProvider.get();
+        try {
+            return api.users().find(UUID.fromString(identifier)).toCompletableFuture().join()
+                    .orElseGet(() -> api.users().loadOrCreateUser(UUID.fromString(identifier), identifier)
+                            .toCompletableFuture().join());
+        } catch (IllegalArgumentException ignored) {
+            return api.users().find(identifier).toCompletableFuture().join()
+                    .orElseGet(() -> {
+                        UUID id = UUID.nameUUIDFromBytes(("OfflinePlayer:" + identifier).getBytes(StandardCharsets.UTF_8));
+                        return api.users().loadOrCreateUser(id, identifier).toCompletableFuture().join();
+                    });
         }
+    }
 
-        return ret;
+    protected static PermissionHolder resolveGroup(String identifier) {
+        var api = PexImplProvider.get();
+        return api.groups().cache().get(identifier)
+                .or(() -> api.groups().storage().get(identifier).toCompletableFuture().join())
+                .orElseGet(() -> api.groups().create(identifier).toCompletableFuture().join());
     }
 
     /**

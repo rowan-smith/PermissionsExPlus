@@ -35,6 +35,9 @@ class StorageTest {
         assertFalse(first.remove("missing", "id"));
 
         first.put("users", "id", "{\"name\":\"Rono\"}");
+        assertTrue(first.dirty());
+        first.checkpoint();
+        assertFalse(first.dirty());
         first.close();
 
         var second = new FlatDataStore(directory, true);
@@ -43,8 +46,32 @@ class StorageTest {
 
         assertEquals("{\"name\":\"Rono\"}", second.get("users", "id").orElseThrow());
         assertTrue(second.remove("users", "id"));
+        second.checkpoint();
 
         second.close();
+    }
+
+    @Test
+    void hibernateTypedPathSkipsJsonRoundTrip() {
+        var pool = new DatabasePool(2, 1, 30_000);
+        var url = "jdbc:h2:mem:permissions-typed-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1";
+        var store = new HibernateDataStore("Memory", url, "org.h2.Driver", null, null, pool, false);
+
+        store.open();
+
+        var contexts = ContextSet.builder().add("world", "nether").build();
+        var group = new GroupSnapshot("staff", OptionalInt.of(100),
+                Set.of(PermissionNode.builder().permission("example.fly").contexts(contexts).build()),
+                Set.of(OptionNode.builder().key("prefix").value("Admin").contexts(contexts).build()),
+                Set.of(ParentNode.builder().group("default").contexts(contexts).build()));
+
+        store.putGroup(group);
+
+        assertEquals(group, store.getGroup("staff").orElseThrow());
+        assertEquals(group, store.allGroups().get("staff"));
+        assertTrue(store.removeGroup("staff"));
+
+        store.close();
     }
 
     @Test
