@@ -18,17 +18,18 @@
  */
 package ru.tehkode.permissions.bukkit.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import ru.tehkode.permissions.PermissionManager;
+import ru.tehkode.permissions.bukkit.PEXAdventure;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.commands.Command;
 import ru.tehkode.utils.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class WorldCommands extends PermissionsCommand {
 
@@ -42,7 +43,7 @@ public class WorldCommands extends PermissionsCommand {
 
 		PermissionManager manager = plugin.getPermissionsManager();
 
-		sender.sendMessage("Worlds on server: ");
+		PEXAdventure.sendMessage(sender,"Worlds on server: ");
 		for (World world : worlds) {
 			List<String> parentWorlds = manager.getWorldInheritance(world.getName());
 			String output = "  " + world.getName();
@@ -50,7 +51,7 @@ public class WorldCommands extends PermissionsCommand {
 				output += ChatColor.GREEN + " [" + ChatColor.WHITE + StringUtils.implode(parentWorlds, ", ") + ChatColor.GREEN + "]";
 			}
 
-			sender.sendMessage(output);
+			PEXAdventure.sendMessage(sender,output);
 		}
 	}
 
@@ -62,18 +63,18 @@ public class WorldCommands extends PermissionsCommand {
 		String worldName = this.autoCompleteWorldName(args.get("world"));
 		PermissionManager manager = plugin.getPermissionsManager();
 		if (plugin.getServer().getWorld(worldName) == null) {
-			sender.sendMessage("Specified world \"" + args.get("world") + "\" not found.");
+			PEXAdventure.sendMessage(sender,"Specified world \"" + args.get("world") + "\" not found.");
 			return;
 		}
 
 		List<String> parentWorlds = manager.getWorldInheritance(worldName);
 
 		if (parentWorlds.isEmpty()) {
-			sender.sendMessage("World \"" + worldName + "\" inherits nothing.");
+			PEXAdventure.sendMessage(sender,"World \"" + worldName + "\" inherits nothing.");
 			return;
 		}
 
-		sender.sendMessage("World \"" + worldName + "\" inherits:");
+		PEXAdventure.sendMessage(sender,"World \"" + worldName + "\" inherits:");
 
 		for (String parentWorld : parentWorlds) {
 			List<String> parents = manager.getWorldInheritance(parentWorld);
@@ -82,7 +83,7 @@ public class WorldCommands extends PermissionsCommand {
 				output += ChatColor.GREEN + " [" + ChatColor.WHITE + StringUtils.implode(parents, ", ") + ChatColor.GREEN + "]";
 			}
 
-			sender.sendMessage(output);
+			PEXAdventure.sendMessage(sender,output);
 		}
 	}
 
@@ -94,7 +95,7 @@ public class WorldCommands extends PermissionsCommand {
 		String worldName = this.autoCompleteWorldName(args.get("world"));
 		PermissionManager manager = plugin.getPermissionsManager();
 		if (plugin.getServer().getWorld(worldName) == null) {
-			sender.sendMessage("Specified world \"" + args.get("world") + "\" not found.");
+			PEXAdventure.sendMessage(sender,"Specified world \"" + args.get("world") + "\" not found.");
 			return;
 		}
 
@@ -113,6 +114,6 @@ public class WorldCommands extends PermissionsCommand {
 
 		manager.setWorldInheritance(worldName, parents);
 
-		sender.sendMessage("World \"" + worldName + "\" inherits " + StringUtils.implode(parents, ", "));
+		PEXAdventure.sendMessage(sender,"World \"" + worldName + "\" inherits " + StringUtils.implode(parents, ", "));
 	}
 }

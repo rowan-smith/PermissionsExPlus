@@ -1,0 +1,332 @@
+[
+  {
+    "command": "/pex",
+    "description": "Display help for PermissionsEx commands.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex reload",
+    "description": "Reload the plugin configuration and backends.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex report",
+    "description": "Report an issue with PEX.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex config <node> [value]",
+    "description": "Print or set a configuration node.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex backend",
+    "description": "Print the currently used permission backend.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex backend <backend>",
+    "description": "Change the permission backend on the fly.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex hierarchy [world]",
+    "description": "Print the complete user/group hierarchy.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex import <backend>",
+    "description": "Import data from another backend.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex convert uuid",
+    "description": "Bulk convert user data to UUID-based storage.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex toggle debug",
+    "description": "Enable or disable debug mode.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex help [page] [count]",
+    "description": "Show command help.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex version",
+    "description": "Display the PermissionsExPlus version.",
+    "category": "Utility"
+  },
+  {
+    "command": "/pex users list",
+    "description": "List all registered users.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user>",
+    "description": "List user permissions.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> list [world]",
+    "description": "List user permissions in a specific world.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> superperms",
+    "description": "List the user's actual superperms.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> prefix [newprefix] [world]",
+    "description": "Get or set a user's prefix.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> suffix [newsuffix] [world]",
+    "description": "Get or set a user's suffix.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> toggle debug",
+    "description": "Toggle debug mode for a specific user.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> check <permission> [world]",
+    "description": "Check if a user has a specific permission.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> get <option> [world]",
+    "description": "Get an option value for a user.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> delete",
+    "description": "Remove a user from the system.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> add <permission> [world]",
+    "description": "Add a permission to a user.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> remove <permission> [world]",
+    "description": "Remove a permission from a user.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> swap <permission> <targetPermission> [world]",
+    "description": "Swap two permissions in a user's permission list.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> timed add <permission> [lifetime] [world]",
+    "description": "Add a timed permission to a user.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> timed remove <permission> [world]",
+    "description": "Remove a timed permission from a user.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> set <option> <value> [world]",
+    "description": "Set an option for a user.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> group list [world]",
+    "description": "List all groups for a user.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> group add <group> [world] [lifetime]",
+    "description": "Add a user to a group.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> group set <group> [world]",
+    "description": "Set a user's primary group.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex user <user> group remove <group> [world]",
+    "description": "Remove a user from a group.",
+    "category": "Users"
+  },
+  {
+    "command": "/pex users cleanup <group> [threshold]",
+    "description": "Clean users of a group whose last login was before the threshold (in days).",
+    "category": "Users"
+  },
+  {
+    "command": "/pex groups list [world]",
+    "description": "List all registered groups.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group>",
+    "description": "List all permissions for a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> list [world]",
+    "description": "List all permissions for a group in a specific world.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> create [parents]",
+    "description": "Create a new group with optional parents.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> delete",
+    "description": "Delete a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> add <permission> [world]",
+    "description": "Add a permission to a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> remove <permission> [world]",
+    "description": "Remove a permission from a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> swap <permission> <targetPermission> [world]",
+    "description": "Swap two permissions in a group's permission list.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> set <option> <value> [world]",
+    "description": "Set an option for a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> weight [weight]",
+    "description": "Get or set the weight of a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> prefix [newprefix] [world]",
+    "description": "Get or set a group's prefix.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> suffix [newsuffix] [world]",
+    "description": "Get or set a group's suffix.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> toggle debug",
+    "description": "Toggle debug mode for a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> timed add <permission> [lifetime] [world]",
+    "description": "Add a timed permission to a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> timed remove <permission> [world]",
+    "description": "Remove a timed permission from a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> users",
+    "description": "List all users in a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> user add <user> [world]",
+    "description": "Add a user to a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> user remove <user> [world]",
+    "description": "Remove a user from a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> parents [world]",
+    "description": "List parents for a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> parents list [world]",
+    "description": "List parents for a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> parents set <parents> [world]",
+    "description": "Set parent(s) for a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> parents add <parents> [world]",
+    "description": "Add parent(s) to a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> parents remove <parents> [world]",
+    "description": "Remove parent(s) from a group.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex group <group> rank [rank] [ladder]",
+    "description": "Get or set a group's rank on a ladder.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex default group [world]",
+    "description": "Print the default group for a world.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex set default group <group> <value> [world]",
+    "description": "Set whether a group is default for a world.",
+    "category": "Groups"
+  },
+  {
+    "command": "/pex promote <user> [ladder]",
+    "description": "Promote a user to the next group on a ladder.",
+    "category": "Promotion"
+  },
+  {
+    "command": "/pex demote <user> [ladder]",
+    "description": "Demote a user to the previous group on a ladder.",
+    "category": "Promotion"
+  },
+  {
+    "command": "/promote <user> [ladder]",
+    "description": "Promote a user to the next group (standalone command).",
+    "category": "Promotion"
+  },
+  {
+    "command": "/demote <user> [ladder]",
+    "description": "Demote a user to the previous group (standalone command).",
+    "category": "Promotion"
+  },
+  {
+    "command": "/pex worlds",
+    "description": "Print all loaded worlds.",
+    "category": "Worlds"
+  },
+  {
+    "command": "/pex world <world>",
+    "description": "Print world inheritance info.",
+    "category": "Worlds"
+  },
+  {
+    "command": "/pex world <world> inherit <parentWorlds>",
+    "description": "Set parent worlds for a world.",
+    "category": "Worlds"
+  }
+]

@@ -1,0 +1,39 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'STABLE-*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: mvn -B package --no-transfer-progress -P mc-1.8.8
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PermissionsExPlus
+          path: target/PermissionsEx-*.jar
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/STABLE-')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/PermissionsEx-*.jar
+          generate_release_notes: true

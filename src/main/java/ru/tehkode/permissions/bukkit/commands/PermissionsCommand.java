@@ -18,13 +18,6 @@
  */
 package ru.tehkode.permissions.bukkit.commands;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -34,11 +27,14 @@ import org.bukkit.entity.Player;
 import ru.tehkode.permissions.PermissionEntity;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
+import ru.tehkode.permissions.bukkit.PEXAdventure;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.commands.CommandListener;
 import ru.tehkode.permissions.commands.CommandsManager;
 import ru.tehkode.permissions.commands.exceptions.AutoCompleteChoicesException;
 import ru.tehkode.utils.StringUtils;
+
+import java.util.*;
 
 public abstract class PermissionsCommand implements CommandListener {
 	protected CommandsManager manager;
@@ -64,7 +60,11 @@ public abstract class PermissionsCommand implements CommandListener {
 			return;
 		}
 
-		player.sendMessage(ChatColor.BLUE + "[PermissionsEx] " + ChatColor.RESET + message);
+		if (PEXAdventure.isAvailable()) {
+			PEXAdventure.sendMessage(player, "<blue>[PermissionsEx]</blue><reset>" + message);
+		} else {
+			player.sendMessage(ChatColor.BLUE + "[PermissionsEx] " + ChatColor.RESET + message);
+		}
 	}
 
 	protected String autoCompletePlayerName(String playerName) {
@@ -78,7 +78,7 @@ public abstract class PermissionsCommand implements CommandListener {
 				rank = "rank " + group.getRank() + " @ " + group.getRankLadder();
 			}
 
-			sender.sendMessage("   " + group.getIdentifier() + " (" + rank + ")");
+			PEXAdventure.sendMessage(sender, "   " + group.getIdentifier() + " (" + rank + ")");
 		}
 	}
 
@@ -388,7 +388,7 @@ public abstract class PermissionsCommand implements CommandListener {
 
 	protected void sendMessage(CommandSender sender, String message) {
 		for (String messagePart : message.split("\n")) {
-			sender.sendMessage(messagePart);
+			PEXAdventure.sendMessage(sender, messagePart);
 		}
 	}
 }

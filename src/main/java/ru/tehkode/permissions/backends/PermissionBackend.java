@@ -15,17 +15,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 /**
@@ -131,6 +122,15 @@ public abstract class PermissionBackend {
 
 	protected Executor getExecutor() {
 		return activeExecutorPtr;
+	}
+
+	/**
+	 * Block until all pending asynchronous tasks on this backend's executor have completed.
+	 */
+	public void awaitPendingTasks() throws InterruptedException {
+		final CountDownLatch latch = new CountDownLatch(1);
+		getExecutor().execute(latch::countDown);
+		latch.await(5, TimeUnit.SECONDS);
 	}
 
 	protected final PermissionManager getManager() {

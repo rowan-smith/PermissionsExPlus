@@ -18,16 +18,17 @@
  */
 package ru.tehkode.permissions.bukkit.commands;
 
-import java.util.Map;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
+import ru.tehkode.permissions.bukkit.PEXAdventure;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.commands.Command;
 import ru.tehkode.permissions.exceptions.RankingException;
+
+import java.util.Map;
 
 public class PromotionCommands extends PermissionsCommand {
 
@@ -42,7 +43,7 @@ public class PromotionCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" not found");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" not found");
 			return;
 		}
 
@@ -52,7 +53,7 @@ public class PromotionCommands extends PermissionsCommand {
 			try {
 				group.setRank(Integer.parseInt(newRank));
 			} catch (NumberFormatException e) {
-				sender.sendMessage("Wrong rank. Make sure it's number.");
+				PEXAdventure.sendMessage(sender,"Wrong rank. Make sure it's number.");
 			}
 
 			if (args.containsKey("ladder")) {
@@ -63,9 +64,9 @@ public class PromotionCommands extends PermissionsCommand {
 		int rank = group.getRank();
 
 		if (rank > 0) {
-			sender.sendMessage("Group " + group.getIdentifier() + " rank is " + rank + " (ladder = " + group.getRankLadder() + ")");
+			PEXAdventure.sendMessage(sender,"Group " + group.getIdentifier() + " rank is " + rank + " (ladder = " + group.getRankLadder() + ")");
 		} else {
-			sender.sendMessage("Group " + group.getIdentifier() + " is unranked");
+			PEXAdventure.sendMessage(sender,"Group " + group.getIdentifier() + " is unranked");
 		}
 	}
 
@@ -78,7 +79,7 @@ public class PromotionCommands extends PermissionsCommand {
 		PermissionUser user = plugin.getPermissionsManager().getUser(userName);
 
 		if (user == null) {
-			sender.sendMessage("Specified user \"" + args.get("user") + "\" not found!");
+			PEXAdventure.sendMessage(sender,"Specified user \"" + args.get("user") + "\" not found!");
 			return;
 		}
 
@@ -93,7 +94,7 @@ public class PromotionCommands extends PermissionsCommand {
 		if (sender instanceof Player) {
 			promoter = plugin.getPermissionsManager().getUser((Player) sender);
 			if (promoter == null || !promoter.has("permissions.user.promote." + ladder, ((Player) sender).getWorld().getName())) {
-				sender.sendMessage(ChatColor.RED + "You don't have enough permissions to promote on this ladder");
+				PEXAdventure.sendMessage(sender,ChatColor.RED + "You don't have enough permissions to promote on this ladder");
 				return;
 			}
 
@@ -104,24 +105,24 @@ public class PromotionCommands extends PermissionsCommand {
 			PermissionGroup targetGroup = user.promote(promoter, ladder);
 
 			this.informPlayer(plugin, user, "You have been promoted on " + targetGroup.getRankLadder() + " ladder to " + targetGroup.getIdentifier() + " group");
-			sender.sendMessage("User " + describeUser(user) + " promoted to " + targetGroup.getIdentifier() + " group");
+			PEXAdventure.sendMessage(sender,"User " + describeUser(user) + " promoted to " + targetGroup.getIdentifier() + " group");
 			plugin.getLogger().info("User " + describeUser(user) + " has been promoted to " + targetGroup.getIdentifier() + " group on " + targetGroup.getRankLadder() + " ladder by " + promoterName);
 		} catch (RankingException e) {
-			sender.sendMessage(ChatColor.RED + "Promotion error: " + e.getMessage());
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Promotion error: " + e.getMessage());
 			plugin.getLogger().severe("Ranking Error (" + promoterName + " > " + describeUser(e.getTarget()) + "): " + e.getMessage());
 		}
 	}
 
 	@Command(name = "pex",
 			syntax = "demote <user> [ladder]",
-			description = "Demotes <user> to previous group or [ladder]",
+			description = "Demotes <user> to previous group on [ladder]",
 			isPrimary = true)
 	public void demoteUser(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
 		String userName = this.autoCompletePlayerName(args.get("user"));
 		PermissionUser user = plugin.getPermissionsManager().getUser(userName);
 
 		if (user == null) {
-			sender.sendMessage(ChatColor.RED + "Specified user \"" + args.get("user") + "\" not found!");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Specified user \"" + args.get("user") + "\" not found!");
 			return;
 		}
 
@@ -137,7 +138,7 @@ public class PromotionCommands extends PermissionsCommand {
 			demoter = plugin.getPermissionsManager().getUser((Player) sender);
 
 			if (demoter == null || !demoter.has("permissions.user.demote." + ladder, ((Player) sender).getWorld().getName())) {
-				sender.sendMessage(ChatColor.RED + "You don't have enough permissions to demote on this ladder");
+				PEXAdventure.sendMessage(sender,ChatColor.RED + "You don't have enough permissions to demote on this ladder");
 				return;
 			}
 
@@ -145,13 +146,13 @@ public class PromotionCommands extends PermissionsCommand {
 		}
 
 		try {
-			PermissionGroup targetGroup = user.demote(demoter, args.get("ladder"));
+			PermissionGroup targetGroup = user.demote(demoter, ladder);
 
 			this.informPlayer(plugin, user, "You have been demoted on " + targetGroup.getRankLadder() + " ladder to " + targetGroup.getIdentifier() + " group");
-			sender.sendMessage("User " + describeUser(user) + " demoted to " + targetGroup.getIdentifier() + " group");
+			PEXAdventure.sendMessage(sender,"User " + describeUser(user) + " demoted to " + targetGroup.getIdentifier() + " group");
 			plugin.getLogger().info("User " + describeUser(user) + " has been demoted to " + targetGroup.getIdentifier() + " group on " + targetGroup.getRankLadder() + " ladder by " + demoterName);
 		} catch (RankingException e) {
-			sender.sendMessage(ChatColor.RED + "Demotion error: " + e.getMessage());
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Demotion error: " + e.getMessage());
 			plugin.getLogger().severe("Ranking Error (" + demoterName + " demotes " + describeUser(e.getTarget()) + "): " + e.getMessage());
 		}
 	}

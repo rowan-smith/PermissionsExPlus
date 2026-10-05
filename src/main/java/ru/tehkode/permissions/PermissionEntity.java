@@ -18,31 +18,25 @@
  */
 package ru.tehkode.permissions;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import ru.tehkode.permissions.events.PermissionEntityEvent;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author code
  */
 public abstract class PermissionEntity {
 	protected final static String NON_INHERITABLE_PREFIX = "#";
-	public static enum Type {
+	protected final static String TIMED_PERMISSION_SEPARATOR = ":";
+	public enum Type {
 		USER, GROUP;
 	}
 
 	protected PermissionManager manager;
-	private String name;
+	private final String name;
 	protected Map<String, List<String>> timedPermissions = new ConcurrentHashMap<>();
 	protected Map<String, Long> timedPermissionsTime = new ConcurrentHashMap<>();
 	protected boolean debugMode = false;
@@ -65,6 +59,7 @@ public abstract class PermissionEntity {
 	 */
 	public void initialize() {
 		this.debugMode = this.getOptionBoolean("debug", null, this.debugMode);
+		loadTimedPermissions();
 	}
 
 	/**
@@ -219,7 +214,7 @@ public abstract class PermissionEntity {
 	 * Return all entity permissions in specified world
 	 *
 	 * @param world World name
-	 * @return Array of permission expressions
+	 * @return List of permission expressions
 	 */
 	public List<String> getPermissions(String world) {
 		return Collections.unmodifiableList(getPermissionsInternal(world));
@@ -229,9 +224,46 @@ public abstract class PermissionEntity {
 	 * Returns own (without inheritance) permissions of group for world
 	 *
 	 * @param world world's world name
-	 * @return Array of permissions for world
+	 * @return List of permissions for world
 	 */	public List<String> getOwnPermissions(String world) {
-		return Collections.unmodifiableList(getData().getPermissions(world));
+		List<String> allPerms = getData().getPermissions(world);
+		List<String> filtered = new ArrayList<>(allPerms.size());
+
+		for (String perm : allPerms) {
+			if (!isTimedEntry(perm)) {
+				filtered.add(perm);
+			}
+		}
+
+		return Collections.unmodifiableList(filtered);
+	}
+
+	private static boolean isTimedEntry(String perm) {
+		if (perm == null || perm.isEmpty()) {
+			return false;
+		}
+
+		int idx = perm.lastIndexOf(TIMED_PERMISSION_SEPARATOR);
+		if (idx < 1 || idx >= perm.length() - 9) {
+			return false;
+		}
+
+		try {
+			long ts = Long.parseLong(perm.substring(idx + 1));
+			return ts > 1000000000L;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
+	private static String parseTimedPermissionName(String perm) {
+		int idx = perm.lastIndexOf(TIMED_PERMISSION_SEPARATOR);
+		return perm.substring(0, idx);
+	}
+
+	private static long parseTimedTimestamp(String perm) {
+		int idx = perm.lastIndexOf(TIMED_PERMISSION_SEPARATOR);
+		return Long.parseLong(perm.substring(idx + 1));
 	}
 
 	/**
@@ -244,14 +276,16 @@ public abstract class PermissionEntity {
 		Map<String, List<String>> ret = new HashMap<>(getData().getPermissionsMap());
 		for (Map.Entry<String, List<String>> timedEnt : timedPermissions.entrySet()) {
 			String worldKey = timedEnt.getKey().isEmpty() ? null : timedEnt.getKey();
-			List<String> addTo = new LinkedList<>();
-			addTo.addAll(timedEnt.getValue());
+
+            List<String> addTo = new LinkedList<>(timedEnt.getValue());
 			List<String> permanentPerms = ret.get(worldKey);
 			if (permanentPerms != null) {
 				addTo.addAll(permanentPerms);
 			}
+
 			ret.put(worldKey, Collections.unmodifiableList(addTo));
 		}
+
 		return Collections.unmodifiableMap(ret);
 	}
 
@@ -321,9 +355,8 @@ public abstract class PermissionEntity {
 	public void addPermission(String permission, String worldName) {
 		LinkedList<String> permissions = new LinkedList<>(this.getOwnPermissions(worldName));
 
-		if (permissions.contains(permission)) { // remove old permission
-			permissions.remove(permission);
-		}
+        // remove old permission
+        permissions.remove(permission);
 
 		// add permission on the top of list
 		permissions.addFirst(permission);
@@ -371,7 +404,18 @@ public abstract class PermissionEntity {
 	 * @param world       World to set permissions for
 	 */
 	public void setPermissions(List<String> permissions, String world) {
-		getData().setPermissions(permissions, world);
+		String worldKey = world == null ? "" : world;
+		List<String> toSave = new ArrayList<>(permissions);
+		if (timedPermissions.containsKey(worldKey)) {
+			for (String perm : timedPermissions.get(worldKey)) {
+				Long expiry = timedPermissionsTime.get(worldKey + ":" + perm);
+				if (expiry != null) {
+					toSave.add(perm + TIMED_PERMISSION_SEPARATOR + expiry);
+				}
+			}
+		}
+
+		getData().setPermissions(toSave, world);
 		clearCache();
 		this.callEvent(PermissionEntityEvent.Action.PERMISSIONS_CHANGED);
 	}
@@ -433,9 +477,9 @@ public abstract class PermissionEntity {
 	/**
 	 * Return integer value for option
 	 *
-	 * @param optionName
-	 * @param world
-	 * @param defaultValue
+	 * @param optionName Option name
+	 * @param world World to look in
+	 * @param defaultValue Default value to return if option was not found
 	 * @return option value or defaultValue if option was not found or is not integer
 	 */
 	public int getOptionInteger(String optionName, String world, int defaultValue) {
@@ -450,9 +494,9 @@ public abstract class PermissionEntity {
 	/**
 	 * Returns double value for option
 	 *
-	 * @param optionName
-	 * @param world
-	 * @param defaultValue
+	 * @param optionName Option name
+	 * @param world World to look in
+	 * @param defaultValue Default value to return if option was not found
 	 * @return option value or defaultValue if option was not found or is not double
 	 */
 	public double getOptionDouble(String optionName, String world, double defaultValue) {
@@ -469,9 +513,9 @@ public abstract class PermissionEntity {
 	/**
 	 * Returns boolean value for option
 	 *
-	 * @param optionName
-	 * @param world
-	 * @param defaultValue
+	 * @param optionName Option name
+	 * @param world World to look in
+	 * @param defaultValue Default value to return if option was not found
 	 * @return option value or defaultValue if option was not found or is not boolean
 	 */
 	public boolean getOptionBoolean(String optionName, String world, boolean defaultValue) {
@@ -512,7 +556,7 @@ public abstract class PermissionEntity {
 	/**
 	 * Get options in world
 	 *
-	 * @param world
+	 * @param world World name
 	 * @return Option value as string Map
 	 */
 	public Map<String, String> getOptions(String world) {
@@ -548,7 +592,7 @@ public abstract class PermissionEntity {
 	/**
 	 * Return non-inherited value of specified option in common space (all worlds).
 	 *
-	 * @param option
+	 * @param option option string
 	 * @return option value or empty string if option is not set
 	 */
 	public String getOwnOption(String option) {
@@ -623,7 +667,7 @@ public abstract class PermissionEntity {
 	/**
 	 * Return world names where entity have permissions/options/etc
 	 *
-	 * @return
+	 * @return the worlds
 	 */
 	public Set<String> getWorlds() {
 		return getData().getWorlds();
@@ -632,8 +676,8 @@ public abstract class PermissionEntity {
 	/**
 	 * Return entity timed (temporary) permission for world
 	 *
-	 * @param world
-	 * @return Array of timed permissions in that world
+	 * @param world world name
+	 * @return List of timed permissions in that world
 	 */
 	public List<String> getTimedPermissions(String world) {
 		if (world == null) {
@@ -651,7 +695,7 @@ public abstract class PermissionEntity {
 	 * Returns remaining lifetime of specified permission in world
 	 *
 	 * @param permission Name of permission
-	 * @param world
+	 * @param world world name
 	 * @return remaining lifetime in seconds of timed permission. 0 if permission is transient
 	 */
 	public int getTimedPermissionLifetime(String permission, String world) {
@@ -669,11 +713,12 @@ public abstract class PermissionEntity {
 	/**
 	 * Adds timed permission to specified world in seconds
 	 *
-	 * @param permission
-	 * @param world
+	 * @param permission Name of permission
+	 * 	 * @param world world name
 	 * @param lifeTime   Lifetime of permission in seconds. 0 for transient permission (world disappear only after server reload)
 	 */
 	public void addTimedPermission(final String permission, String world, int lifeTime) {
+		final String backendWorld = world;
 		if (world == null) {
 			world = "";
 		}
@@ -697,7 +742,12 @@ public abstract class PermissionEntity {
 
 			this.manager.registerTask(task, lifeTime);
 
-			this.timedPermissionsTime.put(world + ":" + permission, (System.currentTimeMillis() / 1000L) + lifeTime);
+			long expiry = (System.currentTimeMillis() / 1000L) + lifeTime;
+			this.timedPermissionsTime.put(world + ":" + permission, expiry);
+
+			List<String> currentPerms = new LinkedList<>(getData().getPermissions(backendWorld));
+			currentPerms.add(permission + TIMED_PERMISSION_SEPARATOR + expiry);
+			getData().setPermissions(currentPerms, backendWorld);
 		}
 
 		clearCache();
@@ -707,10 +757,11 @@ public abstract class PermissionEntity {
 	/**
 	 * Removes specified timed permission for world
 	 *
-	 * @param permission
-	 * @param world
+	 * @param permission Name of permission
+	 * @param world world name
 	 */
 	public void removeTimedPermission(String permission, String world) {
+		final String backendWorld = world;
 		if (world == null) {
 			world = "";
 		}
@@ -722,8 +773,63 @@ public abstract class PermissionEntity {
 		this.timedPermissions.get(world).remove(permission);
 		this.timedPermissionsTime.remove(world + ":" + permission);
 
+		List<String> currentPerms = new LinkedList<>(getData().getPermissions(backendWorld));
+		String prefix = permission + TIMED_PERMISSION_SEPARATOR;
+		currentPerms.removeIf(p -> p.startsWith(prefix));
+		getData().setPermissions(currentPerms, backendWorld);
+
 		clearCache();
 		this.callEvent(PermissionEntityEvent.Action.PERMISSIONS_CHANGED);
+	}
+
+	public void loadTimedPermissions() {
+		Set<String> worlds = new HashSet<>(getData().getWorlds());
+		worlds.addAll(getData().getPermissionsMap().keySet());
+		for (String world : worlds) {
+			loadTimedPermissions(world);
+		}
+	}
+
+	private void loadTimedPermissions(String world) {
+		String worldKey = world == null ? "" : world;
+		List<String> perms = new LinkedList<>(getData().getPermissions(world));
+		boolean changed = false;
+		ListIterator<String> iter = perms.listIterator();
+
+		while (iter.hasNext()) {
+			String entry = iter.next();
+			if (!isTimedEntry(entry)) {
+				continue;
+			}
+
+			String permissionName = parseTimedPermissionName(entry);
+			long expiry = parseTimedTimestamp(entry);
+			long now = System.currentTimeMillis() / 1000L;
+			int remaining = (int) (expiry - now);
+
+			if (remaining > 0) {
+				if (!this.timedPermissions.containsKey(worldKey)) {
+					this.timedPermissions.put(worldKey, new LinkedList<String>());
+				}
+				this.timedPermissions.get(worldKey).add(permissionName);
+				this.timedPermissionsTime.put(worldKey + ":" + permissionName, expiry);
+
+				TimerTask task = new TimerTask() {
+					@Override
+					public void run() {
+						removeTimedPermission(permissionName, world);
+					}
+				};
+				this.manager.registerTask(task, remaining);
+			} else {
+				iter.remove();
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			getData().setPermissions(perms, world);
+		}
 	}
 
 	protected void callEvent(PermissionEntityEvent event) {
@@ -739,6 +845,7 @@ public abstract class PermissionEntity {
 		if (obj == null) {
 			return false;
 		}
+
 		if (!getClass().equals(obj.getClass())) {
 			return false;
 		}
@@ -783,7 +890,7 @@ public abstract class PermissionEntity {
 	 * @param expression       permission expression - what user have in his permissions list (permission.nodes.*)
 	 * @param permission       permission which are checking for (permission.node.some.subnode)
 	 * @param additionalChecks check for parent node matching
-	 * @return
+	 * @return if it is matched
 	 */
 	public boolean isMatches(String expression, String permission, boolean additionalChecks) {
 		return this.manager.getPermissionMatcher().isMatches(expression, permission);
@@ -811,6 +918,7 @@ public abstract class PermissionEntity {
 		for (String group : getOwnParentIdentifiers(world)) {
 			ret.add(manager.getGroup(group));
 		}
+
 		Collections.sort(ret);
 		return Collections.unmodifiableList(ret);
 	}
@@ -913,7 +1021,7 @@ public abstract class PermissionEntity {
 
 	/**
 	 * Set parents for entity in global namespace
-	 * @param parents
+	 * @param parents List of parents
 	 */
 	public void setParents(List<PermissionGroup> parents) {
 		setParents(parents, null);

@@ -1,0 +1,211 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #4caf50;
+  --ifm-color-primary-dark: #45a049;
+  --ifm-color-primary-darker: #3d8b40;
+  --ifm-color-primary-darkest: #327335;
+  --ifm-color-primary-light: #66bb6a;
+  --ifm-color-primary-lighter: #81c784;
+  --ifm-color-primary-lightest: #a5d6a7;
+  --ifm-font-size-base: 95%;
+  --ifm-code-font-size: 90%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-background-color: #f8f9fa;
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-card-background-color: #ffffff;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #4caf50;
+  --ifm-color-primary-dark: #45a049;
+  --ifm-color-primary-darker: #3d8b40;
+  --ifm-color-primary-darkest: #327335;
+  --ifm-color-primary-light: #66bb6a;
+  --ifm-color-primary-lighter: #81c784;
+  --ifm-color-primary-lightest: #a5d6a7;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-background-color: #1b1b1d;
+  --ifm-navbar-background-color: #1b1b1d;
+  --ifm-card-background-color: #242426;
+}
+
+.navbar {
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.1);
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+}
+
+.navbar__brand {
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
+.navbar__brand b {
+  color: var(--ifm-color-primary);
+}
+
+.menu__link--active {
+  background-color: rgba(76, 175, 80, 0.1) !important;
+  color: var(--ifm-color-primary) !important;
+  font-weight: 700;
+}
+
+.footer {
+  padding: 2rem 0;
+  background-color: #141415;
+  border-top: 1px solid #303030;
+}
+
+.footer__copyright {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+/* Sidebar polishing */
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--ifm-toc-border-color);
+}
+
+.menu__list-item {
+  margin-top: 0.25rem;
+}
+
+.menu__link {
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.menu__link:hover {
+  background-color: rgba(76, 175, 80, 0.05);
+}
+
+/* Documentation Content */
+.theme-doc-markdown {
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.theme-doc-markdown h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  letter-spacing: -0.02em;
+}
+
+.theme-doc-markdown h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-top: 3rem;
+  margin-bottom: 1.25rem;
+  border-bottom: none;
+}
+
+.theme-doc-markdown h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-top: 2rem;
+}
+
+/* Admonitions */
+.admonition {
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* Code Blocks */
+.prism-code {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Right Sidebar (TOC) */
+.table-of-contents__link {
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* Search Box Polishing */
+.navbar__search-input {
+  border-radius: 8px !important;
+  background-color: var(--ifm-background-color) !important;
+  border: 1px solid var(--ifm-toc-border-color) !important;
+}
+
+.navbar__search-input:focus {
+  border-color: var(--ifm-color-primary) !important;
+}
+
+/* Command syntax: required <arg> vs optional [arg] */
+:root {
+  --cmd-arg-required: #1d4ed8;
+  --cmd-arg-optional: #c2410c;
+}
+
+[data-theme='dark'] {
+  --cmd-arg-required: #60a5fa;
+  --cmd-arg-optional: #fb923c;
+}
+
+.command-syntax {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.cmd-arg-required,
+code.cmd-arg-required {
+  color: var(--cmd-arg-required) !important;
+  font-weight: 700;
+}
+
+.cmd-arg-optional,
+code.cmd-arg-optional {
+  color: var(--cmd-arg-optional) !important;
+  font-weight: 600;
+}
+
+.theme-doc-markdown h2 .command-syntax,
+.theme-doc-markdown h3 .command-syntax {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.95em;
+  font-weight: 600;
+}
+
+.command-syntax-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--ifm-toc-border-color);
+  background: var(--ifm-color-emphasis-100);
+  font-size: 0.95rem;
+}
+
+.command-syntax-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Keep TOC command highlighting readable */
+.table-of-contents__link .command-syntax {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.92em;
+}
+
+.table-of-contents__link .cmd-arg-required,
+.table-of-contents__link .cmd-arg-optional {
+  font-weight: 700;
+}

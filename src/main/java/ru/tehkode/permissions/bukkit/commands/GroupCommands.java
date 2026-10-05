@@ -22,6 +22,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
+import ru.tehkode.permissions.bukkit.PEXAdventure;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.commands.Command;
 import ru.tehkode.utils.DateUtils;
@@ -42,14 +43,14 @@ public class GroupCommands extends PermissionsCommand {
 		List<PermissionGroup> groups = plugin.getPermissionsManager().getGroupList();
 		String worldName = this.autoCompleteWorldName(args.get("world"));
 
-		sender.sendMessage(ChatColor.WHITE + "Registered groups: ");
+		PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Registered groups: ");
 		for (PermissionGroup group : groups) {
 			String rank = "";
 			if (group.isRanked()) {
 				rank = " (rank: " + group.getRank() + "@" + group.getRankLadder() + ") ";
 			}
 
-			sender.sendMessage(String.format("  %s %s %s %s[%s]", group.getIdentifier(), " #" + group.getWeight(), rank, ChatColor.DARK_GREEN, StringUtils.implode(group.getParentIdentifiers(worldName), ", ")));
+			PEXAdventure.sendMessage(sender,String.format("  %s %s %s %s[%s]", group.getIdentifier(), " #" + group.getWeight(), rank, ChatColor.DARK_GREEN, StringUtils.implode(group.getParentIdentifiers(worldName), ", ")));
 		}
 	}
 
@@ -78,7 +79,7 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
@@ -86,12 +87,12 @@ public class GroupCommands extends PermissionsCommand {
 			try {
 				group.setWeight(Integer.parseInt(args.get("weight")));
 			} catch (NumberFormatException e) {
-				sender.sendMessage("Error! Weight should be integer value.");
+				PEXAdventure.sendMessage(sender,"Error! Weight should be integer value.");
 				return;
 			}
 		}
 
-		sender.sendMessage("Group \"" + group.getIdentifier() + "\" has " + group.getWeight() + " calories.");
+		PEXAdventure.sendMessage(sender,"Group \"" + group.getIdentifier() + "\" has " + group.getWeight() + " calories.");
 	}
 
 	@Command(name = "pex",
@@ -103,13 +104,13 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		group.setDebug(!group.isDebug());
 
-		sender.sendMessage("Debug mode for group " + group.getIdentifier() + " have been " + (group.isDebug() ? "enabled" : "disabled") + "!");
+		PEXAdventure.sendMessage(sender,"Debug mode for group " + group.getIdentifier() + " have been " + (group.isDebug() ? "enabled" : "disabled") + "!");
 	}
 
 	@Command(name = "pex",
@@ -123,15 +124,15 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		if (args.containsKey("newprefix")) {
 			group.setPrefix(args.get("newprefix"), worldName);
-			sender.sendMessage(group.getIdentifier() + "'s prefix" + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " has been set to \"" + group.getPrefix() + "\"");
+			PEXAdventure.sendMessage(sender,group.getIdentifier() + "'s prefix" + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " has been set to \"" + group.getPrefix() + "\"");
 		} else {
-			sender.sendMessage(group.getIdentifier() + "'s prefix" + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " is \"" + group.getPrefix() + "\"");
+			PEXAdventure.sendMessage(sender,group.getIdentifier() + "'s prefix" + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " is \"" + group.getPrefix() + "\"");
 		}
 	}
 
@@ -146,15 +147,15 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		if (args.containsKey("newsuffix")) {
 			group.setSuffix(args.get("newsuffix"), worldName);
-			sender.sendMessage(group.getIdentifier() + "'s suffix" + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " has been set to \"" + group.getSuffix() + "\"");
+			PEXAdventure.sendMessage(sender,group.getIdentifier() + "'s suffix" + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " has been set to \"" + group.getSuffix() + "\"");
 		} else {
-			sender.sendMessage(group.getIdentifier() + "'s suffix" + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " is \"" + group.getSuffix() + "\"");
+			PEXAdventure.sendMessage(sender,group.getIdentifier() + "'s suffix" + (worldName != null ? " (in world \"" + worldName + "\") " : "") + " is \"" + group.getSuffix() + "\"");
 		}
 	}
 
@@ -167,12 +168,12 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		if (!group.isVirtual()) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + args.get("group") + "\" already exists.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + args.get("group") + "\" already exists.");
 			return;
 		}
 
@@ -187,7 +188,7 @@ public class GroupCommands extends PermissionsCommand {
 			group.setParents(groups, null);
 		}
 
-		sender.sendMessage(ChatColor.WHITE + "Group \"" + group.getIdentifier() + "\" created!");
+		PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Group \"" + group.getIdentifier() + "\" created!");
 
 		group.save();
 	}
@@ -202,11 +203,11 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
-		sender.sendMessage(ChatColor.WHITE + "Group \"" + group.getIdentifier() + "\" removed!");
+		PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Group \"" + group.getIdentifier() + "\" removed!");
 
 		group.remove();
 		plugin.getPermissionsManager().resetGroup(group.getIdentifier());
@@ -234,20 +235,20 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		List<String> parentNames = group.getParentIdentifiers(worldName);
 		if (parentNames.isEmpty()) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + group.getIdentifier() + "\" has no parents.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + group.getIdentifier() + "\" has no parents.");
 			return;
 		}
 
-		sender.sendMessage("Group " + group.getIdentifier() + " parents:");
+		PEXAdventure.sendMessage(sender,"Group " + group.getIdentifier() + " parents:");
 
 		for (String parent : parentNames) {
-			sender.sendMessage("  " + parent);
+			PEXAdventure.sendMessage(sender,"  " + parent);
 		}
 
 	}
@@ -263,7 +264,7 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
@@ -281,7 +282,7 @@ public class GroupCommands extends PermissionsCommand {
 
 			group.setParents(groups, worldName);
 
-			sender.sendMessage(ChatColor.WHITE + "Group " + group.getIdentifier() + " inheritance updated!");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Group " + group.getIdentifier() + " inheritance updated!");
 
 			group.save();
 		}
@@ -298,7 +299,7 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
@@ -316,7 +317,7 @@ public class GroupCommands extends PermissionsCommand {
 
 			group.setParents(groups, worldName);
 
-			sender.sendMessage(ChatColor.WHITE + "Group " + group.getIdentifier() + " inheritance updated!");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Group " + group.getIdentifier() + " inheritance updated!");
 
 			group.save();
 		}
@@ -333,7 +334,7 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
@@ -349,7 +350,7 @@ public class GroupCommands extends PermissionsCommand {
 
 			group.setParents(groups, worldName);
 
-			sender.sendMessage(ChatColor.WHITE + "Group \"" + group.getIdentifier() + "\" inheritance updated!");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Group \"" + group.getIdentifier() + "\" inheritance updated!");
 
 			group.save();
 		}
@@ -377,11 +378,11 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
-		sender.sendMessage("'" + groupName + "' inherits the following groups:");
+		PEXAdventure.sendMessage(sender,"'" + groupName + "' inherits the following groups:");
 		printEntityInheritance(sender, group.getParents());
 
 		Map<String, List<PermissionGroup>> parents = group.getAllParents();
@@ -390,16 +391,16 @@ public class GroupCommands extends PermissionsCommand {
 				continue;
 			}
 
-			sender.sendMessage("  @" + world + ":");
+			PEXAdventure.sendMessage(sender,"  @" + world + ":");
 			printEntityInheritance(sender, parents.get(world));
 		}
 
-		sender.sendMessage("Group \"" + group.getIdentifier() + "\"'s permissions:");
+		PEXAdventure.sendMessage(sender,"Group \"" + group.getIdentifier() + "\"'s permissions:");
 		this.sendMessage(sender, this.mapPermissions(worldName, group, 0));
 
-		sender.sendMessage("Group \"" + group.getIdentifier() + "\"'s Options: ");
+		PEXAdventure.sendMessage(sender,"Group \"" + group.getIdentifier() + "\"'s Options: ");
 		for (Map.Entry<String, String> option : group.getOptions(worldName).entrySet()) {
-			sender.sendMessage("  " + option.getKey() + " = \"" + option.getValue() + "\"");
+			PEXAdventure.sendMessage(sender,"  " + option.getKey() + " = \"" + option.getValue() + "\"");
 		}
 	}
 
@@ -414,13 +415,13 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		group.addPermission(args.get("permission"), worldName);
 
-		sender.sendMessage(ChatColor.WHITE + "Permission \"" + args.get("permission") + "\" added to group \"" + group.getIdentifier() + "\"!");
+		PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Permission \"" + args.get("permission") + "\" added to group \"" + group.getIdentifier() + "\"!");
 
 		this.informGroup(plugin, group, "Your permissions have been changed");
 	}
@@ -436,16 +437,16 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		group.setOption(args.get("option"), args.get("value"), worldName);
 
 		if (args.containsKey("value") && args.get("value").isEmpty()) {
-			sender.sendMessage(ChatColor.WHITE + "Option \"" + args.get("option") + "\" cleared!");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Option \"" + args.get("option") + "\" cleared!");
 		} else {
-			sender.sendMessage(ChatColor.WHITE + "Option \"" + args.get("option") + "\" set!");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Option \"" + args.get("option") + "\" set!");
 		}
 
 		this.informGroup(plugin, group, "Your permissions has been changed");
@@ -462,7 +463,7 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
@@ -471,7 +472,7 @@ public class GroupCommands extends PermissionsCommand {
 		group.removePermission(permission, worldName);
 		group.removeTimedPermission(permission, worldName);
 
-		sender.sendMessage(ChatColor.WHITE + "Permission \"" + permission + "\" removed from group \"" + group.getIdentifier() + "\"!");
+		PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Permission \"" + permission + "\" removed from group \"" + group.getIdentifier() + "\"!");
 
 		this.informGroup(plugin, group, "Your permissions have been changed");
 	}
@@ -487,7 +488,7 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
@@ -505,9 +506,9 @@ public class GroupCommands extends PermissionsCommand {
 
 			group.setPermissions(permissions, worldName);
 
-			sender.sendMessage("Permissions swapped!");
+			PEXAdventure.sendMessage(sender,"Permissions swapped!");
 		} catch (Throwable e) {
-			sender.sendMessage(ChatColor.RED + "Error: " + e.getMessage());
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Error: " + e.getMessage());
 		}
 	}
 
@@ -528,13 +529,13 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		group.addTimedPermission(args.get("permission"), worldName, lifetime);
 
-		sender.sendMessage(ChatColor.WHITE + "Timed permission added!");
+		PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Timed permission added!");
 		this.informGroup(plugin, group, "Your permissions have been changed!");
 
 		plugin.getLogger().info("Group " + groupName + " get timed permission \"" + args.get("permission") + "\" "
@@ -552,13 +553,13 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		group.removeTimedPermission(args.get("permission"), worldName);
 
-		sender.sendMessage(ChatColor.WHITE + "Timed permission \"" + args.get("permission") + "\" removed!");
+		PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Timed permission \"" + args.get("permission") + "\" removed!");
 		this.informGroup(plugin, group, "Your permissions have been changed!");
 	}
 
@@ -575,19 +576,19 @@ public class GroupCommands extends PermissionsCommand {
 		Set<PermissionUser> users = plugin.getPermissionsManager().getUsers(groupName);
 
 		if (users == null || users.isEmpty()) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		if (users.isEmpty()) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" has no users.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" has no users.");
 			return;
 		}
 
-		sender.sendMessage("Group \"" + groupName + "\"'s users (" + users.size() + "):");
+		PEXAdventure.sendMessage(sender,"Group \"" + groupName + "\"'s users (" + users.size() + "):");
 
 		for (PermissionUser user : users) {
-			sender.sendMessage("   " + describeUser(user));
+			PEXAdventure.sendMessage(sender,"   " + describeUser(user));
 		}
 	}
 
@@ -612,13 +613,13 @@ public class GroupCommands extends PermissionsCommand {
 			PermissionUser user = plugin.getPermissionsManager().getUser(userName);
 
 			if (user == null) {
-				sender.sendMessage(ChatColor.RED + "User \"" + userName + "\" doesn't exist.");
+				PEXAdventure.sendMessage(sender,ChatColor.RED + "User \"" + userName + "\" doesn't exist.");
 				return;
 			}
 
 			user.addGroup(groupName, worldName);
 
-			sender.sendMessage(ChatColor.WHITE + "User " + user.getName() + " added to " + groupName + " !");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "User " + user.getName() + " added to " + groupName + " !");
 			this.informPlayer(plugin, user, "You are assigned to \"" + groupName + "\" group");
 		}
 	}
@@ -644,13 +645,13 @@ public class GroupCommands extends PermissionsCommand {
 			PermissionUser user = plugin.getPermissionsManager().getUser(userName);
 
 			if (user == null) {
-				sender.sendMessage(ChatColor.RED + "User \"" + userName + "\" doesn't exist.");
+				PEXAdventure.sendMessage(sender,ChatColor.RED + "User \"" + userName + "\" doesn't exist.");
 				return;
 			}
 
 			user.removeGroup(groupName, worldName);
 
-			sender.sendMessage(ChatColor.WHITE + "User " + user.getName() + " removed from " + args.get("group") + " !");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "User " + user.getName() + " removed from " + args.get("group") + " !");
 			this.informPlayer(plugin, user, "You were removed from \"" + groupName + "\" group");
 
 		}
@@ -665,9 +666,9 @@ public class GroupCommands extends PermissionsCommand {
 
 
 		List<PermissionGroup> defaultGroups = plugin.getPermissionsManager().getDefaultGroups(worldName);
-		sender.sendMessage("Default groups in world \"" + worldName + "\" are:");
+		PEXAdventure.sendMessage(sender,"Default groups in world \"" + worldName + "\" are:");
 		for (PermissionGroup grp : defaultGroups) {
-			sender.sendMessage("  - " + grp.getIdentifier());
+			PEXAdventure.sendMessage(sender,"  - " + grp.getIdentifier());
 		}
 	}
 
@@ -683,11 +684,11 @@ public class GroupCommands extends PermissionsCommand {
 		PermissionGroup group = plugin.getPermissionsManager().getGroup(groupName);
 
 		if (group == null || group.isVirtual()) {
-			sender.sendMessage(ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Group \"" + groupName + "\" doesn't exist.");
 			return;
 		}
 
 		group.setDefault(def, worldName);
-		sender.sendMessage("Group \"" + groupName + "\" is " + (def ? "now" : "no longer") + " default in world \"" + worldName + "\"");
+		PEXAdventure.sendMessage(sender,"Group \"" + groupName + "\" is " + (def ? "now" : "no longer") + " default in world \"" + worldName + "\"");
 	}
 }

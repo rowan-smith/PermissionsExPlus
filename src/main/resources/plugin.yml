@@ -2,9 +2,10 @@ name: PermissionsEx
 main: ru.tehkode.permissions.bukkit.PermissionsEx
 version: "${project.version}"
 author: [t3hk0d3, zml, Rono]
-api-version: 1.21
+api-version: 1.13
 website: http://dev.bukkit.org/server-mods/permissionsex
 description: PermissionsExPlus - A maintained fork of PermissionsEx.
+softdepend: [Vault, PlaceholderAPI]
 commands:
   pex:
     description: Provides access to Permissions commands and information.
@@ -73,7 +74,7 @@ commands:
            /<command> set default group <group> <value> [world] - Set whether a group is default for specified worlds
            /<command> group <group> rank [rank] [ladder] - Get or set <group> [rank] [ladder]
            /<command> promote <user> [ladder] - Promotes <user> to next group on [ladder]
-           /<command> demote <user> [ladder] - Demotes <user> to previous group or [ladder]
+           /<command> demote <user> [ladder] - Demotes <user> to previous group on [ladder]
            /<command> worlds - Print loaded worlds
            /<command> world <world> - Print <world> inheritance info
            /<command> world <world> inherit <parentWorlds> - Set <parentWorlds> for <world>
@@ -81,12 +82,12 @@ commands:
     description: Permission ladder promotion command.
     usage: |
            Usage:
-           /<command> <user> - Promotes <user> to next group
+           /<command> <user> [ladder] - Promotes <user> to next group on [ladder]
   demote:
     description: Permission ladder demotion command.
     usage: |
            Usage:
-           /<command> <user> - Demotes <user> to previous group
+           /<command> <user> [ladder] - Demotes <user> to previous group on [ladder]
 permissions:
     permissionsex.disabled:
         description: Apply this permission to players who should not have pex regex-based permission matching apply

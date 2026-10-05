@@ -21,11 +21,13 @@ This fork is based on the original PermissionsEx project and keeps the same core
 - Runtime backend inspection and switching
 - UUID conversion support
 - Debug and reporting tools
+- **Kyori Adventure support** - Modern text component API for enhanced messaging
 
 ## TODO
 
 The following features and improvements are planned for PermissionsExPlus:
 
+- [x] Add Kyori Adventure support for enhanced text components
 - [ ] Update compatibility for newer Bukkit/Spigot/Paper versions
 - [ ] Improve reload stability and permission attachment refresh behavior
 - [ ] Add better validation and error messages for invalid configuration files
@@ -41,6 +43,7 @@ The following features and improvements are planned for PermissionsExPlus:
 - [ ] Add CI builds and automated release packaging
 - [ ] Investigate a web editor or external management UI
 - [ ] Investigate support for modern platform abstractions and future API changes
+- [ ] Add click events and hover tooltips to messages
 
 ## Maven
 

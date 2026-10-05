@@ -23,26 +23,21 @@ import com.mojang.api.profiles.HttpProfileRepository;
 import com.mojang.api.profiles.Profile;
 import com.mojang.api.profiles.ProfileRepository;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionsUserData;
 import ru.tehkode.permissions.backends.PermissionBackend;
-import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.bukkit.ErrorReport;
+import ru.tehkode.permissions.bukkit.PEXAdventure;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 import ru.tehkode.permissions.commands.Command;
 import ru.tehkode.permissions.commands.CommandsManager.CommandBinding;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -56,9 +51,9 @@ public class UtilityCommands extends PermissionsCommand {
 	public void reload(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
 		try {
 			plugin.getPermissionsManager().reset();
-			sender.sendMessage(ChatColor.WHITE + "Permissions reloaded");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Permissions reloaded");
 		} catch (PermissionBackendException e) {
-			sender.sendMessage(ChatColor.RED + "Failed to reload permissions! Check configuration!\n" +
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Failed to reload permissions! Check configuration!\n" +
 							   ChatColor.RED + "Error (see console for full): " + e.getMessage());
 			plugin.getLogger().log(Level.WARNING, "Failed to reload permissions when " + sender.getName() + " ran `pex reload`", e);
 		}
@@ -70,8 +65,8 @@ public class UtilityCommands extends PermissionsCommand {
 			description = "Create an issue template to report an issue")
 	public void report(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
 		ErrorReport report = ErrorReport.withException("User-requested report", new Exception().fillInStackTrace());
-		sender.sendMessage("Fill in the information at " + report.getShortURL() + " to report an issue");
-		sender.sendMessage(ChatColor.RED + "NOTE: A GitHub account is necessary to report issues. Create one at https://github.com/");
+		PEXAdventure.sendMessage(sender,"Fill in the information at " + report.getShortURL() + " to report an issue");
+		PEXAdventure.sendMessage(sender,ChatColor.RED + "NOTE: A GitHub account is necessary to report issues. Create one at https://github.com/");
 	}
 
 	@Command(name = "pex",
@@ -92,23 +87,23 @@ public class UtilityCommands extends PermissionsCommand {
 			try {
 				config.save(new File(plugin.getDataFolder(), "config.yml"));
 			} catch (Throwable e) {
-				sender.sendMessage(ChatColor.RED + "[PermissionsEx] Failed to save configuration: " + e.getMessage());
+				PEXAdventure.sendMessage(sender,ChatColor.RED + "[PermissionsEx] Failed to save configuration: " + e.getMessage());
 			}
 		}
 
 		Object node = config.get(nodeName);
 		if (node instanceof Map) {
-			sender.sendMessage("Node \"" + nodeName + "\": ");
+			PEXAdventure.sendMessage(sender,"Node \"" + nodeName + "\": ");
 			for (Map.Entry<?, ?> entry : ((Map<?, ?>) node).entrySet()) {
-				sender.sendMessage("  " + entry.getKey() + " = " + entry.getValue());
+				PEXAdventure.sendMessage(sender,"  " + entry.getKey() + " = " + entry.getValue());
 			}
 		} else if (node instanceof List) {
-			sender.sendMessage("Node \"" + nodeName + "\": ");
+			PEXAdventure.sendMessage(sender,"Node \"" + nodeName + "\": ");
 			for (Object item : ((List<?>) node)) {
-				sender.sendMessage(" - " + item);
+				PEXAdventure.sendMessage(sender," - " + item);
 			}
 		} else {
-			sender.sendMessage("Node \"" + nodeName + "\" = \"" + node + "\"");
+			PEXAdventure.sendMessage(sender,"Node \"" + nodeName + "\" = \"" + node + "\"");
 		}
 	}
 
@@ -117,7 +112,7 @@ public class UtilityCommands extends PermissionsCommand {
 			permission = "permissions.manage.backend",
 			description = "Print currently used backend")
 	public void getBackend(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-		sender.sendMessage("Current backend: " + plugin.getPermissionsManager().getBackend());
+		PEXAdventure.sendMessage(sender,"Current backend: " + plugin.getPermissionsManager().getBackend());
 	}
 
 	@Command(name = "pex",
@@ -131,16 +126,16 @@ public class UtilityCommands extends PermissionsCommand {
 
 		try {
 			plugin.getPermissionsManager().setBackend(args.get("backend"));
-			sender.sendMessage(ChatColor.WHITE + "Permission backend changed!");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "Permission backend changed!");
 		} catch (RuntimeException e) {
 			if (e.getCause() instanceof ClassNotFoundException) {
-				sender.sendMessage(ChatColor.RED + "Specified backend not found.");
+				PEXAdventure.sendMessage(sender,ChatColor.RED + "Specified backend not found.");
 			} else {
-				sender.sendMessage(ChatColor.RED + "Error during backend initialization.");
+				PEXAdventure.sendMessage(sender,ChatColor.RED + "Error during backend initialization.");
 				e.printStackTrace();
 			}
 		} catch (PermissionBackendException e) {
-			sender.sendMessage(ChatColor.RED + "Backend initialization failed! Fix your configuration!\n" +
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Backend initialization failed! Fix your configuration!\n" +
 							   ChatColor.RED + "Error (see console for more): " + e.getMessage());
 			plugin.getLogger().log(Level.WARNING, "Backend initialization failed when " + sender.getName() + " was initializing " + args.get("backend"), e);
 		}
@@ -151,7 +146,7 @@ public class UtilityCommands extends PermissionsCommand {
 			permission = "permissions.manage.users",
 			description = "Print complete user/group hierarchy")
 	public void printHierarchy(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
-		sender.sendMessage("User/Group inheritance hierarchy:");
+		PEXAdventure.sendMessage(sender,"User/Group inheritance hierarchy:");
 		this.sendMessage(sender, this.printHierarchy(null, this.autoCompleteWorldName(args.get("world")), 0));
 	}
 
@@ -162,7 +157,7 @@ public class UtilityCommands extends PermissionsCommand {
 	public void convertUUID(final PermissionsEx plugin, final CommandSender sender, Map<String, String> args) {
 		final PermissionBackend backend = plugin.getPermissionsManager().getBackend();
 		if (!plugin.getServer().getOnlineMode() && !"force".equals(args.get("force"))) {
-			sender.sendMessage(ChatColor.RED + "This server is running in offline mode and UUIDs may not be stable. Please run '/pex convert uuid force' to perform conversion anyway, or switch to online mode.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "This server is running in offline mode and UUIDs may not be stable. Please run '/pex convert uuid force' to perform conversion anyway, or switch to online mode.");
 			return;
 		}
 		final ProfileRepository repo = new HttpProfileRepository("minecraft");
@@ -176,11 +171,11 @@ public class UtilityCommands extends PermissionsCommand {
 		}
 
 		if (userIdentifiers.isEmpty()) {
-			sender.sendMessage(ChatColor.RED + "No users to convert!");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "No users to convert!");
 			return;
 		}
 
-		sender.sendMessage("Beginning conversion to UUID in " + (int) Math.ceil(userIdentifiers.size() / 50000.0) + " batches of max 50k (1 batch is executed every 10 minutes)");
+		PEXAdventure.sendMessage(sender,"Beginning conversion to UUID in " + (int) Math.ceil(userIdentifiers.size() / 50000.0) + " batches of max 50k (1 batch is executed every 10 minutes)");
 		backend.setPersistent(false);
 		final Iterator<List<String>> splitIdentifiers = Iterables.partition(userIdentifiers, 50 * 1000).iterator(); // 50k users per 10 minutes
 		final AtomicInteger batchNum = new AtomicInteger(1);
@@ -206,7 +201,7 @@ public class UtilityCommands extends PermissionsCommand {
 				} else {
 					plugin.getLogger().info("UUID conversion complete");
 					if (!(sender instanceof Player) || ((Player) sender).isOnline()) {
-						sender.sendMessage("UUID conversion complete");
+						PEXAdventure.sendMessage(sender,"UUID conversion complete");
 					}
 					backend.setPersistent(true);
 				}
@@ -224,17 +219,17 @@ public class UtilityCommands extends PermissionsCommand {
 			PermissionBackend backend = mgr.createBackend(args.get("backend"));
 			mgr.getBackend().loadFrom(backend);
 
-			sender.sendMessage(ChatColor.WHITE + "[PermissionsEx] Data from \"" + args.get("backend") + "\" loaded into currently active backend");
+			PEXAdventure.sendMessage(sender,ChatColor.WHITE + "[PermissionsEx] Data from \"" + args.get("backend") + "\" loaded into currently active backend");
 		} catch (RuntimeException e) {
 			if (e.getCause() instanceof ClassNotFoundException) {
-				sender.sendMessage(ChatColor.RED + "Specified backend not found!");
+				PEXAdventure.sendMessage(sender,ChatColor.RED + "Specified backend not found!");
 			} else {
-				sender.sendMessage(ChatColor.RED + "Error: " + e.getMessage());
+				PEXAdventure.sendMessage(sender,ChatColor.RED + "Error: " + e.getMessage());
 				plugin.getLogger().severe("Error: " + e.getMessage());
 				e.printStackTrace();
 			}
 		} catch (PermissionBackendException e) {
-			sender.sendMessage(ChatColor.RED + "Backend " + args.get("backend") + " was unable to load due to user configuration error. See console for details.");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Backend " + args.get("backend") + " was unable to load due to user configuration error. See console for details.");
 			plugin.getLogger().log(Level.WARNING, "Import backend unable to load", e);
 		}
 	}
@@ -249,7 +244,7 @@ public class UtilityCommands extends PermissionsCommand {
 		manager.setDebug(!manager.isDebug());
 		String debugStatusMessage = "Debug mode " + (manager.isDebug() ? "enabled" : "disabled");
 		if (sender instanceof Player) {
-			sender.sendMessage(debugStatusMessage);
+			PEXAdventure.sendMessage(sender,debugStatusMessage);
 		}
 		plugin.getLogger().warning(debugStatusMessage);
 	}
@@ -262,7 +257,7 @@ public class UtilityCommands extends PermissionsCommand {
 		try {
 			return Integer.parseInt(args.get(key));
 		} catch (NumberFormatException e) {
-			sender.sendMessage(ChatColor.RED + "Invalid " + key + " entered; must be an integer but was '" + args.get(key) + "'");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Invalid " + key + " entered; must be an integer but was '" + args.get(key) + "'");
 			return Integer.MIN_VALUE;
 		}
 	}
@@ -282,13 +277,13 @@ public class UtilityCommands extends PermissionsCommand {
 		}
 
 		if (page < 1) {
-			sender.sendMessage(ChatColor.RED + "Page couldn't be lower than 1");
+			PEXAdventure.sendMessage(sender,ChatColor.RED + "Page couldn't be lower than 1");
 			return;
 		}
 
 		int totalPages = (int) Math.ceil(commands.size() / count);
 
-		sender.sendMessage(ChatColor.BLUE + "PermissionsEx" + ChatColor.WHITE + " commands (page " + ChatColor.GOLD + page + "/" + totalPages + ChatColor.WHITE + "): ");
+		PEXAdventure.sendMessage(sender,ChatColor.BLUE + "PermissionsEx" + ChatColor.WHITE + " commands (page " + ChatColor.GOLD + page + "/" + totalPages + ChatColor.WHITE + "): ");
 
 		int base = count * (page - 1);
 
@@ -301,8 +296,8 @@ public class UtilityCommands extends PermissionsCommand {
 			String commandName = String.format("/%s %s", command.name(), command.syntax()).replace("<", ChatColor.BOLD.toString() + ChatColor.RED + "<").replace(">", ">" + ChatColor.RESET + ChatColor.GOLD.toString()).replace("[", ChatColor.BOLD.toString() + ChatColor.BLUE + "[").replace("]", "]" + ChatColor.RESET + ChatColor.GOLD.toString());
 
 
-			sender.sendMessage(ChatColor.GOLD + commandName);
-			sender.sendMessage(ChatColor.AQUA + "    " + command.description());
+			PEXAdventure.sendMessage(sender,ChatColor.GOLD + commandName);
+			PEXAdventure.sendMessage(sender,ChatColor.AQUA + "    " + command.description());
 		}
 	}
 
@@ -312,9 +307,9 @@ public class UtilityCommands extends PermissionsCommand {
 			description = "Display version of PermissionsEx")
 	public void showVersion(PermissionsEx plugin, CommandSender sender, Map<String, String> args) {
 		if (sender instanceof Player) {
-			sender.sendMessage("[" + ChatColor.RED + "PermissionsEx" + ChatColor.WHITE + "] version [" + ChatColor.BLUE + plugin.getDescription().getVersion() + ChatColor.WHITE + "]");
+			PEXAdventure.sendMessage(sender,"[" + ChatColor.RED + "PermissionsEx" + ChatColor.WHITE + "] version [" + ChatColor.BLUE + plugin.getDescription().getVersion() + ChatColor.WHITE + "]");
 		} else {
-			sender.sendMessage("[PermissionsEx] version [" + plugin.getDescription().getVersion() + "]");
+			PEXAdventure.sendMessage(sender,"[PermissionsEx] version [" + plugin.getDescription().getVersion() + "]");
 		}
 	}
 }

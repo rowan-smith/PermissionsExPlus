@@ -12,7 +12,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SQLBackendTest extends PEXTestBase {
     private SQLBackend backend;
@@ -40,8 +41,7 @@ public class SQLBackendTest extends PEXTestBase {
         PermissionsUserData data = backend.getUserData("testUser");
         data.setPermissions(Arrays.asList("perm1", "perm2"), "world");
         
-        // Wait for async saving (SQLBackend uses CachingUserData which uses executor)
-        waitForExecutor();
+        backend.awaitPendingTasks();
         
         PermissionsUserData data2 = backend.getUserData("testUser");
         assertEquals(Arrays.asList("perm1", "perm2"), data2.getPermissions("world"));
@@ -53,7 +53,7 @@ public class SQLBackendTest extends PEXTestBase {
         data.setPermissions(Collections.singletonList("group-perm"), null);
         data.setParents(Collections.singletonList("default"), null);
         
-        waitForExecutor();
+        backend.awaitPendingTasks();
         
         PermissionsGroupData data2 = backend.getGroupData("testGroup");
         assertEquals(Collections.singletonList("group-perm"), data2.getPermissions(null));

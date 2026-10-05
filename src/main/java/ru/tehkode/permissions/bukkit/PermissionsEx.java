@@ -18,13 +18,6 @@
  */
 package ru.tehkode.permissions.bukkit;
 
-import java.lang.reflect.Field;
-import java.util.Calendar;
-import java.util.List;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-
 import com.google.common.cache.CacheBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -60,6 +53,13 @@ import ru.tehkode.permissions.exceptions.PermissionBackendException;
 import ru.tehkode.permissions.exceptions.PermissionsNotAvailable;
 import ru.tehkode.utils.StringUtils;
 
+import java.lang.reflect.Field;
+import java.util.Calendar;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+
 /**
  * @author code
  */
@@ -69,6 +69,7 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 	private PermissionsExConfig config;
 	protected SuperpermsListener superms;
 	private RegexPermissions regexPerms;
+	private PEXPlaceholderExpansion placeholderExpansion;
 	private boolean errored = false;
 	private static PermissionsEx instance;
 	{
@@ -205,6 +206,20 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 			this.getServer().getPluginManager().registerEvents(superms, this);
 			this.saveConfig();
 
+			// Register PlaceholderAPI expansion
+			if (this.getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+				placeholderExpansion = new PEXPlaceholderExpansion(this);
+				placeholderExpansion.register();
+				getLogger().info("PlaceholderAPI support enabled");
+			}
+
+			// Initialize Adventure support
+			try {
+				PEXAdventure.init(this);
+				getLogger().info("Adventure support enabled");
+			} catch (Exception ignored) {
+			}
+
 			// Start timed permissions cleaner timer
 			this.permissionsManager.initTimer();
 
@@ -221,6 +236,11 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 	@Override
 	public void onDisable() {
 		try {
+			try {
+				PEXAdventure.shutdown();
+			} catch (Exception ignored) {
+			}
+
 			if (this.permissionsManager != null) {
 				this.permissionsManager.end();
 				this.getServer().getServicesManager().unregister(PermissionManager.class, this.permissionsManager);
@@ -231,15 +251,26 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 				this.regexPerms.onDisable();
 				this.regexPerms = null;
 			}
+
 			if (this.superms != null) {
 				this.superms.onDisable();
 				this.superms = null;
+			}
+
+			if (this.placeholderExpansion != null) {
+				this.placeholderExpansion.unregister();
+				this.placeholderExpansion = null;
 			}
 
 		} catch (Throwable t) {
 			ErrorReport.handleError("While disabling", t);
 		}
 		ErrorReport.shutdown();
+	}
+
+	@Override
+	public List<String> onTabComplete(@NonNull CommandSender sender, @NonNull Command command, @NonNull String alias, @NonNull String[] args) {
+		return this.commandsManager.tabComplete(sender, command, alias, args);
 	}
 
 	@Override
@@ -323,7 +354,7 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 			return null;
 		}
 
-		return worlds.getFirst().getUID();
+		return worlds.get(0).getUID();
 	}
 
 	@Override
