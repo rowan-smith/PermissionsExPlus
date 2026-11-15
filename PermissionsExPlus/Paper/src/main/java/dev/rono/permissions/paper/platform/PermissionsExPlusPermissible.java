@@ -24,6 +24,13 @@ final class PermissionsExPlusPermissible extends PermissibleBase {
 
     private final Supplier<Map<String, PermissionResult>> effectivePermissions;
 
+    /*
+     * Snapshot used only to enumerate effective permissions
+     * (getEffectivePermissions).
+     * Authorisation decisions never read it: Core's revision- and expiry-aware
+     * cache
+     * is authoritative, so a timed permission stops applying the moment it expires.
+     */
     private final Map<String, PermissionResult> resolved = new ConcurrentHashMap<>();
 
     PermissionsExPlusPermissible(Player player,
@@ -46,7 +53,12 @@ final class PermissionsExPlusPermissible extends PermissibleBase {
     private PermissionResult resolve(String permission) {
         Objects.requireNonNull(permission, "permission");
 
-        return resolved.computeIfAbsent(permission, resolver);
+        var result = resolver.apply(permission);
+
+        // Record the fresh decision for enumeration only; it is never read back here.
+        resolved.put(permission, result);
+
+        return result;
     }
 
     @Override

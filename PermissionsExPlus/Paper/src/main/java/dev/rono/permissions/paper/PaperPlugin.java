@@ -117,6 +117,9 @@ public class PaperPlugin extends JavaPlugin {
         permissionRefreshSubscriptions.add(core.events().subscribe(GroupModifiedEvent.class, event -> refreshAll()));
         permissionRefreshSubscriptions.add(core.events().subscribe(GroupCreatedEvent.class, event -> refreshAll()));
         permissionRefreshSubscriptions.add(core.events().subscribe(GroupDeletedEvent.class, event -> refreshAll()));
+        // The event bus survives reload, but the data behind every injected permissible
+        // was replaced, so recalculate all online players once the new runtime is live.
+        permissionRefreshSubscriptions.add(core.onReload(this::refreshAll));
     }
 
     private void refresh(java.util.UUID uuid) {

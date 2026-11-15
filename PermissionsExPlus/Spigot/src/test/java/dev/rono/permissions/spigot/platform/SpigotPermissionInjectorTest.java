@@ -73,22 +73,25 @@ class SpigotPermissionInjectorTest {
     }
 
     @Test
-    void recalculationInvalidatesDynamicResolutionCache() {
+    void permissionChecksAlwaysConsultCoreWithoutWaitingForRecalculation() {
         var player = server.addPlayer("alex");
 
+        // Simulates a timed permission: Core stops returning ALLOW the moment it
+        // expires, before any refresh event recalculates the permissible.
         var result = new AtomicReference<>(PermissionResult.ALLOW);
 
         var permissible = new PermissionsExPlusPermissible(
                 player, new PermissibleBase(player), node -> result.get(), java.util.Map::of);
 
         assertTrue(permissible.hasPermission("pex.dynamic"));
+        assertTrue(permissible.isPermissionSet("pex.dynamic"));
 
         result.set(PermissionResult.DENY);
 
-        assertTrue(permissible.hasPermission("pex.dynamic"));
+        assertFalse(permissible.hasPermission("pex.dynamic"), "stale ALLOW served after Core revoked the permission");
 
-        permissible.recalculatePermissions();
+        result.set(PermissionResult.UNDEFINED);
 
-        assertFalse(permissible.hasPermission("pex.dynamic"));
+        assertFalse(permissible.isPermissionSet("pex.dynamic"));
     }
 }

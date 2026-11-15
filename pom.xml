@@ -19,7 +19,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>11</maven.compiler.release>
+        <!-- Single Java baseline for every module. Minecraft 1.20.5+ and Paper 1.21 require Java 21. -->
+        <maven.compiler.release>21</maven.compiler.release>
         <junit.version>5.11.4</junit.version>
         <dbcp.version>2.13.0</dbcp.version>
         <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>

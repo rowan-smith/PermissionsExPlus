@@ -21,7 +21,7 @@ public final class PermissionsExPlusVaultPermission extends Permission {
 
     @Override
     public String getName() {
-        return plugin.getPluginMeta().getName();
+        return plugin.getDescription().getName();
     }
 
     @Override

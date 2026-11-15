@@ -13,10 +13,10 @@ import dev.rono.permissions.core.resolver.ResolutionSupport;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import org.casbin.jcasbin.main.EnforceResult;
@@ -53,7 +53,8 @@ public final class CasbinPermissionEngine implements PermissionEngine {
     private final Enforcer enforcer;
     private final PexCollectingEffector effector = new PexCollectingEffector();
     private final AtomicLong revision = new AtomicLong();
-    private final ConcurrentHashMap<String, Integer> syncedHashes = new ConcurrentHashMap<>();
+    /** Guarded by {@link #policyLock}. */
+    private final HashMap<String, List<List<String>>> syncedPolicies = new HashMap<>();
     private final Object policyLock = new Object();
     private volatile int compiledPolicies;
 
@@ -107,9 +108,8 @@ public final class CasbinPermissionEngine implements PermissionEngine {
 
     @Override
     public void invalidate() {
-        syncedHashes.clear();
-
         synchronized (policyLock) {
+            syncedPolicies.clear();
             enforcer.clearPolicy();
             compiledPolicies = 0;
         }
@@ -121,14 +121,14 @@ public final class CasbinPermissionEngine implements PermissionEngine {
     public void invalidateSubject(String subjectKey) {
         Objects.requireNonNull(subjectKey, "subjectKey");
 
-        syncedHashes.remove(subjectKey);
-
         synchronized (policyLock) {
+            syncedPolicies.remove(subjectKey);
             enforcer.removeFilteredPolicy(0, subjectKey);
             compiledPolicies = enforcer.getPolicy().size();
         }
 
-        // Do not bump the global revision — callers use subject-scoped decision cache keys.
+        // Do not bump the global revision — callers use subject-scoped decision cache
+        // keys.
     }
 
     @Override
@@ -148,13 +148,16 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         var compiled = List.copyOf(support.compile(holder, options));
         var encodedContexts = ResolutionSupport.encodeContexts(options.contexts());
 
-        ensureSynced(subject, compiled);
-
         var collector = effector.begin();
         List<ResolutionSupport.CompiledPermission> matches;
 
         try {
+            // Synchronisation and enforcement must observe the same policy set. Another
+            // thread checking this subject with different query options (or after a graph
+            // change) compiles a different set, so both steps happen under one lock.
             synchronized (policyLock) {
+                ensureSynced(subject, compiled);
+
                 EnforceResult casbinResult;
 
                 try {
@@ -173,23 +176,35 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         return resolve(normalized, matches, holder, options);
     }
 
+    /** Must be called while holding {@link #policyLock}. */
     private void ensureSynced(String subject, List<ResolutionSupport.CompiledPermission> compiled) {
-        var hash = compiled.hashCode();
-        var current = syncedHashes.get(subject);
+        // Compare the exact rows Casbin stores rather than a 32-bit hash: a collision
+        // would leave a stale policy set in place and silently change decisions.
+        var rows = policyRows(compiled);
 
-        if (current != null && current == hash) {
+        if (rows.equals(syncedPolicies.get(subject))) {
             return;
         }
 
-        synchronized (policyLock) {
-            current = syncedHashes.get(subject);
-            if (current != null && current == hash) {
-                return;
-            }
+        syncSubject(subject, rows);
+        syncedPolicies.put(subject, rows);
+    }
 
-            syncSubject(subject, compiled);
-            syncedHashes.put(subject, hash);
+    private static List<List<String>> policyRows(List<ResolutionSupport.CompiledPermission> compiled) {
+        var rows = new ArrayList<List<String>>(compiled.size());
+
+        for (var policy : compiled) {
+            rows.add(List.of(
+                    policy.subject(),
+                    policy.expression(),
+                    policy.effect() == PermissionResult.ALLOW ? "allow" : "deny",
+                    Integer.toString(policy.specificity()),
+                    Integer.toString(policy.distance()),
+                    Integer.toString(policy.weight()),
+                    policy.encodedContexts()));
         }
+
+        return List.copyOf(rows);
     }
 
     private List<ResolutionSupport.CompiledPermission> mapCasbinMatches(
@@ -383,18 +398,11 @@ public final class CasbinPermissionEngine implements PermissionEngine {
                 .thenComparingInt(ResolutionSupport.CompiledPermission::weight);
     }
 
-    private void syncSubject(String subject, List<ResolutionSupport.CompiledPermission> compiled) {
+    private void syncSubject(String subject, List<List<String>> rows) {
         enforcer.removeFilteredPolicy(0, subject);
 
-        for (var policy : compiled) {
-            enforcer.addPolicy(
-                    policy.subject(),
-                    policy.expression(),
-                    policy.effect() == PermissionResult.ALLOW ? "allow" : "deny",
-                    Integer.toString(policy.specificity()),
-                    Integer.toString(policy.distance()),
-                    Integer.toString(policy.weight()),
-                    policy.encodedContexts());
+        for (var row : rows) {
+            enforcer.addPolicy(row);
         }
 
         compiledPolicies = enforcer.getPolicy().size();

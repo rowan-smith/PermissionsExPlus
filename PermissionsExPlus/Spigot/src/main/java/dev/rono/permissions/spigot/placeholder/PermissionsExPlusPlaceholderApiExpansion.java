@@ -20,17 +20,17 @@ public final class PermissionsExPlusPlaceholderApiExpansion extends PlaceholderE
 
     @Override
     public @NotNull String getIdentifier() {
-        return plugin.getPluginMeta().getName();
+        return plugin.getDescription().getName();
     }
 
     @Override
     public @NotNull String getAuthor() {
-        return String.join(", ", plugin.getPluginMeta().getAuthors());
+        return String.join(", ", plugin.getDescription().getAuthors());
     }
 
     @Override
     public @NotNull String getVersion() {
-        return plugin.getPluginMeta().getVersion();
+        return plugin.getDescription().getVersion();
     }
 
     @Override

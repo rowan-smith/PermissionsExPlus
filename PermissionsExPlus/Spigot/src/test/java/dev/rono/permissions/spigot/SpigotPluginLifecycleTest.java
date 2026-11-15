@@ -2,6 +2,9 @@ package dev.rono.permissions.spigot;
 
 import dev.rono.permissions.api.PexProvider;
 import dev.rono.permissions.api.context.ContextSet;
+import dev.rono.permissions.api.event.user.UserModifiedEvent;
+import dev.rono.permissions.api.permission.PermissionResult;
+import dev.rono.permissions.api.resolver.QueryOptions;
 import dev.rono.permissions.core.PexApiImpl;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -70,6 +73,63 @@ class SpigotPluginLifecycleTest {
         calculator.close();
 
         assertFalse(core.contexts().contexts(subject).contains("flying", "true"));
+    }
+
+    @Test
+    void eventSubscriptionsSurviveReload() throws Exception {
+        var plugin = loadPlugin();
+        var core = core(plugin);
+        var bus = core.events();
+        var received = new java.util.concurrent.atomic.AtomicInteger();
+        var reloads = new java.util.concurrent.atomic.AtomicInteger();
+
+        var subscription = core.events().subscribe(UserModifiedEvent.class, event -> received.incrementAndGet());
+        var reloadSubscription = core.onReload(reloads::incrementAndGet);
+
+        core.reload();
+
+        assertSame(bus, core.events(), "event bus must be stable for the plugin lifetime");
+        assertEquals(1, reloads.get());
+
+        var id = UUID.randomUUID();
+
+        core.users().create(id, "alex").toCompletableFuture().join();
+        core.users().modify("alex", modifier -> modifier.allowPermission("example.after.reload")).toCompletableFuture().join();
+
+        assertTrue(received.get() >= 1, "subscriptions made before reload must receive the new runtime's events");
+
+        // The new runtime's own invalidation subscriptions must be live too.
+        var user = core.users().cache().get(id).orElseThrow();
+
+        assertEquals(PermissionResult.ALLOW, core.resolvers().permissions().check(user, "example.after.reload", QueryOptions.global()));
+
+        core.users().modify("alex", modifier -> modifier.denyPermission("example.after.reload")).toCompletableFuture().join();
+
+        user = core.users().cache().get(id).orElseThrow();
+
+        assertEquals(PermissionResult.DENY, core.resolvers().permissions().check(user, "example.after.reload", QueryOptions.global()));
+
+        subscription.unsubscribe();
+        reloadSubscription.unsubscribe();
+    }
+
+    @Test
+    void legacyCommandModeSurvivesReload() throws Exception {
+        var plugin = loadPlugin();
+        var core = core(plugin);
+
+        assertEquals(PexApiImpl.CommandMode.MODERN, core.commandMode());
+        assertFalse(core.commands().manager().rootCommands().isEmpty());
+
+        core.useLegacyCommands();
+
+        assertEquals(PexApiImpl.CommandMode.LEGACY, core.commandMode());
+        assertTrue(core.commands().manager().rootCommands().isEmpty());
+
+        core.reload();
+
+        assertEquals(PexApiImpl.CommandMode.LEGACY, core.commandMode());
+        assertTrue(core.commands().manager().rootCommands().isEmpty(), "reload must not re-register the modern command tree");
     }
 
     @Test

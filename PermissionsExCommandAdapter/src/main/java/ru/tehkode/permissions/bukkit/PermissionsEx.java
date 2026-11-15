@@ -49,7 +49,9 @@ public class PermissionsEx extends JavaPlugin {
             var api = PexImplProvider.get();
 
             if (api.commands() != null) {
-                api.commands().clear();
+                // Hand command ownership to this adapter. Core remembers the mode, so
+                // /pex reload does not re-register the modern command tree over ours.
+                api.useLegacyCommands();
                 getLogger().info("Cleared PermissionsExPlus command tree");
             }
 

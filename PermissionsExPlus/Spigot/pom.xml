@@ -12,8 +12,6 @@
     <artifactId>Spigot</artifactId>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -26,8 +24,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -130,8 +127,19 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <!-- MockBukkit simulates a Paper server, so tests need paper-api. Test scope only,
+                 declared before spigot-api so it wins on the test classpath; main code is
+                 still compiled against spigot-api alone. -->
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- Spigot is an independent implementation: compile against the Spigot API
+                 so Paper-only methods cannot leak into it. -->
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
             <version>1.21.11-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>

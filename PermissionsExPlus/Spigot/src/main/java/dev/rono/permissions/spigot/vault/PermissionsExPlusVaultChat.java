@@ -19,7 +19,7 @@ public final class PermissionsExPlusVaultChat extends Chat {
 
     @Override
     public String getName() {
-        return plugin.getPluginMeta().getName();
+        return plugin.getDescription().getName();
     }
 
     @Override

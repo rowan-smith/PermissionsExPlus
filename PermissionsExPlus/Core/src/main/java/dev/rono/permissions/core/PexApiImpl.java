@@ -1,6 +1,7 @@
 package dev.rono.permissions.core;
 
 import dev.rono.permissions.api.PexApi;
+import dev.rono.permissions.api.event.Subscription;
 import dev.rono.permissions.api.event.group.GroupModifiedEvent;
 import dev.rono.permissions.api.event.user.UserModifiedEvent;
 import dev.rono.permissions.api.permission.PermissionResult;
@@ -48,12 +49,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 /** Platform-independent, API native PermissionsExPlus runtime. */
-    @Internal
-    public final class PexApiImpl<C> implements PexApi {
+@Internal
+public final class PexApiImpl<C> implements PexApi {
     private final Platform<C> platform;
 
     private volatile Runtime<C> runtime;
@@ -64,6 +66,34 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
     private volatile boolean started;
     private volatile boolean starting;
+
+    /*
+     * Plugin-lifetime services. These survive reload() so that platform
+     * subscriptions, first-party adapters, and registered commands remain
+     * attached to the same objects for as long as the plugin is installed.
+     */
+    private final EventBusImpl events;
+    private final CommandManagerImpl<C> commands;
+    private final CopyOnWriteArrayList<Runnable> reloadListeners = new CopyOnWriteArrayList<>();
+
+    private volatile CommandMode commandMode = CommandMode.MODERN;
+    private boolean modernCommandsRegistered;
+
+    /**
+     * Which command surface owns the command tree. Internal; not part of
+     * {@link PexApi}.
+     */
+    @Internal
+    public enum CommandMode {
+        /** PermissionsExPlus Cloud commands are registered. */
+        MODERN,
+        /**
+         * A first-party adapter (PermissionsExCommandAdapter) owns the command tree.
+         */
+        LEGACY,
+        /** No base commands are registered. */
+        DISABLED
+    }
 
     private final RuntimeContextRegistry contextRegistry = new RuntimeContextRegistry();
     private final RuntimeContextCalculators contextCalculators = new RuntimeContextCalculators();
@@ -97,7 +127,13 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
         platform.logger().info("Enabling API (platform: " + platform.getClass().getSimpleName().replace("Platform", "") + ")");
 
+        events = new EventBusImpl(error -> platform.logger().error("PermissionsExPlus event subscriber failed", error));
         runtime = createRuntime();
+        commands = createCommands(runtime.config);
+
+        if (commands == null) {
+            commandMode = CommandMode.DISABLED;
+        }
     }
 
     @Internal
@@ -124,7 +160,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
     @Override
     public EventBusImpl events() {
-        return runtime.events;
+        return events;
     }
 
     @Override
@@ -143,7 +179,40 @@ import org.jetbrains.annotations.ApiStatus.Internal;
     }
 
     public CommandManagerImpl<C> commands() {
-        return runtime.commands;
+        return commands;
+    }
+
+    public CommandMode commandMode() {
+        return commandMode;
+    }
+
+    /**
+     * Hands the command tree to a legacy command surface. The modern Cloud
+     * commands are removed and are not re-registered by {@link #reload()}.
+     */
+    @Internal
+    public synchronized void useLegacyCommands() {
+        if (commands == null) {
+            return;
+        }
+
+        commandMode = CommandMode.LEGACY;
+        commands.clear();
+        modernCommandsRegistered = false;
+    }
+
+    /**
+     * Registers a callback run after every successful {@link #reload()}, once the
+     * new runtime is serving requests. Platforms use this to recalculate state
+     * derived from the previous runtime (for example injected permissibles).
+     */
+    @Internal
+    public Subscription onReload(Runnable listener) {
+        Objects.requireNonNull(listener, "listener");
+
+        reloadListeners.add(listener);
+
+        return () -> reloadListeners.remove(listener);
     }
 
     public CoreStateTracker stateTracker() {
@@ -191,6 +260,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
         if (starting) {
             starting = false;
 
+            releaseSubscriptions(runtime);
             runtime.tasks.close();
             runtime.store.close();
 
@@ -216,6 +286,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
         maintenanceTask = checkpointTask = -1;
 
+        releaseSubscriptions(runtime);
         runtime.store.close();
         runtime.tasks.close();
 
@@ -227,11 +298,23 @@ import org.jetbrains.annotations.ApiStatus.Internal;
             throw new IllegalStateException("Cannot reload before PermissionsExPlus has started");
         }
 
+        // Build the replacement first: a configuration or storage error leaves the
+        // current runtime serving requests untouched.
+        var next = createRuntime();
+
         stop();
 
-        runtime = createRuntime();
+        runtime = next;
 
         start();
+
+        for (var listener : reloadListeners) {
+            try {
+                listener.run();
+            } catch (RuntimeException error) {
+                platform.logger().error("PermissionsExPlus reload listener failed", error);
+            }
+        }
     }
 
     public List<String> expandPermissionNode(String permission) {
@@ -271,7 +354,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
         var scheduler = new ManagedPlatformScheduler(platform.scheduler(), tasks);
 
-        var events = new EventBusImpl(error -> platform.logger().error("PermissionsExPlus event subscriber failed", error));
+        var subscriptions = new CopyOnWriteArrayList<Subscription>();
         var groups = new GroupManagerImpl(store, events, config.advanced().maxInheritanceDepth(), tasks::execute, config.general().shorthandExpansionsEnabled());
         var users = new UserManagerImpl(store, events, Duration.ofMinutes(config.advanced().offlineEvictionTime()), config.advanced().maxCachedOfflineUsers(), tasks::execute, config.general().shorthandExpansionsEnabled(), scheduler, platform.logger());
         var ladders = new LadderManagerImpl(store, events, tasks::execute);
@@ -308,29 +391,39 @@ import org.jetbrains.annotations.ApiStatus.Internal;
         var placeholders = new PlaceholderApiService(users, groups, ladders, resolvers, contexts, store, config.advanced().messagingType());
         var backendManager = new BackendManagerImpl(store, () -> started);
 
-        CommandManagerImpl<C> commands = null;
-        if (config.advanced().registerBaseCommands()) {
-            try {
-                commands = new CommandManagerImpl<>(platform.createCommandManager(), platform.senderType(), contextRegistry);
-            } catch (Exception error) {
-                throw new IllegalStateException("Unable to create command manager", error);
-            }
-        }
-
-        events.subscribe(UserModifiedEvent.class, event -> {
+        // The event bus outlives this runtime, so every runtime-owned subscription is
+        // tracked and released when the runtime stops.
+        subscriptions.add(events.subscribe(UserModifiedEvent.class, event -> {
             placeholders.invalidate(event.current().uniqueId());
             permissionEngine.invalidateSubject("user:" + event.current().uniqueId());
-        });
-        events.subscribe(GroupModifiedEvent.class, event -> {
+        }));
+        subscriptions.add(events.subscribe(GroupModifiedEvent.class, event -> {
             placeholders.invalidateAll();
             // Group membership fans out to many users — full invalidation is required.
             permissionEngine.invalidate();
-        });
+        }));
 
         platform.logger().info("Loaded config.yml, advanced.yml, and database.yml for API");
         platform.logger().info("Permission engine: " + permissionEngine.id());
 
-        return new Runtime(config, store, events, groups, users, ladders, resolvers, permissionEngine, contexts, placeholders, backendManager, identity, tasks, scheduler, commands, logger);
+        return new Runtime<>(config, store, groups, users, ladders, resolvers, permissionEngine, contexts, placeholders, backendManager, identity, tasks, scheduler, logger, subscriptions);
+    }
+
+    private CommandManagerImpl<C> createCommands(ConfigurationManagerImpl config) {
+        if (!config.advanced().registerBaseCommands()) {
+            return null;
+        }
+
+        try {
+            return new CommandManagerImpl<>(platform.createCommandManager(), platform.senderType(), contextRegistry);
+        } catch (Exception error) {
+            throw new IllegalStateException("Unable to create command manager", error);
+        }
+    }
+
+    private static void releaseSubscriptions(Runtime<?> state) {
+        state.subscriptions.forEach(Subscription::unsubscribe);
+        state.subscriptions.clear();
     }
 
     private Path createLocalStorageDirectory(BackendConfiguration backend) {
@@ -414,8 +507,11 @@ import org.jetbrains.annotations.ApiStatus.Internal;
             }, Duration.ofMinutes(state.config.advanced().autoSaveInterval()));
         }
 
-        if (state.config.advanced().registerBaseCommands()) {
-            state.commands.registerDefaultCommands(this, platform::sendMessage);
+        // Commands live for the plugin lifetime and reference this facade, so they
+        // are registered once and never re-registered over a legacy command surface.
+        if (commands != null && commandMode == CommandMode.MODERN && !modernCommandsRegistered) {
+            commands.registerDefaultCommands(this, platform::sendMessage);
+            modernCommandsRegistered = true;
         }
 
         state.permissionEngine.rebuild();
@@ -450,14 +546,15 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
         redis.start();
 
-        state.events.subscribe(UserModifiedEvent.class, event -> redis.publishInvalidation(event.current().uniqueId()));
-        state.events.subscribe(GroupModifiedEvent.class, event -> state.users.cache().identifiers().forEach(redis::publishInvalidation));
+        var publisher = redis;
+
+        state.subscriptions.add(events.subscribe(UserModifiedEvent.class, event -> publisher.publishInvalidation(event.current().uniqueId())));
+        state.subscriptions.add(events.subscribe(GroupModifiedEvent.class, event -> state.users.cache().identifiers().forEach(publisher::publishInvalidation)));
     }
 
     private record Runtime<C>(
             ConfigurationManagerImpl config,
             DataStore store,
-            EventBusImpl events,
             GroupManagerImpl groups,
             UserManagerImpl users,
             LadderManagerImpl ladders,
@@ -469,6 +566,6 @@ import org.jetbrains.annotations.ApiStatus.Internal;
             IdentityResolver identity,
             CoreTaskExecutor tasks,
             ManagedPlatformScheduler scheduler,
-            CommandManagerImpl<C> commands,
-            LoggerManagerImpl logger) {}
+            LoggerManagerImpl logger,
+            List<Subscription> subscriptions) {}
 }

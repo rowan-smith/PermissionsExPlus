@@ -35,6 +35,27 @@ public final class SpigotPermissionInjector implements Listener, AutoCloseable {
     private Field field;
     private boolean unavailableReported;
 
+    private volatile PermissionHookStatus status = PermissionHookStatus.PENDING;
+
+    /**
+     * Whether PermissionsExPlus controls native {@code Player#hasPermission}
+     * checks on this server.
+     */
+    public enum PermissionHookStatus {
+        /** No player has been injected yet. */
+        PENDING,
+        /** The player permissible is replaced; native checks use PermissionsExPlus. */
+        ACTIVE,
+        /** The server does not expose the permissible integration point. */
+        UNAVAILABLE,
+        /** Another permissions provider already owns the player permissible. */
+        CONFLICTED
+    }
+
+    public PermissionHookStatus status() {
+        return status;
+    }
+
     public SpigotPermissionInjector(Plugin plugin, BiFunction<Player, String, PermissionResult> resolver) {
         this(plugin, resolver, player -> Map.of());
     }
@@ -68,7 +89,7 @@ public final class SpigotPermissionInjector implements Listener, AutoCloseable {
         try {
             var original = (Permissible) target.get(player);
             if (!(original instanceof PermissibleBase)) {
-                reportUnavailable("another permissions provider already owns CraftHumanEntity#perm (" + original.getClass().getName() + ")");
+                reportUnavailable(PermissionHookStatus.CONFLICTED, "another permissions provider already owns CraftHumanEntity#perm (" + original.getClass().getName() + ")");
                 return false;
             }
 
@@ -78,9 +99,13 @@ public final class SpigotPermissionInjector implements Listener, AutoCloseable {
 
             injections.put(player.getUniqueId(), new Injection(player, original, replacement));
 
+            if (status == PermissionHookStatus.PENDING) {
+                status = PermissionHookStatus.ACTIVE;
+            }
+
             return true;
         } catch (IllegalAccessException exception) {
-            reportUnavailable("cannot access CraftHumanEntity#perm: " + exception.getMessage());
+            reportUnavailable(PermissionHookStatus.UNAVAILABLE, "cannot access CraftHumanEntity#perm: " + exception.getMessage());
 
             return false;
         }
@@ -141,22 +166,29 @@ public final class SpigotPermissionInjector implements Listener, AutoCloseable {
             }
 
             if (candidate == null || !Permissible.class.isAssignableFrom(candidate.getType()) || !candidate.trySetAccessible()) {
-                reportUnavailable("CraftHumanEntity#perm is not an accessible Permissible");
+                reportUnavailable(PermissionHookStatus.UNAVAILABLE, "CraftHumanEntity#perm is not an accessible Permissible");
                 return null;
             }
 
             return field = candidate;
         } catch (LinkageError | RuntimeException exception) {
-            reportUnavailable("this server does not expose the supported CraftHumanEntity#perm integration point");
+            reportUnavailable(PermissionHookStatus.UNAVAILABLE, "this server does not expose the supported CraftHumanEntity#perm integration point");
             return null;
         }
     }
 
-    private void reportUnavailable(String reason) {
+    private void reportUnavailable(PermissionHookStatus failure, String reason) {
+        status = failure;
+
         if (!unavailableReported) {
             unavailableReported = true;
 
-            plugin.getLogger().warning("PermissionsExPlus Bukkit permission injection disabled: " + reason + ". Use Vault integration or remove the conflicting provider.");
+            // Vault is not a substitute: plugins calling Player#hasPermission directly
+            // bypass it. Make the loss of native enforcement impossible to miss.
+            plugin.getLogger().severe("Native permission checks are NOT controlled by PermissionsExPlus: " + reason
+                    + ". Plugins that call Player#hasPermission directly will ignore PermissionsExPlus groups and"
+                    + " permissions; Vault only covers plugins that use the Vault API. Remove the conflicting"
+                    + " provider or use a supported server build.");
         }
     }
 
