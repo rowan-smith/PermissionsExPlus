@@ -21,7 +21,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <hibernate.version>7.4.4.Final</hibernate.version>
+        <hikari.version>4.0.3</hikari.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
         <h2.version>2.3.232</h2.version>
         <configurate.version>4.2.0</configurate.version>
         <sqlite.version>3.49.0.0</sqlite.version>

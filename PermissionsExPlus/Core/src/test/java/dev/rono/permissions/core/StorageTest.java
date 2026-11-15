@@ -12,7 +12,8 @@ import dev.rono.permissions.core.config.DatabasePool;
 import dev.rono.permissions.core.config.DdlGeneration;
 import dev.rono.permissions.core.model.GroupSnapshot;
 import dev.rono.permissions.core.store.FlatDataStore;
-import dev.rono.permissions.core.store.HibernateDataStore;
+import dev.rono.permissions.core.store.jdbc.JdbcDataStore;
+import dev.rono.permissions.core.store.jdbc.JdbcDialect;
 import dev.rono.permissions.core.store.SnapshotCodec;
 import java.nio.file.Path;
 import java.sql.DriverManager;
@@ -52,10 +53,10 @@ class StorageTest {
     }
 
     @Test
-    void hibernateTypedPathSkipsJsonRoundTrip() {
+    void jdbcTypedPathSkipsJsonRoundTrip() {
         var pool = new DatabasePool(2, 1, 30_000);
         var url = "jdbc:h2:mem:permissions-typed-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1";
-        var store = new HibernateDataStore("Memory", url, "org.h2.Driver", null, null, pool, false);
+        var store = new JdbcDataStore("Memory", url, "org.h2.Driver", null, null, pool, DdlGeneration.UPDATE, JdbcDialect.H2, false);
 
         store.open();
 
@@ -75,10 +76,10 @@ class StorageTest {
     }
 
     @Test
-    void hibernateMemoryRoundTripUsesTypedTablesAndRepositories() throws Exception {
+    void jdbcRoundTripUsesTypedTables() throws Exception {
         var pool = new DatabasePool(2, 1, 30_000);
         var url = "jdbc:h2:mem:permissions-store-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1";
-        var store = new HibernateDataStore("Memory", url, "org.h2.Driver", null, null, pool, false);
+        var store = new JdbcDataStore("Memory", url, "org.h2.Driver", null, null, pool, DdlGeneration.UPDATE, JdbcDialect.H2, false);
 
         store.open();
 
@@ -110,7 +111,7 @@ class StorageTest {
 
         store.close();
 
-        var validating = new HibernateDataStore("Memory", url, "org.h2.Driver", null, null, new DatabasePool(2, 1, 4_321L, 30_000L), DdlGeneration.VALIDATE, false);
+        var validating = new JdbcDataStore("Memory", url, "org.h2.Driver", null, null, new DatabasePool(2, 1, 4_321L, 30_000L), DdlGeneration.VALIDATE, JdbcDialect.H2, false);
         validating.open();
 
         assertTrue(validating.all("groups").isEmpty());
@@ -122,7 +123,7 @@ class StorageTest {
     void ddlGenerationNoneDoesNotCreateMissingTables() {
         var pool = new DatabasePool(2, 1, 5_000L, 30_000L);
         var url = "jdbc:h2:mem:permissions-no-ddl-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1";
-        var store = new HibernateDataStore("Memory", url, "org.h2.Driver", null, null, pool, DdlGeneration.NONE, false);
+        var store = new JdbcDataStore("Memory", url, "org.h2.Driver", null, null, pool, DdlGeneration.NONE, JdbcDialect.H2, false);
 
         store.open();
 

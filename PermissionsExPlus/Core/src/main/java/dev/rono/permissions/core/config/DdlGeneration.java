@@ -9,11 +9,7 @@ public enum DdlGeneration {
         try {
             return valueOf(value.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException | NullPointerException error) {
-            throw new IllegalStateException("Invalid hibernate.ddl-generation '" + value + "'; expected update, validate, or none", error);
+            throw new IllegalStateException("Invalid schema.ddl-generation '" + value + "'; expected update, validate, or none", error);
         }
-    }
-
-    public String hibernateValue() {
-        return name().toLowerCase(Locale.ROOT);
     }
 }

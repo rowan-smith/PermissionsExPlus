@@ -4,14 +4,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-final class PersistenceLogging {
-    private static final String[] CATEGORIES = {"com.zaxxer.hikari", "org.hibernate"};
+public final class PersistenceLogging {
+    private static final String[] CATEGORIES = {"com.zaxxer.hikari"};
 
     private PersistenceLogging() {
         throw new AssertionError();
     }
 
-    static void suppressRoutineMessages() {
+    public static void suppressRoutineMessages() {
         for (var category : CATEGORIES) {
             Logger.getLogger(category).setLevel(Level.WARNING);
 

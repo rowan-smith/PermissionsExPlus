@@ -33,7 +33,8 @@ import dev.rono.permissions.core.resolver.ResolutionSupport;
 import dev.rono.permissions.core.resolver.ResolverImpl;
 import dev.rono.permissions.core.store.DataStore;
 import dev.rono.permissions.core.store.FlatDataStore;
-import dev.rono.permissions.core.store.HibernateDataStore;
+import dev.rono.permissions.core.store.jdbc.JdbcDataStore;
+import dev.rono.permissions.core.store.jdbc.JdbcDialect;
 import dev.rono.permissions.core.store.MemoryDataStore;
 import dev.rono.permissions.core.sync.RedisSyncService;
 import dev.rono.permissions.core.threading.CoreTaskExecutor;
@@ -344,10 +345,10 @@ public final class PexApiImpl<C> implements PexApi {
             case MEMORY -> new MemoryDataStore();
             case YAML -> new FlatDataStore(createLocalStorageDirectory(config.backend()), true);
             case JSON -> new FlatDataStore(createLocalStorageDirectory(config.backend()), false);
-            case H2 -> new HibernateDataStore("H2", "jdbc:h2:file:" + resolveLocalFile(config.backend()), "org.h2.Driver", null, null, config.backend().pool(), config.backend().ddlGeneration(), true);
-            case SQLITE -> new HibernateDataStore("SQLite", "jdbc:sqlite:" + resolveLocalFile(config.backend()) + ".db", "org.sqlite.JDBC", null, null, config.backend().pool(), config.backend().ddlGeneration(), true);
-            case MYSQL -> new HibernateDataStore("MySQL", "jdbc:mysql://" + config.backend().credentials().host() + ':' + config.backend().credentials().port() + '/' + config.backend().credentials().database(), "com.mysql.cj.jdbc.Driver", config.backend().credentials().username(), config.backend().credentials().password(), config.backend().pool(), config.backend().ddlGeneration(), true);
-            case POSTGRES -> new HibernateDataStore("Postgres", "jdbc:postgresql://" + config.backend().credentials().host() + ':' + config.backend().credentials().port() + '/' + config.backend().credentials().database(), "org.postgresql.Driver", config.backend().credentials().username(), config.backend().credentials().password(), config.backend().pool(), config.backend().ddlGeneration(), true);
+            case H2 -> new JdbcDataStore("H2", "jdbc:h2:file:" + resolveLocalFile(config.backend()), "org.h2.Driver", null, null, config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.H2, true);
+            case SQLITE -> new JdbcDataStore("SQLite", "jdbc:sqlite:" + resolveLocalFile(config.backend()) + ".db", "org.sqlite.JDBC", null, null, config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.SQLITE, true);
+            case MYSQL -> new JdbcDataStore("MySQL", "jdbc:mysql://" + config.backend().credentials().host() + ':' + config.backend().credentials().port() + '/' + config.backend().credentials().database(), "com.mysql.cj.jdbc.Driver", config.backend().credentials().username(), config.backend().credentials().password(), config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.MYSQL, true);
+            case POSTGRES -> new JdbcDataStore("Postgres", "jdbc:postgresql://" + config.backend().credentials().host() + ':' + config.backend().credentials().port() + '/' + config.backend().credentials().database(), "org.postgresql.Driver", config.backend().credentials().username(), config.backend().credentials().password(), config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.POSTGRES, true);
         };
 
         var tasks = new CoreTaskExecutor(config.advanced().workerPoolSize(), error -> platform.logger().error("Uncaught core worker failure", error));

@@ -76,7 +76,11 @@ public record BackendConfiguration(
 
             validateRelativePath("local.filename", filename, false);
 
-            var ddlGeneration = DdlGeneration.parse(root.node("hibernate", "ddl-generation").getString("update"));
+            // `schema.ddl-generation`; `hibernate.ddl-generation` is still read from
+            // configs
+            // written before the JDBC store replaced Hibernate.
+            var schemaNode = root.node("schema", "ddl-generation");
+            var ddlGeneration = DdlGeneration.parse(schemaNode.virtual() ? root.node("hibernate", "ddl-generation").getString("update") : schemaNode.getString("update"));
 
             return new BackendConfiguration(type, storageDirectory, filename, credentials, pool, ddlGeneration);
         } catch (IOException e) {

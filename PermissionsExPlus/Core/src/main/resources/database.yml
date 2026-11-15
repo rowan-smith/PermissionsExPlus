@@ -45,11 +45,12 @@ pool:
   # The maximum lifespan (in milliseconds) of a database connection handle before being retired.
   max-lifetime: 1800000 # 30 minutes in milliseconds
 
-# Hibernate Object-Relational Mapping (ORM) Engine settings
-hibernate:
-  # Configures how Hibernate acts on database tables upon plugin boot.
+# Database schema management (H2, SQLite, MySQL, and Postgres).
+# Older configs that still use a `hibernate:` section here keep working.
+schema:
+  # How PermissionsExPlus treats its database tables on plugin boot.
   # Options:
-  #   - update   : Automatically updates the schema structure without data loss (Recommended).
+  #   - update   : Creates missing tables and applies schema upgrades without data loss (Recommended).
   #   - validate : Validates the existing layout, changing nothing and failing if incorrect.
   #   - none     : Disables automated schema checking entirely.
   ddl-generation: "update"
