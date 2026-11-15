@@ -10,15 +10,24 @@ public enum BackendType {
     MYSQL;
 
     public String displayName() {
-        return switch (this) {
-            case H2 -> "H2";
-            case MEMORY -> "Memory";
-            case SQLITE -> "SQLite";
-            case YAML -> "YAML";
-            case JSON -> "JSON";
-            case POSTGRES -> "Postgres";
-            case MYSQL -> "MySQL";
-        };
+        switch (this) {
+            case H2 :
+                return "H2";
+            case MEMORY :
+                return "Memory";
+            case SQLITE :
+                return "SQLite";
+            case YAML :
+                return "YAML";
+            case JSON :
+                return "JSON";
+            case POSTGRES :
+                return "Postgres";
+            case MYSQL :
+                return "MySQL";
+            default :
+                throw new IllegalStateException("Unexpected value: " + this);
+        }
     }
 
     public boolean persistent() {
@@ -26,15 +35,27 @@ public enum BackendType {
     }
 
     public static BackendType parse(String value) {
-        return switch (value.trim().toLowerCase(java.util.Locale.ROOT)) {
-            case "h2" -> H2;
-            case "memory" -> MEMORY;
-            case "sqlite" -> SQLITE;
-            case "yaml", "yml" -> YAML;
-            case "json" -> JSON;
-            case "postgres", "postgresql" -> POSTGRES;
-            case "mysql", "mariadb", "maria" -> MYSQL;
-            default -> throw new IllegalArgumentException("Unsupported backend type: " + value);
-        };
+        switch (value.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "h2" :
+                return H2;
+            case "memory" :
+                return MEMORY;
+            case "sqlite" :
+                return SQLITE;
+            case "yaml" :
+            case "yml" :
+                return YAML;
+            case "json" :
+                return JSON;
+            case "postgres" :
+            case "postgresql" :
+                return POSTGRES;
+            case "mysql" :
+            case "mariadb" :
+            case "maria" :
+                return MYSQL;
+            default :
+                throw new IllegalArgumentException("Unsupported backend type: " + value);
+        }
     }
 }

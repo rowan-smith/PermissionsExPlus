@@ -1,48 +1,90 @@
 package dev.rono.permissions.core.config;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.core.platform.PlatformConfiguration;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import dev.rono.permissions.core.util.Immutables;
 
 /**
  * Runtime, context and network settings read through a structural YAML parser.
  */
-public record AdvancedConfiguration(
-        String messagingType,
-        int offlineEvictionTime,
-        int maxCachedOfflineUsers,
-        boolean preloadOnJoin,
-        CacheFailureFallback cacheFailureFallback,
-        int expiryCheckInterval,
-        boolean logExpiry,
-        ExpiryLogMode logExpiryMode,
-        String uuidSource,
-        String globalContextName,
-        boolean trackWorlds,
-        boolean trackServers,
-        boolean trackGamemodes,
-        boolean trackProxies,
-        Map<String, String> environment,
-        int maxInheritanceDepth,
-        PermissionConflictResolution conflictResolution,
-        MetaFormatting metaFormatting,
-        String redisHost,
-        int redisPort,
-        String redisPassword,
-        String redisChannel,
-        int redisTimeout,
-        boolean auditLogToFile,
-        int autoSaveInterval,
-        boolean logSave,
-        boolean logCacheEviction,
-        CacheLogMode logCacheMode,
-        int workerPoolSize,
-        boolean registerBaseCommands,
-        boolean broadcastToOps,
-        boolean networkWideLogging) {
+@Value
+@Accessors(fluent = true)
+public class AdvancedConfiguration {
+    String messagingType;
+    int offlineEvictionTime;
+    int maxCachedOfflineUsers;
+    boolean preloadOnJoin;
+    CacheFailureFallback cacheFailureFallback;
+    int expiryCheckInterval;
+    boolean logExpiry;
+    ExpiryLogMode logExpiryMode;
+    String uuidSource;
+    String globalContextName;
+    boolean trackWorlds;
+    boolean trackServers;
+    boolean trackGamemodes;
+    boolean trackProxies;
+    Map<String, String> environment;
+    int maxInheritanceDepth;
+    PermissionConflictResolution conflictResolution;
+    MetaFormatting metaFormatting;
+    String redisHost;
+    int redisPort;
+    String redisPassword;
+    String redisChannel;
+    int redisTimeout;
+    boolean auditLogToFile;
+    int autoSaveInterval;
+    boolean logSave;
+    boolean logCacheEviction;
+    CacheLogMode logCacheMode;
+    int workerPoolSize;
+    boolean registerBaseCommands;
+    boolean broadcastToOps;
+    boolean networkWideLogging;
+
+    public AdvancedConfiguration(String messagingType, int offlineEvictionTime, int maxCachedOfflineUsers, boolean preloadOnJoin, CacheFailureFallback cacheFailureFallback, int expiryCheckInterval, boolean logExpiry, ExpiryLogMode logExpiryMode, String uuidSource, String globalContextName, boolean trackWorlds, boolean trackServers, boolean trackGamemodes, boolean trackProxies, Map<String, String> environment, int maxInheritanceDepth, PermissionConflictResolution conflictResolution, MetaFormatting metaFormatting, String redisHost, int redisPort, String redisPassword, String redisChannel, int redisTimeout, boolean auditLogToFile, int autoSaveInterval, boolean logSave, boolean logCacheEviction, CacheLogMode logCacheMode, int workerPoolSize, boolean registerBaseCommands, boolean broadcastToOps, boolean networkWideLogging) {
+        this.messagingType = messagingType;
+        this.offlineEvictionTime = offlineEvictionTime;
+        this.maxCachedOfflineUsers = maxCachedOfflineUsers;
+        this.preloadOnJoin = preloadOnJoin;
+        this.cacheFailureFallback = cacheFailureFallback;
+        this.expiryCheckInterval = expiryCheckInterval;
+        this.logExpiry = logExpiry;
+        this.logExpiryMode = logExpiryMode;
+        this.uuidSource = uuidSource;
+        this.globalContextName = globalContextName;
+        this.trackWorlds = trackWorlds;
+        this.trackServers = trackServers;
+        this.trackGamemodes = trackGamemodes;
+        this.trackProxies = trackProxies;
+        this.environment = environment;
+        this.maxInheritanceDepth = maxInheritanceDepth;
+        this.conflictResolution = conflictResolution;
+        this.metaFormatting = metaFormatting;
+        this.redisHost = redisHost;
+        this.redisPort = redisPort;
+        this.redisPassword = redisPassword;
+        this.redisChannel = redisChannel;
+        this.redisTimeout = redisTimeout;
+        this.auditLogToFile = auditLogToFile;
+        this.autoSaveInterval = autoSaveInterval;
+        this.logSave = logSave;
+        this.logCacheEviction = logCacheEviction;
+        this.logCacheMode = logCacheMode;
+        this.workerPoolSize = workerPoolSize;
+        this.registerBaseCommands = registerBaseCommands;
+        this.broadcastToOps = broadcastToOps;
+        this.networkWideLogging = networkWideLogging;
+    }
 
     public AdvancedConfiguration(String messagingType,
             int offlineEvictionTime,
@@ -134,7 +176,7 @@ public record AdvancedConfiguration(
                     root.node("server-context", "track-servers").getBoolean(true),
                     root.node("server-context", "track-gamemode").getBoolean(true),
                     root.node("server-context", "track-proxies").getBoolean(true),
-                    Map.copyOf(environment), root.node("inheritance", "max-depth").getInt(10),
+                    Immutables.copyOfMap(environment), root.node("inheritance", "max-depth").getInt(10),
                     PermissionConflictResolution.parse(root.node("inheritance", "conflict-resolution").getString("deny_wins")),
                     MetaFormatting.parse(root.node("inheritance", "meta-formatting").getString("highest_weight")),
                     root.node("messaging", "redis", "host").getString("localhost"),

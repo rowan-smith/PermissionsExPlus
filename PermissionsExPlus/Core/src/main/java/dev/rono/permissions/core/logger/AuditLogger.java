@@ -1,9 +1,12 @@
 package dev.rono.permissions.core.logger;
 
+import lombok.var;
+
 import dev.rono.permissions.core.platform.PlatformConfiguration;
 import dev.rono.permissions.core.platform.PlatformLogger;
 import dev.rono.permissions.core.platform.PlatformScheduler;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
@@ -75,7 +78,7 @@ public final class AuditLogger {
                 var file = configuration.resolve("audit.log");
 
                 Files.createDirectories(file.getParent());
-                Files.writeString(file, entry + System.lineSeparator(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                Files.write(file, (entry + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             } catch (Exception error) {
                 logger.error("Unable to write PermissionsExPlus audit entry", error);
             }
@@ -112,7 +115,7 @@ public final class AuditLogger {
                 var file = configuration.resolve("audit.log");
 
                 Files.createDirectories(file.getParent());
-                Files.writeString(file, entry + System.lineSeparator(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                Files.write(file, (entry + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             } catch (Exception error) {
                 logger.error("Unable to write remote PermissionsExPlus audit entry", error);
             }

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.threading;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;

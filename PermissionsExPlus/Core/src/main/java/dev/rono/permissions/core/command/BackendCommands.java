@@ -1,11 +1,14 @@
 package dev.rono.permissions.core.command;
 
+import lombok.var;
+
 import cloud.commandframework.annotations.Argument;
 import cloud.commandframework.annotations.CommandMethod;
 import cloud.commandframework.annotations.CommandPermission;
 import dev.rono.permissions.core.PexApiImpl;
 
 import java.util.function.BiConsumer;
+import dev.rono.permissions.core.util.Immutables;
 
 @CommandMethod("pex backend")
 public final class BackendCommands<C> extends CommandSupport<C> {
@@ -25,7 +28,7 @@ public final class BackendCommands<C> extends CommandSupport<C> {
         var backend = core.backend().current();
 
         heading(sender, "Backend", backend.name());
-        section(sender, "Properties", java.util.List.of("persistent:" + backend.persistent(), "status:" + backend.status()));
+        section(sender, "Properties", Immutables.listOf("persistent:" + backend.persistent(), "status:" + backend.status()));
     }
 
     @CommandMethod("list")
@@ -36,7 +39,7 @@ public final class BackendCommands<C> extends CommandSupport<C> {
         heading(sender, "Backends", Integer.toString(core.backend().available().size()));
         section(sender, "Available", core.backend().available().stream()
                 .map(value -> value.name() + (value.name().equalsIgnoreCase(current.name()) ? " (active)" : ""))
-                .toList());
+                .collect(Immutables.toList()));
     }
 
     @CommandMethod("switch <backend>")
@@ -45,7 +48,7 @@ public final class BackendCommands<C> extends CommandSupport<C> {
         var backend = core.backend().available().stream().filter(value -> value.name().equalsIgnoreCase(name))
                 .findFirst();
 
-        if (backend.isEmpty()) {
+        if (!backend.isPresent()) {
             reply(sender, "§cUnknown backend '" + name + "'. Use §f/pex backend list§c.");
             return;
         }

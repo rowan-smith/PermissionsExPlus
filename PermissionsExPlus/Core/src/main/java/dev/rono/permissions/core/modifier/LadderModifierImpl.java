@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.modifier;
 
+import lombok.var;
+
 import dev.rono.permissions.api.ladder.Ladder;
 import dev.rono.permissions.api.ladder.LadderModifier;
 import dev.rono.permissions.api.util.Identifiers;

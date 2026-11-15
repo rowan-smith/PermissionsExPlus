@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.store;
 
+import lombok.var;
+
 import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
@@ -12,6 +14,7 @@ import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+import dev.rono.permissions.core.util.Immutables;
 
 /**
  * Flat-file {@link DataStore} with write-behind persistence.
@@ -58,12 +61,12 @@ public final class FlatDataStore implements DataStore {
 
     @Override
     public synchronized Optional<String> get(String category, String key) {
-        return Optional.ofNullable(data.getOrDefault(category, Map.of()).get(key));
+        return Optional.ofNullable(data.getOrDefault(category, Immutables.mapOf()).get(key));
     }
 
     @Override
     public synchronized Map<String, String> all(String category) {
-        return Map.copyOf(data.getOrDefault(category, Map.of()));
+        return Immutables.copyOfMap(data.getOrDefault(category, Immutables.mapOf()));
     }
 
     @Override

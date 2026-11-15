@@ -5,6 +5,7 @@ import cloud.commandframework.annotations.CommandPermission;
 import dev.rono.permissions.core.PexApiImpl;
 
 import java.util.function.BiConsumer;
+import dev.rono.permissions.core.util.Immutables;
 
 @CommandMethod("pex")
 public final class RootCommands<C> extends CommandSupport<C> {
@@ -15,7 +16,7 @@ public final class RootCommands<C> extends CommandSupport<C> {
     @CommandMethod("")
     public void root(C sender) {
         heading(sender, "PermissionsExPlus", "API Commands");
-        section(sender, "Commands", java.util.List.of("/pex user <user>", "/pex group <group>", "/pex ladder <ladder>", "/pex backend", "/pex reload"));
+        section(sender, "Commands", Immutables.listOf("/pex user <user>", "/pex group <group>", "/pex ladder <ladder>", "/pex backend", "/pex reload"));
     }
 
     @CommandMethod("help")

@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class LadderStorageManagerImpl implements LadderStorageManager {
 
@@ -28,7 +29,7 @@ public final class LadderStorageManagerImpl implements LadderStorageManager {
     }
 
     public CompletionStage<Set<String>> identifiers() {
-        return Stages.call(() -> Set.copyOf(store.allLadders().keySet()), executor);
+        return Stages.call(() -> Immutables.copyOfSet(store.allLadders().keySet()), executor);
     }
 
     Optional<LadderSnapshot> getNow(String name) {

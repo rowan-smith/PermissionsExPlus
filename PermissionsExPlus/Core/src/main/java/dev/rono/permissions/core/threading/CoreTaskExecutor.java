@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.threading;
 
+import lombok.var;
+
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.Callable;

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.command;
 
+import lombok.var;
+
 import cloud.commandframework.annotations.Argument;
 import cloud.commandframework.annotations.suggestions.Suggestions;
 import dev.rono.permissions.api.context.ContextSet;
@@ -10,9 +12,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import dev.rono.permissions.core.util.Immutables;
+import dev.rono.permissions.core.util.Strings;
 
 class CommandCompletionContractTest {
-    private static final Set<Class<?>> COMMAND_TYPES = Set.of(CommandSuggestions.class, RootCommands.class,
+    private static final Set<Class<?>> COMMAND_TYPES = Immutables.setOf(CommandSuggestions.class, RootCommands.class,
             BackendCommands.class, GroupsCommands.class, GroupCommands.class, UsersCommands.class, UserCommands.class,
             LaddersCommands.class, LadderCommands.class);
 
@@ -24,17 +28,17 @@ class CommandCompletionContractTest {
                 .map(Suggestions::value)
                 .collect(Collectors.toSet());
 
-        assertEquals(Set.of("users", "groups", "ladders", "backends", "permissions", "options", "user-permissions-add", "user-permissions-remove", "user-groups-add", "user-groups-remove"), providerNames);
+        assertEquals(Immutables.setOf("users", "groups", "ladders", "backends", "permissions", "options", "user-permissions-add", "user-permissions-remove", "user-groups-add", "user-groups-remove"), providerNames);
 
         var arguments = COMMAND_TYPES.stream().flatMap(type -> Arrays.stream(type.getDeclaredMethods()))
                 .flatMap(method -> Arrays.stream(method.getParameterAnnotations())).flatMap(Arrays::stream)
                 .filter(Argument.class::isInstance)
-                .map(Argument.class::cast).toList();
+                .map(Argument.class::cast).collect(Immutables.toList());
 
-        var referenceNames = Set.of("user", "parent", "backend", "permission", "key");
+        var referenceNames = Immutables.setOf("user", "parent", "backend", "permission", "key");
 
         arguments.stream().filter(argument -> referenceNames.contains(argument.value())).forEach(argument -> {
-            assertFalse(argument.suggestions().isBlank(), () -> "Missing suggestions for " + argument.value());
+            assertFalse(Strings.isBlank(argument.suggestions()), () -> "Missing suggestions for " + argument.value());
             assertTrue(providerNames.contains(argument.suggestions()), () -> "Unknown suggestions provider " + argument.suggestions());
         });
     }
@@ -42,7 +46,7 @@ class CommandCompletionContractTest {
     @Test
     void contextualCommandsUseTheUnifiedContextSet() {
         var contextParameters = COMMAND_TYPES.stream().flatMap(type -> Arrays.stream(type.getDeclaredMethods()))
-                .flatMap(method -> Arrays.stream(method.getParameterTypes())).filter(ContextSet.class::equals).toList();
+                .flatMap(method -> Arrays.stream(method.getParameterTypes())).filter(ContextSet.class::equals).collect(Immutables.toList());
 
         assertFalse(contextParameters.isEmpty());
     }

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.command;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.options.OptionNode;
@@ -15,6 +17,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
+import dev.rono.permissions.core.util.Immutables;
 
 abstract class CommandSupport<C> {
     protected final PexApiImpl<C> core;
@@ -42,7 +45,7 @@ abstract class CommandSupport<C> {
     }
 
     protected void section(C sender, String title, Collection<String> values) {
-        orderedSection(sender, title, values.stream().sorted().toList());
+        orderedSection(sender, title, values.stream().sorted().collect(Immutables.toList()));
     }
 
     protected void orderedSection(C sender, String title, Collection<String> values) {
@@ -112,11 +115,13 @@ abstract class CommandSupport<C> {
     }
 
     private String holderLabel(PermissionHolder holder) {
-        if (holder instanceof User user) {
+        if (holder instanceof User) {
+            User user = (User) holder;
             return "user §e§l" + user.name();
         }
 
-        if (holder instanceof Group group) {
+        if (holder instanceof Group) {
+            Group group = (Group) holder;
             return "group §e§l" + group.name();
         }
 
@@ -128,7 +133,8 @@ abstract class CommandSupport<C> {
             return "§6User Profile §7(Explicit Nodes):";
         }
 
-        if (source instanceof Group group) {
+        if (source instanceof Group) {
+            Group group = (Group) source;
             var depth = distance > 1 ? "Deep inherited branch" : "Parent branch";
             var weight = group.weight().isPresent() ? Integer.toString(group.weight().getAsInt()) : "none";
 
@@ -151,11 +157,13 @@ abstract class CommandSupport<C> {
     }
 
     private String sourceLabel(PermissionHolder source) {
-        if (source instanceof Group group) {
+        if (source instanceof Group) {
+            Group group = (Group) source;
             return "§eInherited from group " + group.name();
         }
 
-        if (source instanceof NamedPermissionHolder named) {
+        if (source instanceof NamedPermissionHolder) {
+            NamedPermissionHolder named = (NamedPermissionHolder) source;
             return "§eExplicit node on " + named.name();
         }
 
@@ -163,11 +171,16 @@ abstract class CommandSupport<C> {
     }
 
     private String resultLabel(PermissionResult result) {
-        return switch (result) {
-            case ALLOW -> "§a§lALLOWED §r";
-            case DENY -> "§c§lDENIED §r";
-            case UNDEFINED -> "§e§lUNDEFINED §r";
-        };
+        switch (result) {
+            case ALLOW :
+                return "§a§lALLOWED §r";
+            case DENY :
+                return "§c§lDENIED §r";
+            case UNDEFINED :
+                return "§e§lUNDEFINED §r";
+            default :
+                throw new IllegalStateException("Unexpected value: " + result);
+        }
     }
 
     private String statusIcon(CandidateStatus status) {
@@ -175,16 +188,26 @@ abstract class CommandSupport<C> {
     }
 
     private String statusLabel(CandidateStatus status) {
-        return switch (status) {
-            case WINNER -> "§a§lMATCHED §r";
-            case OUTRANKED -> "§cSKIPPED";
-            case CONFLICT -> "§cCONFLICT";
-            case EXPIRED -> "§cEXPIRED";
-            case CONTEXT_MISMATCH -> "§cIGNORED (Context mismatch)";
-            case PERMISSION_MISMATCH -> "§cIGNORED (Permission mismatch)";
-            case INHERITANCE_DISABLED -> "§cIGNORED (Inheritance disabled)";
-            case DEFAULTS_DISABLED -> "§cIGNORED (Defaults disabled)";
-        };
+        switch (status) {
+            case WINNER :
+                return "§a§lMATCHED §r";
+            case OUTRANKED :
+                return "§cSKIPPED";
+            case CONFLICT :
+                return "§cCONFLICT";
+            case EXPIRED :
+                return "§cEXPIRED";
+            case CONTEXT_MISMATCH :
+                return "§cIGNORED (Context mismatch)";
+            case PERMISSION_MISMATCH :
+                return "§cIGNORED (Permission mismatch)";
+            case INHERITANCE_DISABLED :
+                return "§cIGNORED (Inheritance disabled)";
+            case DEFAULTS_DISABLED :
+                return "§cIGNORED (Defaults disabled)";
+            default :
+                throw new IllegalStateException("Unexpected value: " + status);
+        }
     }
 
     private String contexts(ContextSet contexts) {

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.modifier;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.group.GroupModifier;

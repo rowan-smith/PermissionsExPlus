@@ -1,5 +1,7 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -13,7 +15,6 @@ import dev.rono.permissions.core.platform.PlatformConfiguration;
 import dev.rono.permissions.core.platform.PlatformLogger;
 import dev.rono.permissions.core.platform.PlatformScheduler;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -81,7 +82,7 @@ class CoreRuntimeControlsTest {
         assertEquals(id, user.uniqueId());
         assertTrue(core.users().cache().isCached(id));
         assertEquals(id, core.users().loadOrCreateUser(id, "Renamed").toCompletableFuture().join().uniqueId());
-        assertEquals("Alex", core.users().cache().get(id).orElseThrow().name());
+        assertEquals("Alex", core.users().cache().get(id).get().name());
 
         core.stop();
     }
@@ -137,36 +138,32 @@ class CoreRuntimeControlsTest {
     }
 
     private void writeConfiguration(boolean commands, boolean preload, String fallback, int workers, boolean logExpiry, String expiryMode) throws IOException {
-        Files.writeString(directory.resolve("config.yml"), "default-group: default\n");
+        TestFiles.writeString(directory.resolve("config.yml"), "default-group: default\n");
 
-        Files.writeString(directory.resolve("advanced.yml"), """
-                cache:
-                  preload-on-join: %s
-                  cache-failure-fallback: %s
-                threading:
-                  worker-pool-size: %d
-                commands:
-                  register-base-commands: %s
-                temporary-permissions:
-                  expiry-check-interval: 30
-                  log-expiry: %s
-                  log-expiry-mode: %s
-                advanced-version: 1
-                """.formatted(preload, fallback, workers, commands, logExpiry, expiryMode));
+        TestFiles.writeString(directory.resolve("advanced.yml"), String.format(("cache:\n"
+                + "  preload-on-join: %s\n"
+                + "  cache-failure-fallback: %s\n"
+                + "threading:\n"
+                + "  worker-pool-size: %d\n"
+                + "commands:\n"
+                + "  register-base-commands: %s\n"
+                + "temporary-permissions:\n"
+                + "  expiry-check-interval: 30\n"
+                + "  log-expiry: %s\n"
+                + "  log-expiry-mode: %s\n"
+                + "advanced-version: 1\n"), preload, fallback, workers, commands, logExpiry, expiryMode));
 
-        Files.writeString(directory.resolve("database.yml"), """
-                type: memory
-                local:
-                  filename: permissions
-                credentials:
-                  host: localhost
-                  database: permissions
-                  username: test
-                pool:
-                  maximum-pool-size: 2
-                  minimum-idle: 0
-                data-version: 1
-                """);
+        TestFiles.writeString(directory.resolve("database.yml"), ("type: memory\n"
+                + "local:\n"
+                + "  filename: permissions\n"
+                + "credentials:\n"
+                + "  host: localhost\n"
+                + "  database: permissions\n"
+                + "  username: test\n"
+                + "pool:\n"
+                + "  maximum-pool-size: 2\n"
+                + "  minimum-idle: 0\n"
+                + "data-version: 1\n"));
     }
 
     private static final class TestPlatform implements Platform<Object> {

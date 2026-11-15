@@ -1,5 +1,9 @@
 package dev.rono.permissions.core.command;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import cloud.commandframework.CommandManager;
 import dev.rono.permissions.api.context.ContextRegistry;
 import dev.rono.permissions.api.context.ContextSet;
@@ -8,6 +12,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import dev.rono.permissions.core.util.Immutables;
+import dev.rono.permissions.core.util.Strings;
 
 final class PosixContextFlagExtractor<C> {
     static final String CONTEXTS_KEY = "pex:command-contexts";
@@ -54,7 +60,7 @@ final class PosixContextFlagExtractor<C> {
     }
 
     private void extract(LinkedList<String> input, boolean suggestions, Storage storage) {
-        var trailingWhitespace = suggestions && !input.isEmpty() && input.getLast().isBlank();
+        var trailingWhitespace = suggestions && !input.isEmpty() && Strings.isBlank(input.getLast());
         if (trailingWhitespace && input.stream().anyMatch(token -> token.startsWith("--"))) {
             input.removeLast();
         }
@@ -104,7 +110,7 @@ final class PosixContextFlagExtractor<C> {
 
             ensureRegistered(key);
 
-            if (value.isBlank() || value.startsWith("--")) {
+            if (Strings.isBlank(value) || value.startsWith("--")) {
                 throw new IllegalArgumentException("Missing value for --" + key);
             }
 
@@ -123,12 +129,12 @@ final class PosixContextFlagExtractor<C> {
     }
 
     List<String> keySuggestions(String prefix) {
-        return registry.registeredKeys().stream().filter(key -> key.startsWith(prefix)).map(key -> "--" + key).toList();
+        return registry.registeredKeys().stream().filter(key -> key.startsWith(prefix)).map(key -> "--" + key).collect(Immutables.toList());
     }
 
     List<String> valueSuggestions(String key, String prefix) {
         var normalizedPrefix = prefix.toLowerCase(Locale.ROOT);
-        return registry.validValues(key).stream().filter(value -> value.toLowerCase(Locale.ROOT).startsWith(normalizedPrefix)).toList();
+        return registry.validValues(key).stream().filter(value -> value.toLowerCase(Locale.ROOT).startsWith(normalizedPrefix)).collect(Immutables.toList());
     }
 
     private void ensureRegistered(String key) {
@@ -145,7 +151,19 @@ final class PosixContextFlagExtractor<C> {
         return flag.substring(2).toLowerCase(Locale.ROOT);
     }
 
-    record Extraction(ContextSet contexts, String pendingKey, String pendingValue) {}
+    @Value
+    @Accessors(fluent = true)
+    static class Extraction {
+        ContextSet contexts;
+        String pendingKey;
+        String pendingValue;
+
+        Extraction(ContextSet contexts, String pendingKey, String pendingValue) {
+            this.contexts = contexts;
+            this.pendingKey = pendingKey;
+            this.pendingValue = pendingValue;
+        }
+    }
 
     private interface Storage {
         void contexts(ContextSet contexts);

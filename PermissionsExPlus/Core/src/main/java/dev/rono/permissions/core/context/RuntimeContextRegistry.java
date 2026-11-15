@@ -1,11 +1,12 @@
 package dev.rono.permissions.core.context;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextRegistry;
 import dev.rono.permissions.api.platform.context.ContextRegistration;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -13,6 +14,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class RuntimeContextRegistry implements ContextRegistry {
     private static final Pattern KEY_PATTERN = Pattern.compile("[a-z0-9][a-z0-9._-]*");
@@ -44,11 +46,11 @@ public final class RuntimeContextRegistry implements ContextRegistry {
         var supplier = suppliers.get(normalizeKey(key));
 
         if (supplier == null) {
-            return List.of();
+            return Immutables.listOf();
         }
 
         var values = Objects.requireNonNull(supplier.get(), "Context value supplier returned null");
-        return values.stream().filter(Objects::nonNull).map(String::trim).filter(value -> !value.isEmpty()).distinct().sorted().toList();
+        return values.stream().filter(Objects::nonNull).map(String::trim).filter(value -> !value.isEmpty()).distinct().sorted().collect(Immutables.toList());
     }
 
     static String normalizeKey(String key) {

@@ -1,5 +1,9 @@
 package dev.rono.permissions.core.resolver;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.options.OptionKeys;
@@ -39,6 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class ResolverImpl implements Resolvers, PermissionResolver, OptionResolver, InheritanceResolver, DefaultGroupResolver {
     private final GroupManagerImpl groups;
@@ -206,7 +211,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
             }
         }
 
-        return Set.copyOf(result);
+        return Immutables.copyOfSet(result);
     }
 
     @Override
@@ -225,7 +230,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
             }
         }
 
-        return Set.copyOf(result);
+        return Immutables.copyOfSet(result);
     }
 
     @Override
@@ -244,7 +249,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
 
     private Optional<Group> resolvePrimary(User user, QueryOptions options) {
         var direct = applicableMemberships(user, options.contexts()).stream()
-                .map(node -> groups.cache().get(node.group()).orElse(null)).filter(Objects::nonNull).toList();
+                .map(node -> groups.cache().get(node.group()).orElse(null)).filter(Objects::nonNull).collect(Immutables.toList());
 
         var value = highest(direct);
         if (value.isPresent()) {
@@ -288,20 +293,20 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
         var expressions = support.sources(holder, options).stream().filter(source -> source.excluded() == null)
                 .flatMap(source -> source.holder().explicitPermissions().stream())
                 .filter(node -> !node.expired() && ResolutionSupport.applies(node.contexts(), options.contexts()))
-                .map(PermissionNode::permission).distinct().toList();
+                .map(PermissionNode::permission).distinct().collect(Immutables.toList());
 
         for (var expression : expressions) {
             map.put(expression, check(holder, expression, options));
         }
 
-        return new PermissionData(holder, options, Map.copyOf(map), this);
+        return new PermissionData(holder, options, Immutables.copyOfMap(map), this);
     }
 
     private ResolvedMetaData metaData(PermissionHolder holder, QueryOptions options) {
         var keys = support.sources(holder, options).stream().filter(source -> source.excluded() == null)
                 .flatMap(source -> source.holder().explicitOptions().stream())
                 .filter(node -> !node.expired() && ResolutionSupport.applies(node.contexts(), options.contexts())).map(OptionNode::key)
-                .distinct().toList();
+                .distinct().collect(Immutables.toList());
 
         var map = new LinkedHashMap<String, String>();
 
@@ -309,7 +314,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
             resolve(holder, key, options).ifPresent(value -> map.put(key, value));
         }
 
-        return new MetaData(Map.copyOf(map));
+        return new MetaData(Immutables.copyOfMap(map));
     }
 
     private void collectParents(Group group, ContextSet contexts, Set<Group> result, Set<String> visited, int depth) {
@@ -329,7 +334,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
     }
 
     private static List<dev.rono.permissions.api.parent.ParentNode> applicableMemberships(User user, ContextSet contexts) {
-        return user.groups().stream().filter(node -> applicable(node, contexts)).toList();
+        return user.groups().stream().filter(node -> applicable(node, contexts)).collect(Immutables.toList());
     }
 
     private static boolean applicable(Node node, ContextSet contexts) {
@@ -346,20 +351,86 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
                 .thenComparingInt(OptionCandidate::weight);
     }
 
-    private record OptionCandidate(OptionNode node, int distance, int specificity, int weight, String source) {}
+    @Value
+    @Accessors(fluent = true)
+    private static class OptionCandidate {
+        OptionNode node;
+        int distance;
+        int specificity;
+        int weight;
+        String source;
 
-    private record Data(QueryOptions queryOptions, ResolvedPermissionData permissions, ResolvedMetaData meta) implements ResolvedData {}
+        private OptionCandidate(OptionNode node, int distance, int specificity, int weight, String source) {
+            this.node = node;
+            this.distance = distance;
+            this.specificity = specificity;
+            this.weight = weight;
+            this.source = source;
+        }
+    }
 
-    private record UserData(QueryOptions queryOptions, ResolvedPermissionData permissions, ResolvedMetaData meta, Set<Group> groups, Optional<Group> primaryGroup) implements ResolvedUserData {}
+    @Value
+    @Accessors(fluent = true)
+    private static class Data implements ResolvedData {
+        QueryOptions queryOptions;
+        ResolvedPermissionData permissions;
+        ResolvedMetaData meta;
 
-    private record PermissionData(PermissionHolder holder, QueryOptions options, Map<String, PermissionResult> permissionMap, ResolverImpl resolver) implements ResolvedPermissionData {
+        private Data(QueryOptions queryOptions, ResolvedPermissionData permissions, ResolvedMetaData meta) {
+            this.queryOptions = queryOptions;
+            this.permissions = permissions;
+            this.meta = meta;
+        }
+    }
+
+    @Value
+    @Accessors(fluent = true)
+    private static class UserData implements ResolvedUserData {
+        QueryOptions queryOptions;
+        ResolvedPermissionData permissions;
+        ResolvedMetaData meta;
+        Set<Group> groups;
+        Optional<Group> primaryGroup;
+
+        private UserData(QueryOptions queryOptions, ResolvedPermissionData permissions, ResolvedMetaData meta, Set<Group> groups, Optional<Group> primaryGroup) {
+            this.queryOptions = queryOptions;
+            this.permissions = permissions;
+            this.meta = meta;
+            this.groups = groups;
+            this.primaryGroup = primaryGroup;
+        }
+    }
+
+    @Value
+    @Accessors(fluent = true)
+    private static class PermissionData implements ResolvedPermissionData {
+        PermissionHolder holder;
+        QueryOptions options;
+        Map<String, PermissionResult> permissionMap;
+        ResolverImpl resolver;
+
+        private PermissionData(PermissionHolder holder, QueryOptions options, Map<String, PermissionResult> permissionMap, ResolverImpl resolver) {
+            this.holder = holder;
+            this.options = options;
+            this.permissionMap = permissionMap;
+            this.resolver = resolver;
+        }
+
         @Override
         public PermissionResult check(String permission) {
             return resolver.check(holder, permission, options);
         }
     }
 
-    private record MetaData(Map<String, String> options) implements ResolvedMetaData {
+    @Value
+    @Accessors(fluent = true)
+    private static class MetaData implements ResolvedMetaData {
+        Map<String, String> options;
+
+        private MetaData(Map<String, String> options) {
+            this.options = options;
+        }
+
         @Override
         public Optional<String> option(String key) {
             return Optional.ofNullable(options.get(Identifiers.optionKey(key)));

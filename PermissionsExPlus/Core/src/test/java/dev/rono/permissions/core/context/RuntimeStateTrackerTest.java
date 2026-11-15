@@ -1,14 +1,15 @@
 package dev.rono.permissions.core.context;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.rono.permissions.api.context.ContextKeys;
 import dev.rono.permissions.core.config.AdvancedConfiguration;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import dev.rono.permissions.core.util.Immutables;
 
 class RuntimeStateTrackerTest {
 
@@ -33,9 +34,9 @@ class RuntimeStateTrackerTest {
         var tracker = tracker(true, false, false, false);
         var subject = UUID.randomUUID();
 
-        tracker.replaceState(subject, Map.of(ContextKeys.WORLD.key(), "world", ContextKeys.GAMEMODE.key(), "creative", "faction", "claimed"));
+        tracker.replaceState(subject, Immutables.mapOf(ContextKeys.WORLD.key(), "world", ContextKeys.GAMEMODE.key(), "creative", "faction", "claimed"));
 
-        assertEquals(Map.of(ContextKeys.WORLD.key(), Set.of("world")), tracker.contexts(subject).asMap());
+        assertEquals(Immutables.mapOf(ContextKeys.WORLD.key(), Immutables.setOf("world")), tracker.contexts(subject).asMap());
     }
 
     @Test
@@ -50,7 +51,7 @@ class RuntimeStateTrackerTest {
     }
 
     private static RuntimeStateTracker tracker(boolean worlds, boolean gameModes, boolean servers, boolean proxies) {
-        var configuration = new AdvancedConfiguration("none", 10, 30, "offline", "global", worlds, servers, gameModes, proxies, Map.of(), 10, "localhost", 6379, "", "channel", 2000, true);
+        var configuration = new AdvancedConfiguration("none", 10, 30, "offline", "global", worlds, servers, gameModes, proxies, Immutables.mapOf(), 10, "localhost", 6379, "", "channel", 2000, true);
         return new RuntimeStateTracker(new ContextPolicy(configuration));
     }
 }

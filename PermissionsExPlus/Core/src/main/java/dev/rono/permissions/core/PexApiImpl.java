@@ -1,5 +1,9 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.api.PexApi;
 import dev.rono.permissions.api.event.Subscription;
 import dev.rono.permissions.api.event.group.GroupModifiedEvent;
@@ -53,6 +57,7 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import dev.rono.permissions.core.util.Immutables;
 
 /** Platform-independent, API native PermissionsExPlus runtime. */
 @Internal
@@ -319,7 +324,7 @@ public final class PexApiImpl<C> implements PexApi {
     }
 
     public List<String> expandPermissionNode(String permission) {
-        return runtime.config.general().shorthandExpansionsEnabled() ? ShorthandCompiler.expand(permission) : List.of(permission);
+        return runtime.config.general().shorthandExpansionsEnabled() ? ShorthandCompiler.expand(permission) : Immutables.listOf(permission);
     }
 
     public PermissionResult cacheFailureFallback(UUID id, String permission) {
@@ -341,15 +346,7 @@ public final class PexApiImpl<C> implements PexApi {
     private Runtime<C> createRuntime() {
         var config = ConfigurationManagerImpl.load(platform.configuration());
 
-        var store = switch (config.backend().type()) {
-            case MEMORY -> new MemoryDataStore();
-            case YAML -> new FlatDataStore(createLocalStorageDirectory(config.backend()), true);
-            case JSON -> new FlatDataStore(createLocalStorageDirectory(config.backend()), false);
-            case H2 -> new JdbcDataStore("H2", "jdbc:h2:file:" + resolveLocalFile(config.backend()), "org.h2.Driver", null, null, config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.H2, true);
-            case SQLITE -> new JdbcDataStore("SQLite", "jdbc:sqlite:" + resolveLocalFile(config.backend()) + ".db", "org.sqlite.JDBC", null, null, config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.SQLITE, true);
-            case MYSQL -> new JdbcDataStore("MySQL", "jdbc:mysql://" + config.backend().credentials().host() + ':' + config.backend().credentials().port() + '/' + config.backend().credentials().database(), "com.mysql.cj.jdbc.Driver", config.backend().credentials().username(), config.backend().credentials().password(), config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.MYSQL, true);
-            case POSTGRES -> new JdbcDataStore("Postgres", "jdbc:postgresql://" + config.backend().credentials().host() + ':' + config.backend().credentials().port() + '/' + config.backend().credentials().database(), "org.postgresql.Driver", config.backend().credentials().username(), config.backend().credentials().password(), config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.POSTGRES, true);
-        };
+        var store = createStore(config);
 
         var tasks = new CoreTaskExecutor(config.advanced().workerPoolSize(), error -> platform.logger().error("Uncaught core worker failure", error));
 
@@ -410,6 +407,27 @@ public final class PexApiImpl<C> implements PexApi {
         return new Runtime<>(config, store, groups, users, ladders, resolvers, permissionEngine, contexts, placeholders, backendManager, identity, tasks, scheduler, logger, subscriptions);
     }
 
+    private DataStore createStore(ConfigurationManagerImpl config) {
+        switch (config.backend().type()) {
+            case MEMORY :
+                return new MemoryDataStore();
+            case YAML :
+                return new FlatDataStore(createLocalStorageDirectory(config.backend()), true);
+            case JSON :
+                return new FlatDataStore(createLocalStorageDirectory(config.backend()), false);
+            case H2 :
+                return new JdbcDataStore("H2", "jdbc:h2:file:" + resolveLocalFile(config.backend()), "org.h2.Driver", null, null, config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.H2, true);
+            case SQLITE :
+                return new JdbcDataStore("SQLite", "jdbc:sqlite:" + resolveLocalFile(config.backend()) + ".db", "org.sqlite.JDBC", null, null, config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.SQLITE, true);
+            case MYSQL :
+                return new JdbcDataStore("MySQL", "jdbc:mysql://" + config.backend().credentials().host() + ':' + config.backend().credentials().port() + '/' + config.backend().credentials().database(), "com.mysql.cj.jdbc.Driver", config.backend().credentials().username(), config.backend().credentials().password(), config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.MYSQL, true);
+            case POSTGRES :
+                return new JdbcDataStore("Postgres", "jdbc:postgresql://" + config.backend().credentials().host() + ':' + config.backend().credentials().port() + '/' + config.backend().credentials().database(), "org.postgresql.Driver", config.backend().credentials().username(), config.backend().credentials().password(), config.backend().pool(), config.backend().ddlGeneration(), JdbcDialect.POSTGRES, true);
+            default :
+                throw new IllegalStateException("Unexpected value: " + config.backend().type());
+        }
+    }
+
     private CommandManagerImpl<C> createCommands(ConfigurationManagerImpl config) {
         if (!config.advanced().registerBaseCommands()) {
             return null;
@@ -462,7 +480,7 @@ public final class PexApiImpl<C> implements PexApi {
 
         var defaultName = state.config.general().defaultGroup();
 
-        if (state.groups.cache().get(defaultName).isEmpty()) {
+        if (!state.groups.cache().get(defaultName).isPresent()) {
             state.groups.create(defaultName).toCompletableFuture().join();
         }
     }
@@ -553,20 +571,41 @@ public final class PexApiImpl<C> implements PexApi {
         state.subscriptions.add(events.subscribe(GroupModifiedEvent.class, event -> state.users.cache().identifiers().forEach(publisher::publishInvalidation)));
     }
 
-    private record Runtime<C>(
-            ConfigurationManagerImpl config,
-            DataStore store,
-            GroupManagerImpl groups,
-            UserManagerImpl users,
-            LadderManagerImpl ladders,
-            ResolverImpl resolvers,
-            PermissionEngine permissionEngine,
-            ContextManagerImpl contexts,
-            PlaceholderApiService placeholders,
-            BackendManagerImpl backend,
-            IdentityResolver identity,
-            CoreTaskExecutor tasks,
-            ManagedPlatformScheduler scheduler,
-            LoggerManagerImpl logger,
-            List<Subscription> subscriptions) {}
+    @Value
+    @Accessors(fluent = true)
+    private static class Runtime<C> {
+        ConfigurationManagerImpl config;
+        DataStore store;
+        GroupManagerImpl groups;
+        UserManagerImpl users;
+        LadderManagerImpl ladders;
+        ResolverImpl resolvers;
+        PermissionEngine permissionEngine;
+        ContextManagerImpl contexts;
+        PlaceholderApiService placeholders;
+        BackendManagerImpl backend;
+        IdentityResolver identity;
+        CoreTaskExecutor tasks;
+        ManagedPlatformScheduler scheduler;
+        LoggerManagerImpl logger;
+        List<Subscription> subscriptions;
+
+        private Runtime(ConfigurationManagerImpl config, DataStore store, GroupManagerImpl groups, UserManagerImpl users, LadderManagerImpl ladders, ResolverImpl resolvers, PermissionEngine permissionEngine, ContextManagerImpl contexts, PlaceholderApiService placeholders, BackendManagerImpl backend, IdentityResolver identity, CoreTaskExecutor tasks, ManagedPlatformScheduler scheduler, LoggerManagerImpl logger, List<Subscription> subscriptions) {
+            this.config = config;
+            this.store = store;
+            this.groups = groups;
+            this.users = users;
+            this.ladders = ladders;
+            this.resolvers = resolvers;
+            this.permissionEngine = permissionEngine;
+            this.contexts = contexts;
+            this.placeholders = placeholders;
+            this.backend = backend;
+            this.identity = identity;
+            this.tasks = tasks;
+            this.scheduler = scheduler;
+            this.logger = logger;
+            this.subscriptions = subscriptions;
+        }
+    }
 }

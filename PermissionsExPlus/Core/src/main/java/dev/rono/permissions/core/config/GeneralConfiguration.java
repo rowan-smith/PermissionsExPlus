@@ -1,18 +1,36 @@
 package dev.rono.permissions.core.config;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.core.platform.PlatformConfiguration;
 import java.nio.file.Files;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 /** General runtime settings read through a real YAML parser. */
-public record GeneralConfiguration(String defaultGroup,
-        boolean caseSensitive,
-        boolean wildcardsEnabled,
-        boolean allowNegations,
-        boolean shorthandExpansionsEnabled,
-        boolean verboseDebug,
-        boolean vaultEnabled,
-        boolean placeholderApiEnabled) {
+@Value
+@Accessors(fluent = true)
+public class GeneralConfiguration {
+    String defaultGroup;
+    boolean caseSensitive;
+    boolean wildcardsEnabled;
+    boolean allowNegations;
+    boolean shorthandExpansionsEnabled;
+    boolean verboseDebug;
+    boolean vaultEnabled;
+    boolean placeholderApiEnabled;
+
+    public GeneralConfiguration(String defaultGroup, boolean caseSensitive, boolean wildcardsEnabled, boolean allowNegations, boolean shorthandExpansionsEnabled, boolean verboseDebug, boolean vaultEnabled, boolean placeholderApiEnabled) {
+        this.defaultGroup = defaultGroup;
+        this.caseSensitive = caseSensitive;
+        this.wildcardsEnabled = wildcardsEnabled;
+        this.allowNegations = allowNegations;
+        this.shorthandExpansionsEnabled = shorthandExpansionsEnabled;
+        this.verboseDebug = verboseDebug;
+        this.vaultEnabled = vaultEnabled;
+        this.placeholderApiEnabled = placeholderApiEnabled;
+    }
 
     public GeneralConfiguration(String defaultGroup,
             boolean caseSensitive,

@@ -1,5 +1,9 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -29,7 +33,7 @@ class ResolverConflictResolutionTest {
         var explanation = fixture.resolver.permissions().explain(user, "example.fly", QueryOptions.global());
 
         assertEquals(PermissionResult.DENY, explanation.result());
-        assertEquals("deny", ((Group) explanation.winner().orElseThrow().source()).name());
+        assertEquals("deny", ((Group) explanation.winner().get().source()).name());
     }
 
     @Test
@@ -47,10 +51,10 @@ class ResolverConflictResolutionTest {
         var explanation = fixture.resolver.permissions().explain(user, "example.fly", QueryOptions.global());
 
         assertEquals(PermissionResult.UNDEFINED, explanation.result());
-        assertTrue(explanation.winner().isEmpty());
+        assertTrue(!explanation.winner().isPresent());
         assertEquals(2, explanation.candidates().stream().filter(candidate -> candidate.status() == CandidateStatus.CONFLICT).count());
         assertEquals(1, fixture.warnings.size());
-        assertTrue(fixture.warnings.getFirst().contains("example.fly"));
+        assertTrue(fixture.warnings.get(0).contains("example.fly"));
     }
 
     @Test
@@ -85,7 +89,7 @@ class ResolverConflictResolutionTest {
             modifier.addGroup("admin");
         }).toCompletableFuture().join();
 
-        assertEquals("[Admin][VIP]", fixture.resolver.options().prefix(user, QueryOptions.global()).orElseThrow());
+        assertEquals("[Admin][VIP]", fixture.resolver.options().prefix(user, QueryOptions.global()).get());
     }
 
     @Test
@@ -112,7 +116,7 @@ class ResolverConflictResolutionTest {
             modifier.addGroup("admin");
         }).toCompletableFuture().join();
 
-        assertEquals("[Admin]", fixture.resolver.options().prefix(user, QueryOptions.global()).orElseThrow());
+        assertEquals("[Admin]", fixture.resolver.options().prefix(user, QueryOptions.global()).get());
     }
 
     private static User conflictingUser(Fixture fixture, int allowWeight, int denyWeight) {
@@ -156,5 +160,19 @@ class ResolverConflictResolutionTest {
         return new Fixture(groups, users, resolver, warnings);
     }
 
-    private record Fixture(GroupManagerImpl groups, UserManagerImpl users, ResolverImpl resolver, List<String> warnings) {}
+    @Value
+    @Accessors(fluent = true)
+    private static class Fixture {
+        GroupManagerImpl groups;
+        UserManagerImpl users;
+        ResolverImpl resolver;
+        List<String> warnings;
+
+        private Fixture(GroupManagerImpl groups, UserManagerImpl users, ResolverImpl resolver, List<String> warnings) {
+            this.groups = groups;
+            this.users = users;
+            this.resolver = resolver;
+            this.warnings = warnings;
+        }
+    }
 }

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
 import static dev.rono.permissions.core.RuntimeFixture.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -27,14 +29,14 @@ import dev.rono.permissions.core.store.SnapshotCodec;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.OptionalInt;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import dev.rono.permissions.core.util.Immutables;
+import dev.rono.permissions.core.util.Optionals;
 
 class ManagerContractTest {
     private RuntimeFixture runtime;
@@ -60,7 +62,7 @@ class ManagerContractTest {
         var id = UUID.randomUUID();
 
         await(runtime.users.create(id, "Alex"));
-        assertEquals(id, await(runtime.users.find("aLeX")).orElseThrow().uniqueId());
+        assertEquals(id, await(runtime.users.find("aLeX")).get().uniqueId());
         assertCause(UserAlreadyExistsException.class, () -> await(runtime.users.create(UUID.randomUUID(), "Alex")));
         assertTrue(await(runtime.users.delete(id)));
         assertFalse(await(runtime.users.delete(id)));
@@ -100,7 +102,7 @@ class ManagerContractTest {
         var evicted = limitedUsers.cache().evictInactive();
 
         assertEquals(1, evicted.size());
-        assertTrue(Set.of("Offline", "SecondOffline").contains(evicted.getFirst().name()));
+        assertTrue(Immutables.setOf("Offline", "SecondOffline").contains(evicted.get(0).name()));
         assertTrue(limitedUsers.cache().isCached(onlineId));
         assertFalse(limitedUsers.cache().unload(onlineId));
         assertEquals(2, limitedUsers.cache().all().size());
@@ -153,7 +155,7 @@ class ManagerContractTest {
 
         var evicted = expiring.cache().evictInactive();
 
-        assertEquals(List.of("Alex"), evicted.stream().map(User::name).toList());
+        assertEquals(Immutables.listOf("Alex"), evicted.stream().map(User::name).collect(Immutables.toList()));
         assertFalse(expiring.cache().isCached(id));
     }
 
@@ -182,7 +184,7 @@ class ManagerContractTest {
         removals.addAll(runtime.groups.purgeExpired());
 
         assertEquals(6, removals.size());
-        assertEquals(Set.of("group membership", "permission", "option", "parent"), removals.stream().map(removal -> removal.nodeType()).collect(Collectors.toSet()));
+        assertEquals(Immutables.setOf("group membership", "permission", "option", "parent"), removals.stream().map(removal -> removal.nodeType()).collect(Collectors.toSet()));
         assertTrue(removals.stream().anyMatch(removal -> removal.subject().startsWith("Alex (")));
         assertTrue(await(runtime.users.load(id)).groups().isEmpty());
         assertTrue(await(runtime.users.load(id)).explicitPermissions().isEmpty());
@@ -205,10 +207,10 @@ class ManagerContractTest {
                 .expiry(expiry).build())));
 
         assertEquals(6, user.explicitPermissions().size());
-        assertTrue(user.explicitPermissions().stream().allMatch(node -> node.value() == PermissionValue.DENY && node.contexts().equals(contexts) && node.expiry().orElseThrow().equals(expiry)));
+        assertTrue(user.explicitPermissions().stream().allMatch(node -> node.value() == PermissionValue.DENY && node.contexts().equals(contexts) && node.expiry().get().equals(expiry)));
         assertTrue(user.explicitPermissions().stream().noneMatch(node -> node.permission().contains("{")));
 
-        var persisted = SnapshotCodec.user(runtime.store.get("users", id.toString()).orElseThrow());
+        var persisted = SnapshotCodec.user(runtime.store.get("users", id.toString()).get());
 
         assertEquals(user.explicitPermissions(), persisted.explicitPermissions());
     }
@@ -218,8 +220,8 @@ class ManagerContractTest {
         var userId = UUID.randomUUID();
         var rawPermission = PermissionNode.builder().permission("example.{one,two}").build();
 
-        runtime.store.put("users", userId.toString(), SnapshotCodec.user(new UserSnapshot(userId, "Alex", Set.of(rawPermission), Set.of(), Set.of())));
-        runtime.store.put("groups", "staff", SnapshotCodec.group(new GroupSnapshot("staff", OptionalInt.empty(), Set.of(rawPermission), Set.of(), Set.of())));
+        runtime.store.put("users", userId.toString(), SnapshotCodec.user(new UserSnapshot(userId, "Alex", Immutables.setOf(rawPermission), Immutables.setOf(), Immutables.setOf())));
+        runtime.store.put("groups", "staff", SnapshotCodec.group(new GroupSnapshot("staff", OptionalInt.empty(), Immutables.setOf(rawPermission), Immutables.setOf(), Immutables.setOf())));
 
         var users = new UserManagerImpl(runtime.store, runtime.events, Duration.ofMinutes(10), 10, Runnable::run, true);
         users.attachGroups(runtime.groups);
@@ -227,8 +229,8 @@ class ManagerContractTest {
         var groups = new GroupManagerImpl(runtime.store, runtime.events, 10, Runnable::run, true);
         groups.loadAll();
 
-        assertEquals(Set.of("example.one", "example.two"), await(users.load(userId)).explicitPermissions().stream().map(PermissionNode::permission).collect(Collectors.toSet()));
-        assertEquals(Set.of("example.one", "example.two"), groups.cache().get("staff").orElseThrow().explicitPermissions().stream().map(PermissionNode::permission).collect(Collectors.toSet()));
+        assertEquals(Immutables.setOf("example.one", "example.two"), await(users.load(userId)).explicitPermissions().stream().map(PermissionNode::permission).collect(Collectors.toSet()));
+        assertEquals(Immutables.setOf("example.one", "example.two"), groups.cache().get("staff").get().explicitPermissions().stream().map(PermissionNode::permission).collect(Collectors.toSet()));
     }
 
     @Test
@@ -236,12 +238,12 @@ class ManagerContractTest {
         var id = UUID.randomUUID();
         var rawPermission = PermissionNode.builder().permission("example.{one,two}").build();
 
-        runtime.store.put("users", id.toString(), SnapshotCodec.user(new UserSnapshot(id, "Alex", Set.of(rawPermission), Set.of(), Set.of())));
+        runtime.store.put("users", id.toString(), SnapshotCodec.user(new UserSnapshot(id, "Alex", Immutables.setOf(rawPermission), Immutables.setOf(), Immutables.setOf())));
 
         var users = new UserManagerImpl(runtime.store, runtime.events, Duration.ofMinutes(10), 10, Runnable::run, false);
         users.attachGroups(runtime.groups);
 
-        assertEquals(Set.of("example.{one,two}"), await(users.load(id)).explicitPermissions().stream().map(PermissionNode::permission).collect(Collectors.toSet()));
+        assertEquals(Immutables.setOf("example.{one,two}"), await(users.load(id)).explicitPermissions().stream().map(PermissionNode::permission).collect(Collectors.toSet()));
     }
 
     @Test
@@ -267,9 +269,9 @@ class ManagerContractTest {
 
         assertCause(GroupNotFoundException.class, () -> await(runtime.ladders.modify("main", modifier -> modifier.add("missing"))));
 
-        var ladder = await(runtime.ladders.modify("main", modifier -> modifier.setGroups(List.of("member", "member"))));
+        var ladder = await(runtime.ladders.modify("main", modifier -> modifier.setGroups(Immutables.listOf("member", "member"))));
 
-        assertEquals(List.of("member"), ladder.groups());
+        assertEquals(Immutables.listOf("member"), ladder.groups());
     }
 
     @Test
@@ -278,15 +280,15 @@ class ManagerContractTest {
         await(runtime.groups.create("two"));
         await(runtime.groups.create("three"));
         await(runtime.ladders.create("main"));
-        await(runtime.ladders.modify("main", modifier -> modifier.setGroups(List.of("one", "two", "three"))));
+        await(runtime.ladders.modify("main", modifier -> modifier.setGroups(Immutables.listOf("one", "two", "three"))));
 
         var moved = await(runtime.ladders.modify("main", modifier -> modifier.move("three", 0)));
 
-        assertEquals(List.of("three", "one", "two"), moved.groups());
+        assertEquals(Immutables.listOf("three", "one", "two"), moved.groups());
 
         var removed = await(runtime.ladders.modify(moved, modifier -> modifier.remove("one")));
 
-        assertEquals(List.of("three", "two"), removed.groups());
+        assertEquals(Immutables.listOf("three", "two"), removed.groups());
     }
 
     @Test
@@ -294,7 +296,7 @@ class ManagerContractTest {
         await(runtime.groups.create("member"));
         await(runtime.groups.create("staff"));
         await(runtime.ladders.create("main"));
-        await(runtime.ladders.modify("main", modifier -> modifier.setGroups(List.of("member", "staff"))));
+        await(runtime.ladders.modify("main", modifier -> modifier.setGroups(Immutables.listOf("member", "staff"))));
 
         var user = await(runtime.users.create(UUID.randomUUID(), "Alex"));
 
@@ -312,7 +314,7 @@ class ManagerContractTest {
 
         var resolver = new ResolverImpl(runtime.groups, 10, false, true, true, "guest");
 
-        assertEquals(List.of("guest"), resolver.defaultGroups().resolve().stream().map(Group::name).toList());
+        assertEquals(Immutables.listOf("guest"), Optionals.stream(resolver.defaultGroups().resolve()).map(Group::name).collect(Immutables.toList()));
         assertTrue(runtime.store.all("defaults").isEmpty());
     }
 

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.identity;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.sun.net.httpserver.HttpServer;
 import dev.rono.permissions.core.event.EventBusImpl;
@@ -14,7 +16,6 @@ import dev.rono.permissions.core.store.MemoryDataStore;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -22,6 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
+import java.nio.file.Paths;
 
 class IdentityResolverTest {
     @Test
@@ -63,7 +65,7 @@ class IdentityResolverTest {
     private static Optional<UUID> online(URI endpoint, String name) {
         var result = new AtomicReference<Optional<UUID>>();
 
-        new IdentityResolver(users(), new DirectScheduler(), "online_only", logger(), HttpClient.newHttpClient(), endpoint).resolveAsync(name, result::set);
+        new IdentityResolver(users(), new DirectScheduler(), "online_only", logger(), endpoint).resolveAsync(name, result::set);
 
         return result.get();
     }
@@ -93,7 +95,7 @@ class IdentityResolverTest {
         var config = new PlatformConfiguration() {
             @Override
             public Path dataDirectory() {
-                return Path.of("");
+                return Paths.get("");
             }
 
             @Override

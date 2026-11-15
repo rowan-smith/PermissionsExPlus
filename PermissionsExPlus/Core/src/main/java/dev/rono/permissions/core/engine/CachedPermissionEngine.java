@@ -1,5 +1,9 @@
 package dev.rono.permissions.core.engine;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
@@ -171,24 +175,48 @@ public final class CachedPermissionEngine implements PermissionEngine {
     }
 
     private static String holderKey(PermissionHolder holder) {
-        if (holder instanceof User user) {
+        if (holder instanceof User) {
+            User user = (User) holder;
             return "user:" + user.uniqueId();
         }
 
-        if (holder instanceof Group group) {
+        if (holder instanceof Group) {
+            Group group = (Group) holder;
             return "group:" + group.name();
         }
 
         return ResolutionSupport.subjectKey(holder);
     }
 
-    private record PermissionCacheKey(
-            String holder,
-            String permission,
-            String contexts,
-            boolean includeInheritance,
-            boolean includeDefaults,
-            String revision) {}
+    @Value
+    @Accessors(fluent = true)
+    private static class PermissionCacheKey {
+        String holder;
+        String permission;
+        String contexts;
+        boolean includeInheritance;
+        boolean includeDefaults;
+        String revision;
 
-    private record CachedDecision(PermissionResult result, long ttlNanos) {}
+        private PermissionCacheKey(String holder, String permission, String contexts, boolean includeInheritance, boolean includeDefaults, String revision) {
+            this.holder = holder;
+            this.permission = permission;
+            this.contexts = contexts;
+            this.includeInheritance = includeInheritance;
+            this.includeDefaults = includeDefaults;
+            this.revision = revision;
+        }
+    }
+
+    @Value
+    @Accessors(fluent = true)
+    private static class CachedDecision {
+        PermissionResult result;
+        long ttlNanos;
+
+        private CachedDecision(PermissionResult result, long ttlNanos) {
+            this.result = result;
+            this.ttlNanos = ttlNanos;
+        }
+    }
 }

@@ -1,18 +1,35 @@
 package dev.rono.permissions.core.config;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.core.platform.PlatformConfiguration;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+import java.nio.file.Paths;
 
-public record BackendConfiguration(
-        BackendType type,
-        String localStorageDirectory,
-        String localFilename,
-        DatabaseCredentials credentials,
-        DatabasePool pool,
-        DdlGeneration ddlGeneration) {
+@Value
+@Accessors(fluent = true)
+public class BackendConfiguration {
+    BackendType type;
+    String localStorageDirectory;
+    String localFilename;
+    DatabaseCredentials credentials;
+    DatabasePool pool;
+    DdlGeneration ddlGeneration;
+
+    public BackendConfiguration(BackendType type, String localStorageDirectory, String localFilename, DatabaseCredentials credentials, DatabasePool pool, DdlGeneration ddlGeneration) {
+        this.type = type;
+        this.localStorageDirectory = localStorageDirectory;
+        this.localFilename = localFilename;
+        this.credentials = credentials;
+        this.pool = pool;
+        this.ddlGeneration = ddlGeneration;
+    }
+
     public BackendConfiguration(
             BackendType type,
             String localFilename,
@@ -111,7 +128,7 @@ public record BackendConfiguration(
     }
 
     private static <T> T required(String key, T value) {
-        if (value == null || (value instanceof String text && text.isBlank())) {
+        if (value == null || (value instanceof String && ((String) value).trim().isEmpty())) {
             throw new IllegalStateException("Missing required setting '" + key + "' in database.yml");
         }
 
@@ -122,7 +139,7 @@ public record BackendConfiguration(
         Path path;
 
         try {
-            path = Path.of(value);
+            path = Paths.get(value);
         } catch (RuntimeException error) {
             throw new IllegalStateException("Invalid path in '" + key + "'", error);
         }

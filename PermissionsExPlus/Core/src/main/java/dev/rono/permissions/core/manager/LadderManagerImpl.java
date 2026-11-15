@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.manager;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.exception.GroupNotFoundException;
 import dev.rono.permissions.api.exception.InvalidLadderException;
@@ -25,7 +27,6 @@ import dev.rono.permissions.core.model.PromotionResultImpl;
 import dev.rono.permissions.core.modifier.LadderModifierImpl;
 import dev.rono.permissions.core.store.DataStore;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class LadderManagerImpl implements LadderManager {
     private final LadderCacheManagerImpl cache;
@@ -84,8 +86,8 @@ public final class LadderManagerImpl implements LadderManager {
     @Override
     public CompletionStage<PromotionResult> promote(String username, String ladder) {
         return users.find(username).thenCompose(user -> {
-            if (user.isEmpty()) {
-                return CompletableFuture.failedFuture(new UserNotFoundException(username));
+            if (!user.isPresent()) {
+                return Stages.failed(new UserNotFoundException(username));
             }
 
             return promote(user.get().uniqueId(), ladder);
@@ -100,8 +102,8 @@ public final class LadderManagerImpl implements LadderManager {
     @Override
     public CompletionStage<PromotionResult> demote(String username, String ladder) {
         return users.find(username).thenCompose(user -> {
-            if (user.isEmpty()) {
-                return CompletableFuture.failedFuture(new UserNotFoundException(username));
+            if (!user.isPresent()) {
+                return Stages.failed(new UserNotFoundException(username));
             }
 
             return demote(user.get().uniqueId(), ladder);
@@ -124,7 +126,7 @@ public final class LadderManagerImpl implements LadderManager {
                     throw new LadderAlreadyExistsException(key);
                 }
 
-                var ladder = new LadderSnapshot(key, List.of());
+                var ladder = new LadderSnapshot(key, Immutables.listOf());
 
                 save(ladder);
                 events.publish(new LadderCreatedEventImpl(ladder));
@@ -173,7 +175,7 @@ public final class LadderManagerImpl implements LadderManager {
     synchronized void renameGroup(String oldName, String newName) {
         for (var ladder : storage.allNow().values()) {
             if (ladder.groups().contains(oldName)) {
-                modifyNow(ladder.name(), modifier -> modifier.setGroups(ladder.groups().stream().map(group -> group.equals(oldName) ? newName : group).toList()));
+                modifyNow(ladder.name(), modifier -> modifier.setGroups(ladder.groups().stream().map(group -> group.equals(oldName) ? newName : group).collect(Immutables.toList())));
             }
         }
     }
@@ -245,7 +247,7 @@ public final class LadderManagerImpl implements LadderManager {
                 throw new InvalidLadderException("Duplicate ladder group: " + key);
             }
 
-            if (groups.findNow(key).isEmpty()) {
+            if (!groups.findNow(key).isPresent()) {
                 throw new GroupNotFoundException(key);
             }
         }
@@ -271,7 +273,7 @@ public final class LadderManagerImpl implements LadderManager {
                     .filter(node -> {
                         return !node.expired() && node.contexts().equals(contexts) && ladder.contains(node.group());
                     })
-                    .toList();
+                    .collect(Immutables.toList());
 
             if (memberships.size() > 1) {
                 return completedResult(user, ladder, Optional.empty(), Optional.empty(), PromotionStatus.MULTIPLE_POSITIONS, promote);
@@ -281,8 +283,8 @@ public final class LadderManagerImpl implements LadderManager {
                 return completedResult(user, ladder, Optional.empty(), Optional.empty(), PromotionStatus.NOT_ON_LADDER, promote);
             }
 
-            var previous = memberships.getFirst();
-            int position = ladder.positionOf(previous.group()).orElseThrow();
+            var previous = memberships.get(0);
+            int position = ladder.positionOf(previous.group()).getAsInt();
 
             if (promote && position == ladder.size() - 1) {
                 return completedResult(user, ladder, Optional.of(previous), Optional.of(previous), PromotionStatus.ALREADY_TOP, true);

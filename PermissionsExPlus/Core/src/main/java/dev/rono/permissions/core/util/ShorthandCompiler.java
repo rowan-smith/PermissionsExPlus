@@ -1,6 +1,7 @@
 package dev.rono.permissions.core.util;
 
-import java.io.Serial;
+import lombok.var;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,10 +27,10 @@ public final class ShorthandCompiler {
         try {
             expand(input, 0, output);
         } catch (ExpansionLimitException ignored) {
-            return List.of(input);
+            return Immutables.listOf(input);
         }
 
-        return List.copyOf(output);
+        return Immutables.copyOfList(output);
     }
 
     private static void expand(String input, int scanFrom, List<String> output) {
@@ -110,7 +111,7 @@ public final class ShorthandCompiler {
             try {
                 return numericRange(Integer.parseInt(numberMatcher.group(1)), Integer.parseInt(numberMatcher.group(2)));
             } catch (NumberFormatException ignored) {
-                return List.of();
+                return Immutables.listOf();
             }
         }
 
@@ -121,7 +122,7 @@ public final class ShorthandCompiler {
         }
 
         if (!token.contains(",")) {
-            return List.of();
+            return Immutables.listOf();
         }
 
         var values = new ArrayList<String>();
@@ -129,19 +130,19 @@ public final class ShorthandCompiler {
         for (var value : token.split(",", -1)) {
             var trimmed = value.trim();
             if (trimmed.isEmpty() || trimmed.indexOf('{') >= 0 || trimmed.indexOf('}') >= 0) {
-                return List.of();
+                return Immutables.listOf();
             }
 
             values.add(trimmed);
         }
 
-        return List.copyOf(values);
+        return Immutables.copyOfList(values);
     }
 
     private static List<String> numericRange(int start, int end) {
         var length = Math.abs((long) end - start) + 1;
         if (length > MAX_EXPANSIONS) {
-            return List.of();
+            return Immutables.listOf();
         }
 
         var values = new ArrayList<String>((int) length);
@@ -152,14 +153,14 @@ public final class ShorthandCompiler {
             values.add(Integer.toString(value));
 
             if (value == end) {
-                return List.copyOf(values);
+                return Immutables.copyOfList(values);
             }
         }
     }
 
     private static List<String> characterRange(char start, char end) {
         if (Character.isUpperCase(start) != Character.isUpperCase(end)) {
-            return List.of();
+            return Immutables.listOf();
         }
 
         var values = new ArrayList<String>();
@@ -170,13 +171,12 @@ public final class ShorthandCompiler {
             values.add(Character.toString(value));
 
             if (value == end) {
-                return List.copyOf(values);
+                return Immutables.copyOfList(values);
             }
         }
     }
 
     private static final class ExpansionLimitException extends RuntimeException {
-        @Serial
         private static final long serialVersionUID = 1L;
     }
 }

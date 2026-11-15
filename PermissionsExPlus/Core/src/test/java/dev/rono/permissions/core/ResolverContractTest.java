@@ -1,5 +1,7 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
 import static dev.rono.permissions.core.RuntimeFixture.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -78,7 +80,7 @@ class ResolverContractTest {
         var trace = runtime.resolvers.permissions().explain(user, "kit.use", creative);
 
         assertEquals(PermissionResult.UNDEFINED, trace.result());
-        assertEquals(CandidateStatus.CONTEXT_MISMATCH, trace.candidates().getFirst().status());
+        assertEquals(CandidateStatus.CONTEXT_MISMATCH, trace.candidates().get(0).status());
     }
 
     @Test
@@ -98,7 +100,7 @@ class ResolverContractTest {
         var trace = runtime.resolvers.permissions().explain(user, "temporary.use", QueryOptions.global());
 
         assertEquals(PermissionResult.UNDEFINED, trace.result());
-        assertEquals(CandidateStatus.EXPIRED, trace.candidates().getFirst().status());
+        assertEquals(CandidateStatus.EXPIRED, trace.candidates().get(0).status());
     }
 
     @Test
@@ -145,8 +147,8 @@ class ResolverContractTest {
             modifier.addGroup("high");
         }));
 
-        assertEquals("[High]", runtime.resolvers.options().prefix(user, QueryOptions.global()).orElseThrow());
-        assertEquals("[Survival]", runtime.resolvers.options().prefix(user, survival).orElseThrow());
+        assertEquals("[High]", runtime.resolvers.options().prefix(user, QueryOptions.global()).get());
+        assertEquals("[Survival]", runtime.resolvers.options().prefix(user, survival).get());
     }
 
     @Test
@@ -163,6 +165,6 @@ class ResolverContractTest {
             modifier.addGroup("staff");
         }));
 
-        assertEquals("staff", runtime.resolvers.primaryGroup().resolve(user, QueryOptions.global()).orElseThrow().name());
+        assertEquals("staff", runtime.resolvers.primaryGroup().resolve(user, QueryOptions.global()).get().name());
     }
 }

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.store;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.logging.Level;
 import java.util.logging.Logger;

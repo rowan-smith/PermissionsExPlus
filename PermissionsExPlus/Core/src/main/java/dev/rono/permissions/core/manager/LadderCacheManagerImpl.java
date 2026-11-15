@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class LadderCacheManagerImpl implements LadderCacheManager {
     private final Map<String, LadderSnapshot> cache = new LinkedHashMap<>();
@@ -22,12 +23,12 @@ public final class LadderCacheManagerImpl implements LadderCacheManager {
 
     @Override
     public synchronized Set<String> identifiers() {
-        return Set.copyOf(cache.keySet());
+        return Immutables.copyOfSet(cache.keySet());
     }
 
     @Override
     public synchronized Collection<Ladder> all() {
-        return List.copyOf(cache.values());
+        return Immutables.copyOfList(cache.values());
     }
 
     @Override
@@ -53,6 +54,6 @@ public final class LadderCacheManagerImpl implements LadderCacheManager {
     }
 
     synchronized List<LadderSnapshot> snapshots() {
-        return List.copyOf(cache.values());
+        return Immutables.copyOfList(cache.values());
     }
 }

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.sync;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import dev.rono.permissions.core.config.AdvancedConfiguration;
 import dev.rono.permissions.core.platform.PlatformLogger;
@@ -9,9 +11,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import dev.rono.permissions.core.util.Immutables;
 
 class RedisSyncServiceTest {
 
@@ -26,7 +28,7 @@ class RedisSyncServiceTest {
 
         service.handleMessage("pex-sync", "permissionsexplus:invalidate-user:" + remote + ':' + user);
 
-        assertEquals(List.of(user), invalidated);
+        assertEquals(Immutables.listOf(user), invalidated);
     }
 
     @Test
@@ -51,7 +53,7 @@ class RedisSyncServiceTest {
 
         service.handleMessage("pex-sync", "permissionsexplus:invalidate-user:" + local + ':' + UUID.randomUUID());
 
-        assertEquals(List.of(), refreshed);
+        assertEquals(Immutables.listOf(), refreshed);
     }
 
     @Test
@@ -65,11 +67,11 @@ class RedisSyncServiceTest {
         service.handleMessage("pex-sync", "permissionsexplus:audit:" + remote + ':' + encoded);
         service.handleMessage("pex-sync", "permissionsexplus:audit:" + local + ':' + encoded);
 
-        assertEquals(List.of("staff changed a group"), received);
+        assertEquals(Immutables.listOf("staff changed a group"), received);
     }
 
     private static AdvancedConfiguration config() {
-        return new AdvancedConfiguration("redis", 10, 30, "mix", "global", true, true, true, true, Map.of(), 10, "localhost", 6379, "", "pex-sync", 1000, true);
+        return new AdvancedConfiguration("redis", 10, 30, "mix", "global", true, true, true, true, Immutables.mapOf(), 10, "localhost", 6379, "", "pex-sync", 1000, true);
     }
 
     private static final class RecordingScheduler implements PlatformScheduler {

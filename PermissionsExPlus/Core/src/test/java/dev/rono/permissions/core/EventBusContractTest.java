@@ -1,5 +1,7 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import dev.rono.permissions.api.event.Event;
@@ -8,9 +10,9 @@ import dev.rono.permissions.core.event.EventBusImpl;
 import dev.rono.permissions.core.event.GroupCreatedEventImpl;
 import dev.rono.permissions.core.model.GroupSnapshot;
 import java.util.OptionalInt;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
+import dev.rono.permissions.core.util.Immutables;
 
 class EventBusContractTest {
     @Test
@@ -62,6 +64,6 @@ class EventBusContractTest {
     }
 
     private static GroupSnapshot group() {
-        return new GroupSnapshot("staff", OptionalInt.empty(), Set.of(), Set.of(), Set.of());
+        return new GroupSnapshot("staff", OptionalInt.empty(), Immutables.setOf(), Immutables.setOf(), Immutables.setOf());
     }
 }

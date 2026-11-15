@@ -13,6 +13,8 @@
     <artifactId>Core</artifactId>
 
     <properties>
+        <!-- Core is shared by every distribution, including Java 8 legacy servers. -->
+        <maven.compiler.release>8</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <slf4j.version>1.7.36</slf4j.version>
     </properties>
@@ -33,6 +35,12 @@
             <artifactId>slf4j-nop</artifactId>
             <version>${slf4j.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -79,10 +87,12 @@
             <version>${hikari.version}</version>
         </dependency>
         <dependency>
+            <!-- Each distribution bundles its own H2 (2.2+ needs Java 11). Core tests use
+                 the last Java 8 release so they can run on a Java 8 JVM. -->
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
-            <scope>runtime</scope>
+            <version>${h2.legacy.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.spongepowered</groupId>
@@ -131,6 +141,57 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!-- The release=8 compiler setting only checks Core's own code; this fails the build if any
+                     bundled dependency is compiled for a newer JVM than Java 8. -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>extra-enforcer-rules</artifactId>
+                        <version>1.10.0</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>java8-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <enforceBytecodeVersion>
+                                    <maxJdkVersion>1.8</maxJdkVersion>
+                                    <ignoredScopes>
+                                        <ignoredScope>test</ignoredScope>
+                                        <ignoredScope>provided</ignoredScope>
+                                    </ignoredScopes>
+                                    <!-- Multi-release jars keep Java 9+ variants under META-INF/versions. -->
+                                    <ignoreClasses>
+                                        <ignoreClass>module-info</ignoreClass>
+                                    </ignoreClasses>
+                                </enforceBytecodeVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>

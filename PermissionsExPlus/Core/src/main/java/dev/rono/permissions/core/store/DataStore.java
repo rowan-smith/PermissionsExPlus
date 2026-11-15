@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.store;
 
+import lombok.var;
+
 import dev.rono.permissions.core.model.GroupSnapshot;
 import dev.rono.permissions.core.model.LadderSnapshot;
 import dev.rono.permissions.core.model.UserSnapshot;
@@ -7,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import dev.rono.permissions.core.util.Immutables;
 
 public interface DataStore extends AutoCloseable {
     void open();
@@ -26,7 +29,7 @@ public interface DataStore extends AutoCloseable {
     default Map<String, UserSnapshot> allUsers() {
         var users = new LinkedHashMap<String, UserSnapshot>();
         all("users").forEach((key, value) -> users.put(key, SnapshotCodec.user(value)));
-        return Map.copyOf(users);
+        return Immutables.copyOfMap(users);
     }
 
     default void putUser(UserSnapshot user) {
@@ -44,7 +47,7 @@ public interface DataStore extends AutoCloseable {
     default Map<String, GroupSnapshot> allGroups() {
         var groups = new LinkedHashMap<String, GroupSnapshot>();
         all("groups").forEach((key, value) -> groups.put(key, SnapshotCodec.group(value)));
-        return Map.copyOf(groups);
+        return Immutables.copyOfMap(groups);
     }
 
     default void putGroup(GroupSnapshot group) {
@@ -62,7 +65,7 @@ public interface DataStore extends AutoCloseable {
     default Map<String, LadderSnapshot> allLadders() {
         var ladders = new LinkedHashMap<String, LadderSnapshot>();
         all("ladders").forEach((key, value) -> ladders.put(key, SnapshotCodec.ladder(value)));
-        return Map.copyOf(ladders);
+        return Immutables.copyOfMap(ladders);
     }
 
     default void putLadder(LadderSnapshot ladder) {

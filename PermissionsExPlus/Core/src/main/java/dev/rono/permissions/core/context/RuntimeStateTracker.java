@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.context;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 
 import java.util.HashMap;
@@ -8,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class RuntimeStateTracker implements CoreStateTracker {
     private final ConcurrentHashMap<UUID, ConcurrentHashMap<String, String>> states = new ConcurrentHashMap<>();
@@ -34,7 +37,7 @@ public final class RuntimeStateTracker implements CoreStateTracker {
 
         var normalizedKey = key.toLowerCase(Locale.ROOT);
 
-        var selected = currentPolicy().select(Map.of(normalizedKey, value));
+        var selected = currentPolicy().select(Immutables.mapOf(normalizedKey, value));
         if (selected.isEmpty()) {
             states.computeIfPresent(subject, (ignored, current) -> {
                 current.remove(normalizedKey);

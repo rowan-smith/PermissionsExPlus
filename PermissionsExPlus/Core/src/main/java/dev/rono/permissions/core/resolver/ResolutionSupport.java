@@ -1,5 +1,9 @@
 package dev.rono.permissions.core.resolver;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.parent.ParentNode;
@@ -25,6 +29,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import dev.rono.permissions.core.util.Immutables;
+import dev.rono.permissions.core.util.Strings;
+import dev.rono.permissions.core.util.Optionals;
 
 /**
  * Domain-graph helpers that compile PermissionsExPlus holders into Casbin
@@ -100,7 +107,8 @@ public final class ResolutionSupport {
 
     /**
      * Compiles eligible (non-excluded, non-expired) permission nodes for a holder.
-     * Node context matching is deferred to Casbin evaluation so one compiled set can
+     * Node context matching is deferred to Casbin evaluation so one compiled set
+     * can
      * serve multiple active context combinations for the same membership graph.
      */
     public List<CompiledPermission> compile(PermissionHolder holder, QueryOptions options) {
@@ -134,7 +142,7 @@ public final class ResolutionSupport {
             }
         }
 
-        return List.copyOf(compiled);
+        return Immutables.copyOfList(compiled);
     }
 
     public List<Source> sources(PermissionHolder holder, QueryOptions options) {
@@ -142,7 +150,8 @@ public final class ResolutionSupport {
 
         result.add(new Source(holder, 0, weight(holder), null, null, SourceKind.DIRECT));
 
-        if (holder instanceof User user) {
+        if (holder instanceof User) {
+            User user = (User) holder;
             var direct = applicableMemberships(user, options.contexts());
 
             if (user.groups().isEmpty()) {
@@ -152,7 +161,8 @@ public final class ResolutionSupport {
                     groups.cache().get(membership.group()).ifPresent(group -> addGroupSource(group, 1, options, result, new HashSet<>(), null, SourceKind.DIRECT_GROUP));
                 }
             }
-        } else if (holder instanceof Group group) {
+        } else if (holder instanceof Group) {
+            Group group = (Group) holder;
             for (var parent : group.parents()) {
                 if (applicable(parent, options.contexts())) {
                     groups.cache().get(parent.group()).ifPresent(value -> addGroupSource(value, 1, options, result, new HashSet<>(), null, SourceKind.INHERITED));
@@ -189,11 +199,13 @@ public final class ResolutionSupport {
     }
 
     public static String subjectKey(PermissionHolder holder) {
-        if (holder instanceof Group group) {
+        if (holder instanceof Group) {
+            Group group = (Group) holder;
             return "group:" + group.name();
         }
 
-        if (holder instanceof User user) {
+        if (holder instanceof User) {
+            User user = (User) holder;
             return "user:" + user.uniqueId();
         }
 
@@ -212,7 +224,7 @@ public final class ResolutionSupport {
     }
 
     public static ContextSet decodeContexts(String encoded) {
-        if (encoded == null || encoded.isBlank()) {
+        if (encoded == null || Strings.isBlank(encoded)) {
             return ContextSet.empty();
         }
 
@@ -228,12 +240,12 @@ public final class ResolutionSupport {
             var key = part.substring(0, separator);
             var values = part.substring(separator + 1);
 
-            if (values.isBlank()) {
+            if (Strings.isBlank(values)) {
                 continue;
             }
 
             for (var value : values.split(",")) {
-                if (!value.isBlank()) {
+                if (!Strings.isBlank(value)) {
                     builder.add(key, value);
                 }
             }
@@ -272,26 +284,28 @@ public final class ResolutionSupport {
                             source.holder.explicitPermissions().stream(),
                             source.holder.explicitOptions().stream());
 
-                    if (source.holder instanceof User user) {
+                    if (source.holder instanceof User) {
+                        User user = (User) source.holder;
                         nodes = Stream.concat(nodes, user.groups().stream());
-                    } else if (source.holder instanceof Group group) {
+                    } else if (source.holder instanceof Group) {
+                        Group group = (Group) source.holder;
                         nodes = Stream.concat(nodes, group.parents().stream());
                     }
 
                     return nodes;
                 })
                 .map(Node::expiry)
-                .flatMap(Optional::stream)
+                .flatMap(Optionals::stream)
                 .filter(expiry -> expiry.isAfter(Instant.now()))
                 .min(Comparator.naturalOrder());
     }
 
     private static int weight(PermissionHolder holder) {
-        return holder instanceof Group group ? group.weight().orElse(0) : Integer.MAX_VALUE;
+        return holder instanceof Group ? ((Group) holder).weight().orElse(0) : Integer.MAX_VALUE;
     }
 
     private static List<ParentNode> applicableMemberships(User user, ContextSet contexts) {
-        return user.groups().stream().filter(node -> applicable(node, contexts)).toList();
+        return user.groups().stream().filter(node -> applicable(node, contexts)).collect(Immutables.toList());
     }
 
     private static boolean applicable(Node node, ContextSet contexts) {
@@ -305,18 +319,53 @@ public final class ResolutionSupport {
         DEFAULT
     }
 
-    public record Source(PermissionHolder holder, int distance, int weight, CandidateStatus excluded, String detail, SourceKind kind) {}
+    @Value
+    @Accessors(fluent = true)
+    public static class Source {
+        PermissionHolder holder;
+        int distance;
+        int weight;
+        CandidateStatus excluded;
+        String detail;
+        SourceKind kind;
 
-    public record CompiledPermission(
-            String subject,
-            String expression,
-            PermissionResult effect,
-            int specificity,
-            int distance,
-            int weight,
-            String encodedContexts,
-            SourceKind kind,
-            ContextSet contexts,
-            PermissionNode node,
-            PermissionHolder source) {}
+        public Source(PermissionHolder holder, int distance, int weight, CandidateStatus excluded, String detail, SourceKind kind) {
+            this.holder = holder;
+            this.distance = distance;
+            this.weight = weight;
+            this.excluded = excluded;
+            this.detail = detail;
+            this.kind = kind;
+        }
+    }
+
+    @Value
+    @Accessors(fluent = true)
+    public static class CompiledPermission {
+        String subject;
+        String expression;
+        PermissionResult effect;
+        int specificity;
+        int distance;
+        int weight;
+        String encodedContexts;
+        SourceKind kind;
+        ContextSet contexts;
+        PermissionNode node;
+        PermissionHolder source;
+
+        public CompiledPermission(String subject, String expression, PermissionResult effect, int specificity, int distance, int weight, String encodedContexts, SourceKind kind, ContextSet contexts, PermissionNode node, PermissionHolder source) {
+            this.subject = subject;
+            this.expression = expression;
+            this.effect = effect;
+            this.specificity = specificity;
+            this.distance = distance;
+            this.weight = weight;
+            this.encodedContexts = encodedContexts;
+            this.kind = kind;
+            this.contexts = contexts;
+            this.node = node;
+            this.source = source;
+        }
+    }
 }

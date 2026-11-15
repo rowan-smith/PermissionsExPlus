@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.manager;
 
+import lombok.var;
+
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
@@ -19,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class UserCacheManagerImpl implements UserCacheManager {
 
@@ -149,7 +152,7 @@ public final class UserCacheManagerImpl implements UserCacheManager {
             removed.add(user);
         }
 
-        return List.copyOf(removed);
+        return Immutables.copyOfList(removed);
     }
 
     private List<UserSnapshot> snapshots() {
@@ -158,6 +161,6 @@ public final class UserCacheManagerImpl implements UserCacheManager {
         users.putAll(offlineCache.asMap());
         users.putAll(onlineCache);
 
-        return List.copyOf(users.values());
+        return Immutables.copyOfList(users.values());
     }
 }

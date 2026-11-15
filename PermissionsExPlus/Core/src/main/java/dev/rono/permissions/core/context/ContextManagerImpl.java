@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.context;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextRegistry;
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.platform.context.ContextCalculator;

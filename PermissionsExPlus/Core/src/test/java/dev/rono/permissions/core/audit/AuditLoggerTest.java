@@ -1,5 +1,8 @@
 package dev.rono.permissions.core.audit;
 
+import dev.rono.permissions.core.TestFiles;
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.rono.permissions.core.logger.AuditLogger;
@@ -32,7 +35,7 @@ class AuditLoggerTest {
         logger.log("console", "created group 'default'");
         logger.log("console", "added permission '*'");
 
-        var contents = Files.readString(directory.resolve("audit.log"));
+        var contents = TestFiles.readString(directory.resolve("audit.log"));
 
         assertTrue(contents.contains("Staff 'console' created group 'default'"));
         assertTrue(contents.contains("Staff 'console' added permission '*'"));
@@ -64,8 +67,8 @@ class AuditLoggerTest {
         logger.attachNetworkPublisher(network::add);
         logger.log("console", "promoted PlayerOne");
 
-        assertTrue(local.getFirst().contains("promoted PlayerOne"));
-        assertTrue(network.getFirst().contains("promoted PlayerOne"));
+        assertTrue(local.get(0).contains("promoted PlayerOne"));
+        assertTrue(network.get(0).contains("promoted PlayerOne"));
         assertFalse(Files.exists(directory.resolve("audit.log")));
     }
 

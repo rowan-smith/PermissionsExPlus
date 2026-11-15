@@ -1,5 +1,8 @@
 package dev.rono.permissions.core.config;
 
+import dev.rono.permissions.core.TestFiles;
+import lombok.var;
+
 import dev.rono.permissions.core.platform.PlatformConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -8,9 +11,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import dev.rono.permissions.core.util.Immutables;
 
 class ConfigurationTest {
     @TempDir
@@ -18,20 +21,18 @@ class ConfigurationTest {
 
     @Test
     void loadsGeneralConfigurationIncludingNestedWildcardSetting() throws IOException {
-        Files.writeString(directory.resolve("config.yml"), """
-                default-group: member
-                case-sensitive: true
-                wildcards:
-                  enabled: false
-                  allow-negations: false # explanatory comment
-                  enable-shorthand-expansions: false
-                debug:
-                  verbose: true
-                hooks:
-                  vault:
-                    enabled: false
-                  placeholder-api: false
-                """);
+        TestFiles.writeString(directory.resolve("config.yml"), ("default-group: member\n"
+                + "case-sensitive: true\n"
+                + "wildcards:\n"
+                + "  enabled: false\n"
+                + "  allow-negations: false # explanatory comment\n"
+                + "  enable-shorthand-expansions: false\n"
+                + "debug:\n"
+                + "  verbose: true\n"
+                + "hooks:\n"
+                + "  vault:\n"
+                + "    enabled: false\n"
+                + "  placeholder-api: false\n"));
 
         var configuration = GeneralConfiguration.load(platform());
 
@@ -47,47 +48,45 @@ class ConfigurationTest {
 
     @Test
     void loadsAdvancedConfigurationAndEnvironmentValues() throws IOException {
-        Files.writeString(directory.resolve("advanced.yml"), """
-                messaging:
-                  type: redis
-                  redis:
-                    host: redis.internal
-                    port: 6380
-                    password: secret
-                    channel: permissions
-                    timeout: 2500
-                cache:
-                  offline-eviction-time: 17
-                  max-cached-offline-users: 25
-                  preload-on-join: false
-                  cache-failure-fallback: allow
-                  auto-save-interval: 9
-                  log-save: true
-                  log-cache-eviction: true
-                  log-cache-mode: individual
-                temporary-permissions:
-                  expiry-check-interval: 11
-                  log-expiry: true
-                  log-expiry-mode: individual
-                identity:
-                  uuid-source: online_only
-                server-context:
-                  global-name: lobby
-                  environment:
-                    region: au
-                inheritance:
-                  max-depth: 3
-                  conflict-resolution: true_wins
-                  meta-formatting: accumulated
-                threading:
-                  worker-pool-size: 7
-                commands:
-                  register-base-commands: false
-                audit-log:
-                  log-to-file: false
-                  broadcast-to-ops: false
-                  network-wide-logging: false
-                """);
+        TestFiles.writeString(directory.resolve("advanced.yml"), ("messaging:\n"
+                + "  type: redis\n"
+                + "  redis:\n"
+                + "    host: redis.internal\n"
+                + "    port: 6380\n"
+                + "    password: secret\n"
+                + "    channel: permissions\n"
+                + "    timeout: 2500\n"
+                + "cache:\n"
+                + "  offline-eviction-time: 17\n"
+                + "  max-cached-offline-users: 25\n"
+                + "  preload-on-join: false\n"
+                + "  cache-failure-fallback: allow\n"
+                + "  auto-save-interval: 9\n"
+                + "  log-save: true\n"
+                + "  log-cache-eviction: true\n"
+                + "  log-cache-mode: individual\n"
+                + "temporary-permissions:\n"
+                + "  expiry-check-interval: 11\n"
+                + "  log-expiry: true\n"
+                + "  log-expiry-mode: individual\n"
+                + "identity:\n"
+                + "  uuid-source: online_only\n"
+                + "server-context:\n"
+                + "  global-name: lobby\n"
+                + "  environment:\n"
+                + "    region: au\n"
+                + "inheritance:\n"
+                + "  max-depth: 3\n"
+                + "  conflict-resolution: true_wins\n"
+                + "  meta-formatting: accumulated\n"
+                + "threading:\n"
+                + "  worker-pool-size: 7\n"
+                + "commands:\n"
+                + "  register-base-commands: false\n"
+                + "audit-log:\n"
+                + "  log-to-file: false\n"
+                + "  broadcast-to-ops: false\n"
+                + "  network-wide-logging: false\n"));
 
         var configuration = AdvancedConfiguration.load(platform());
 
@@ -120,7 +119,7 @@ class ConfigurationTest {
 
     @Test
     void cacheAnnouncementsDefaultToDisabled() throws IOException {
-        Files.writeString(directory.resolve("advanced.yml"), "advanced-version: 1\n");
+        TestFiles.writeString(directory.resolve("advanced.yml"), "advanced-version: 1\n");
 
         var configuration = AdvancedConfiguration.load(platform());
 
@@ -140,38 +139,28 @@ class ConfigurationTest {
 
     @Test
     void rejectsInvalidProductionControlValues() throws IOException {
-        Files.writeString(directory.resolve("advanced.yml"), """
-                threading:
-                  worker-pool-size: 0
-                """);
+        TestFiles.writeString(directory.resolve("advanced.yml"), ("threading:\n"
+                + "  worker-pool-size: 0\n"));
 
         assertThrows(IllegalStateException.class, () -> AdvancedConfiguration.load(platform()));
 
-        Files.writeString(directory.resolve("advanced.yml"), """
-                inheritance:
-                  conflict-resolution: random
-                """);
+        TestFiles.writeString(directory.resolve("advanced.yml"), ("inheritance:\n"
+                + "  conflict-resolution: random\n"));
 
         assertThrows(IllegalStateException.class, () -> AdvancedConfiguration.load(platform()));
 
-        Files.writeString(directory.resolve("advanced.yml"), """
-                inheritance:
-                  meta-formatting: random
-                """);
+        TestFiles.writeString(directory.resolve("advanced.yml"), ("inheritance:\n"
+                + "  meta-formatting: random\n"));
 
         assertThrows(IllegalStateException.class, () -> AdvancedConfiguration.load(platform()));
 
-        Files.writeString(directory.resolve("advanced.yml"), """
-                temporary-permissions:
-                  log-expiry-mode: random
-                """);
+        TestFiles.writeString(directory.resolve("advanced.yml"), ("temporary-permissions:\n"
+                + "  log-expiry-mode: random\n"));
 
         assertThrows(IllegalStateException.class, () -> AdvancedConfiguration.load(platform()));
 
-        Files.writeString(directory.resolve("advanced.yml"), """
-                temporary-permissions:
-                  expiry-check-interval: 0
-                """);
+        TestFiles.writeString(directory.resolve("advanced.yml"), ("temporary-permissions:\n"
+                + "  expiry-check-interval: 0\n"));
 
         assertThrows(IllegalStateException.class, () -> AdvancedConfiguration.load(platform()));
     }
@@ -191,7 +180,7 @@ class ConfigurationTest {
                 saved.add(resource);
 
                 try {
-                    Files.writeString(resolve(resource), "default-group: guest");
+                    TestFiles.writeString(resolve(resource), "default-group: guest");
                 } catch (IOException exception) {
                     throw new AssertionError(exception);
                 }
@@ -199,32 +188,30 @@ class ConfigurationTest {
         };
 
         assertEquals("guest", GeneralConfiguration.load(platform).defaultGroup());
-        assertEquals(List.of("config.yml"), saved);
+        assertEquals(Immutables.listOf("config.yml"), saved);
     }
 
     @Test
     void loadsDatabaseBackendConfigurationAndRejectsMissingRequiredValues() throws IOException {
-        var valid = """
-                type: postgresql
-                local:
-                  storage-directory: storage/sql
-                  filename: permissions.db
-                credentials:
-                  host: db.internal
-                  port: 5432 # default PostgreSQL port
-                  database: permissions
-                  username: pex
-                  password: secret
-                pool:
-                  maximum-pool-size: 12
-                  minimum-idle: 3
-                  connection-timeout: 4321
-                  max-lifetime: 60000
-                hibernate:
-                  ddl-generation: validate
-                """;
+        var valid = ("type: postgresql\n"
+                + "local:\n"
+                + "  storage-directory: storage/sql\n"
+                + "  filename: permissions.db\n"
+                + "credentials:\n"
+                + "  host: db.internal\n"
+                + "  port: 5432 # default PostgreSQL port\n"
+                + "  database: permissions\n"
+                + "  username: pex\n"
+                + "  password: secret\n"
+                + "pool:\n"
+                + "  maximum-pool-size: 12\n"
+                + "  minimum-idle: 3\n"
+                + "  connection-timeout: 4321\n"
+                + "  max-lifetime: 60000\n"
+                + "hibernate:\n"
+                + "  ddl-generation: validate\n");
 
-        Files.writeString(directory.resolve("database.yml"), valid);
+        TestFiles.writeString(directory.resolve("database.yml"), valid);
 
         var backend = BackendConfiguration.load(platform());
 
@@ -239,19 +226,19 @@ class ConfigurationTest {
         assertEquals(4321L, backend.pool().connectionTimeout());
         assertEquals(DdlGeneration.VALIDATE, backend.ddlGeneration());
 
-        Files.writeString(directory.resolve("database.yml"), valid.replace("4321", "249"));
+        TestFiles.writeString(directory.resolve("database.yml"), valid.replace("4321", "249"));
 
         assertThrows(IllegalStateException.class, () -> BackendConfiguration.load(platform()));
 
-        Files.writeString(directory.resolve("database.yml"), valid.replace("validate", "create-drop"));
+        TestFiles.writeString(directory.resolve("database.yml"), valid.replace("validate", "create-drop"));
 
         assertThrows(IllegalStateException.class, () -> BackendConfiguration.load(platform()));
 
-        Files.writeString(directory.resolve("database.yml"), valid.replace("storage/sql", "../outside"));
+        TestFiles.writeString(directory.resolve("database.yml"), valid.replace("storage/sql", "../outside"));
 
         assertThrows(IllegalStateException.class, () -> BackendConfiguration.load(platform()));
 
-        Files.writeString(directory.resolve("database.yml"), "type: memory\n");
+        TestFiles.writeString(directory.resolve("database.yml"), "type: memory\n");
 
         assertThrows(IllegalStateException.class, () -> BackendConfiguration.load(platform()));
     }
@@ -269,7 +256,7 @@ class ConfigurationTest {
 
     @Test
     void bundledConfigurationFilesMatchTheTypedConfigurationModels() throws IOException {
-        for (var resource : java.util.List.of("config.yml", "advanced.yml", "database.yml")) {
+        for (var resource : Immutables.listOf("config.yml", "advanced.yml", "database.yml")) {
             try (var input = ConfigurationTest.class.getClassLoader().getResourceAsStream(resource)) {
                 assertNotNull(input, resource);
 
@@ -293,9 +280,9 @@ class ConfigurationTest {
 
     @Test
     void rejectsConfigurationVersionsTheRuntimeCannotInterpret() throws IOException {
-        Files.writeString(directory.resolve("config.yml"), "config-version: 2\n");
-        Files.writeString(directory.resolve("advanced.yml"), "advanced-version: 2\n");
-        Files.writeString(directory.resolve("database.yml"), "data-version: 2\n");
+        TestFiles.writeString(directory.resolve("config.yml"), "config-version: 2\n");
+        TestFiles.writeString(directory.resolve("advanced.yml"), "advanced-version: 2\n");
+        TestFiles.writeString(directory.resolve("database.yml"), "data-version: 2\n");
 
         assertThrows(IllegalStateException.class, () -> GeneralConfiguration.load(platform()));
         assertThrows(IllegalStateException.class, () -> AdvancedConfiguration.load(platform()));

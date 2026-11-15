@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.store;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.exception.StorageException;
 import dev.rono.permissions.api.options.OptionNode;
@@ -19,6 +21,8 @@ import java.util.Set;
 import java.util.UUID;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
+import dev.rono.permissions.core.util.Immutables;
+import dev.rono.permissions.core.util.Strings;
 
 public final class SnapshotCodec {
     private SnapshotCodec() {}
@@ -80,7 +84,7 @@ public final class SnapshotCodec {
 
         try {
             return new LadderSnapshot(root.node("name").getString(),
-                    root.node("groups").getList(String.class, java.util.List.of()));
+                    root.node("groups").getList(String.class, Immutables.listOf()));
         } catch (Exception error) {
             throw storage(error);
         }
@@ -195,7 +199,7 @@ public final class SnapshotCodec {
 
         target.childrenMap().forEach((key, value) -> {
             try {
-                value.getList(String.class, java.util.List.of()).forEach(entry -> builder.add(String.valueOf(key), entry));
+                value.getList(String.class, Immutables.listOf()).forEach(entry -> builder.add(String.valueOf(key), entry));
             } catch (Exception error) {
                 throw storage(error);
             }
@@ -208,7 +212,7 @@ public final class SnapshotCodec {
         var value = node.node("expiry").getString("");
 
         try {
-            return value.isBlank() ? Optional.empty() : Optional.of(Instant.parse(value));
+            return Strings.isBlank(value) ? Optional.empty() : Optional.of(Instant.parse(value));
         } catch (RuntimeException ignored) {
             return Optional.empty();
         }

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,10 +11,10 @@ import dev.rono.permissions.core.context.ContextManagerImpl;
 import dev.rono.permissions.core.context.ContextPolicy;
 import dev.rono.permissions.core.context.RuntimeContextRegistry;
 import dev.rono.permissions.core.context.RuntimeStateTracker;
-import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import dev.rono.permissions.core.util.Immutables;
 
 class ContextContractTest {
     private ContextManagerImpl contexts;
@@ -61,7 +63,7 @@ class ContextContractTest {
     void replaceAndClearManageSubjectContexts() {
         var subject = UUID.randomUUID();
 
-        stateTracker.replaceState(subject, Map.of(ContextKeys.WORLD.key(), "nether", ContextKeys.PROXY.key(), "proxy-a"));
+        stateTracker.replaceState(subject, Immutables.mapOf(ContextKeys.WORLD.key(), "nether", ContextKeys.PROXY.key(), "proxy-a"));
 
         assertTrue(contexts.contexts(subject).contains(ContextKeys.WORLD, "nether"));
 
@@ -83,12 +85,12 @@ class ContextContractTest {
     void policyFiltersDisabledAndUnknownPlatformValues() {
         var policy = new ContextPolicy(configuration(true, false, true, false));
 
-        var selected = policy.select(Map.of(ContextKeys.WORLD.key(), "survival", ContextKeys.GAMEMODE.key(), "creative", ContextKeys.SERVER.key(), "hub", "unknown", "value"));
+        var selected = policy.select(Immutables.mapOf(ContextKeys.WORLD.key(), "survival", ContextKeys.GAMEMODE.key(), "creative", ContextKeys.SERVER.key(), "hub", "unknown", "value"));
 
-        assertEquals(Map.of(ContextKeys.WORLD.key(), "survival", ContextKeys.SERVER.key(), "hub"), selected);
+        assertEquals(Immutables.mapOf(ContextKeys.WORLD.key(), "survival", ContextKeys.SERVER.key(), "hub"), selected);
     }
 
     private static AdvancedConfiguration configuration(boolean worlds, boolean gameModes, boolean servers, boolean proxies) {
-        return new AdvancedConfiguration("none", 10, 30, "offline", "global", worlds, servers, gameModes, proxies, Map.of("environment", "test"), 10, "localhost", 6379, "", "channel", 2000, true);
+        return new AdvancedConfiguration("none", 10, 30, "offline", "global", worlds, servers, gameModes, proxies, Immutables.mapOf("environment", "test"), 10, "localhost", 6379, "", "channel", 2000, true);
     }
 }

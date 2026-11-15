@@ -1,11 +1,14 @@
 package dev.rono.permissions.core.context;
 
+import lombok.var;
+
 import dev.rono.permissions.core.config.AdvancedConfiguration;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import dev.rono.permissions.core.util.Immutables;
 
 /**
  * Core-owned decision of which platform-provided context values affect
@@ -33,7 +36,7 @@ public final class ContextPolicy {
             keys.add("proxy");
         }
 
-        enabledKeys = Set.copyOf(keys);
+        enabledKeys = Immutables.copyOfSet(keys);
     }
 
     public Map<String, String> select(Map<String, String> values) {
@@ -45,6 +48,6 @@ public final class ContextPolicy {
             }
         });
 
-        return Map.copyOf(selected);
+        return Immutables.copyOfMap(selected);
     }
 }

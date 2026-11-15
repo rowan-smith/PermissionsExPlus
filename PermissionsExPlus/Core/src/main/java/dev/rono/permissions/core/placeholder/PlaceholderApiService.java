@@ -1,5 +1,9 @@
 package dev.rono.permissions.core.placeholder;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.ladder.Ladder;
@@ -15,6 +19,8 @@ import dev.rono.permissions.core.store.DataStore;
 
 import java.util.Locale;
 import java.util.UUID;
+import dev.rono.permissions.core.util.Immutables;
+import dev.rono.permissions.core.util.Strings;
 
 public final class PlaceholderApiService {
     private final UserManagerImpl users;
@@ -39,7 +45,7 @@ public final class PlaceholderApiService {
     public String resolve(UUID id, String placeholder) {
         var user = users.cache().get(id).orElse(null);
 
-        if (user == null || placeholder == null || placeholder.isBlank()) {
+        if (user == null || placeholder == null || Strings.isBlank(placeholder)) {
             return "";
         }
 
@@ -69,14 +75,14 @@ public final class PlaceholderApiService {
 
         if (key.startsWith("group_parents_list_")) {
             return groups.cache().get(key.substring(19))
-                    .map(group -> String.join(", ", group.parents().stream().map(ParentNode::group).sorted().toList()))
+                    .map(group -> String.join(", ", group.parents().stream().map(ParentNode::group).sorted().collect(Immutables.toList())))
                     .orElse("");
         }
 
         if (key.startsWith("group_member_count_")) {
             var group = key.substring(19);
 
-            if (groups.cache().get(group).isEmpty()) {
+            if (!groups.cache().get(group).isPresent()) {
                 return "";
             }
 
@@ -119,29 +125,43 @@ public final class PlaceholderApiService {
             return contexts.staticContexts().values(key.substring(27)).stream().sorted().findFirst().orElse("");
         }
 
-        return switch (key) {
-            case "user_name" -> user.name();
-            case "user_uuid" -> user.uniqueId().toString();
-            case "user_prefix" -> resolvers.options().prefix(user, query).orElse("");
-            case "user_suffix" -> resolvers.options().suffix(user, query).orElse("");
-            case "user_group", "user_primary_group" -> resolvers.primaryGroup().resolve(user, query).map(Group::name).orElse("");
-            case "user_primary_group_display" -> resolvers.primaryGroup().resolve(user, query)
-                    .flatMap(group -> resolvers.options().resolve(group, "display-name", query))
-                    .orElseGet(() -> resolvers.primaryGroup().resolve(user, query)
-                            .map(Group::name).orElse(""));
-            case "user_groups_list" -> String.join(", ", resolvers.inheritance().groups(user, query).stream().map(Group::name).sorted().toList());
-            case "user_groups_list_display" -> String.join(", ", resolvers.inheritance().groups(user, query).stream()
-                    .sorted(java.util.Comparator
-                            .comparingInt((Group group) -> group.weight().orElse(0))
-                            .reversed().thenComparing(Group::name))
-                    .map(group -> resolvers.options().resolve(group, "display-name", query).orElse(group.name()))
-                    .toList());
-            case "system_backend_type" -> store.name().toLowerCase(Locale.ROOT);
-            case "system_messaging_type" -> messaging.toLowerCase(Locale.ROOT);
-            case "system_cached_users_count" -> Integer.toString(users.cache().all().size());
-            case "system_data_version" -> "2";
-            default -> "";
-        };
+        switch (key) {
+            case "user_name" :
+                return user.name();
+            case "user_uuid" :
+                return user.uniqueId().toString();
+            case "user_prefix" :
+                return resolvers.options().prefix(user, query).orElse("");
+            case "user_suffix" :
+                return resolvers.options().suffix(user, query).orElse("");
+            case "user_group" :
+            case "user_primary_group" :
+                return resolvers.primaryGroup().resolve(user, query).map(Group::name).orElse("");
+            case "user_primary_group_display" :
+                return resolvers.primaryGroup().resolve(user, query)
+                        .flatMap(group -> resolvers.options().resolve(group, "display-name", query))
+                        .orElseGet(() -> resolvers.primaryGroup().resolve(user, query)
+                                .map(Group::name).orElse(""));
+            case "user_groups_list" :
+                return String.join(", ", resolvers.inheritance().groups(user, query).stream().map(Group::name).sorted().collect(Immutables.toList()));
+            case "user_groups_list_display" :
+                return String.join(", ", resolvers.inheritance().groups(user, query).stream()
+                        .sorted(java.util.Comparator
+                                .comparingInt((Group group) -> group.weight().orElse(0))
+                                .reversed().thenComparing(Group::name))
+                        .map(group -> resolvers.options().resolve(group, "display-name", query).orElse(group.name()))
+                        .collect(Immutables.toList()));
+            case "system_backend_type" :
+                return store.name().toLowerCase(Locale.ROOT);
+            case "system_messaging_type" :
+                return messaging.toLowerCase(Locale.ROOT);
+            case "system_cached_users_count" :
+                return Integer.toString(users.cache().all().size());
+            case "system_data_version" :
+                return "2";
+            default :
+                return "";
+        }
     }
 
     public void invalidate(UUID ignored) {}
@@ -157,7 +177,7 @@ public final class PlaceholderApiService {
         }
 
         var server = raw.substring(index + marker.length());
-        if (server.isBlank()) {
+        if (Strings.isBlank(server)) {
             return new ParsedQuery(raw.substring(0, index), contexts.queryOptions(id));
         }
 
@@ -206,5 +226,15 @@ public final class PlaceholderApiService {
         return result;
     }
 
-    private record ParsedQuery(String identifier, QueryOptions options) {}
+    @Value
+    @Accessors(fluent = true)
+    private static class ParsedQuery {
+        String identifier;
+        QueryOptions options;
+
+        private ParsedQuery(String identifier, QueryOptions options) {
+            this.identifier = identifier;
+            this.options = options;
+        }
+    }
 }

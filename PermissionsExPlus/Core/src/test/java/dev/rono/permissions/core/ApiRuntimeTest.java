@@ -1,5 +1,7 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.exception.InheritanceCycleException;
 import dev.rono.permissions.api.event.user.UserModifiedEvent;
@@ -20,11 +22,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import dev.rono.permissions.core.util.Immutables;
 
 class ApiRuntimeTest {
     MemoryDataStore store;
@@ -105,8 +107,8 @@ class ApiRuntimeTest {
         assertEquals(PermissionResult.ALLOW, resolvers.permissions().check(user, "example.admin", QueryOptions.global()));
         assertEquals(PermissionResult.ALLOW, resolvers.permissions().check(user, "example.other", QueryOptions.global()));
         assertEquals(PermissionResult.DENY, resolvers.permissions().check(user, "example.blocked", QueryOptions.global()));
-        assertEquals("[Default]", resolvers.options().prefix(user, QueryOptions.global()).orElseThrow());
-        assertEquals("staff", resolvers.primaryGroup().resolve(user, QueryOptions.global()).orElseThrow().name());
+        assertEquals("[Default]", resolvers.options().prefix(user, QueryOptions.global()).get());
+        assertEquals("staff", resolvers.primaryGroup().resolve(user, QueryOptions.global()).get().name());
     }
 
     @Test
@@ -126,9 +128,9 @@ class ApiRuntimeTest {
 
         assertTrue(user.groups().isEmpty());
         assertEquals(PermissionResult.ALLOW, resolvers.permissions().check(user, "build.fly", survival));
-        assertEquals("[Default]", resolvers.options().prefix(user, QueryOptions.global()).orElseThrow());
-        assertEquals(java.util.Set.of("default"), resolvers.inheritance().groups(user, QueryOptions.global()).stream().map(Group::name).collect(Collectors.toSet()));
-        assertEquals("default", resolvers.primaryGroup().resolve(user, QueryOptions.global()).orElseThrow().name());
+        assertEquals("[Default]", resolvers.options().prefix(user, QueryOptions.global()).get());
+        assertEquals(Immutables.setOf("default"), resolvers.inheritance().groups(user, QueryOptions.global()).stream().map(Group::name).collect(Collectors.toSet()));
+        assertEquals("default", resolvers.primaryGroup().resolve(user, QueryOptions.global()).get().name());
 
         users.cache().unload(user.uniqueId());
 
@@ -153,7 +155,7 @@ class ApiRuntimeTest {
         groups.create("moderator").toCompletableFuture().join();
 
         ladders.create("staff").toCompletableFuture().join();
-        ladders.modify("staff", modifier -> modifier.setGroups(java.util.List.of("member", "moderator"))).toCompletableFuture().join();
+        ladders.modify("staff", modifier -> modifier.setGroups(Immutables.listOf("member", "moderator"))).toCompletableFuture().join();
 
         var context = ContextSet.builder().add("server", "hub").build();
         var user = users.create(UUID.randomUUID(), "Rono").toCompletableFuture().join();
@@ -163,8 +165,8 @@ class ApiRuntimeTest {
         var result = ladders.promote(user.uniqueId(), "staff", context).toCompletableFuture().join();
 
         assertEquals(PromotionStatus.PROMOTED, result.status());
-        assertEquals("moderator", result.newGroup().orElseThrow());
-        assertTrue(users.cache().get(user.uniqueId()).orElseThrow().hasDirectGroup("moderator", context));
+        assertEquals("moderator", result.newGroup().get());
+        assertTrue(users.cache().get(user.uniqueId()).get().hasDirectGroup("moderator", context));
     }
 
     @Test
@@ -218,7 +220,7 @@ class ApiRuntimeTest {
 
     @Test
     void runtimeContextsAndLegacyPlaceholderFamiliesRemainAvailable() {
-        var advanced = new AdvancedConfiguration("none", 10, 30, "offline", "global", true, true, true, true, Map.of("environment", "production"), 10, "localhost", 6379, "", "channel", 2000, true);
+        var advanced = new AdvancedConfiguration("none", 10, 30, "offline", "global", true, true, true, true, Immutables.mapOf("environment", "production"), 10, "localhost", 6379, "", "channel", 2000, true);
         var contexts = new ContextManagerImpl(advanced);
 
         assertTrue(contexts.staticContexts().contains("server", "global"));
@@ -233,7 +235,7 @@ class ApiRuntimeTest {
         groups.modify("admin", modifier -> modifier.setWeight(20)).toCompletableFuture().join();
 
         ladders.create("main").toCompletableFuture().join();
-        ladders.modify("main", modifier -> modifier.setGroups(java.util.List.of("member", "admin"))).toCompletableFuture().join();
+        ladders.modify("main", modifier -> modifier.setGroups(Immutables.listOf("member", "admin"))).toCompletableFuture().join();
 
         var id = UUID.randomUUID();
 

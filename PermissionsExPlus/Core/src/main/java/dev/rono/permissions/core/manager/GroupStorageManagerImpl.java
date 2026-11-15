@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class GroupStorageManagerImpl implements GroupStorageManager {
 
@@ -28,7 +29,7 @@ public final class GroupStorageManagerImpl implements GroupStorageManager {
     }
 
     public CompletionStage<Set<String>> identifiers() {
-        return Stages.call(() -> Set.copyOf(store.allGroups().keySet()), executor);
+        return Stages.call(() -> Immutables.copyOfSet(store.allGroups().keySet()), executor);
     }
 
     Optional<GroupSnapshot> getNow(String name) {

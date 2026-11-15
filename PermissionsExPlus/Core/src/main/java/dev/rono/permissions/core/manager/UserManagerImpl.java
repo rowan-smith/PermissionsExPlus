@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.manager;
 
+import lombok.var;
+
 import dev.rono.permissions.api.exception.GroupNotFoundException;
 import dev.rono.permissions.api.exception.UserAlreadyExistsException;
 import dev.rono.permissions.api.exception.UserNotFoundException;
@@ -36,6 +38,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class UserManagerImpl implements UserManager {
 
@@ -199,7 +202,7 @@ public final class UserManagerImpl implements UserManager {
                     throw new UserAlreadyExistsException(username);
                 }
 
-                var user = new UserSnapshot(id, username, Set.of(), Set.of(), Set.of());
+                var user = new UserSnapshot(id, username, Immutables.setOf(), Immutables.setOf(), Immutables.setOf());
 
                 save(user);
                 events.publish(new UserCreatedEventImpl(user));
@@ -228,7 +231,7 @@ public final class UserManagerImpl implements UserManager {
                     return existing.get();
                 }
 
-                var user = new UserSnapshot(id, name, Set.of(), Set.of(), Set.of());
+                var user = new UserSnapshot(id, name, Immutables.setOf(), Immutables.setOf(), Immutables.setOf());
                 save(user);
                 events.publish(new UserCreatedEventImpl(user));
                 return user;
@@ -267,7 +270,7 @@ public final class UserManagerImpl implements UserManager {
                 return;
             }
 
-            boolean created = existing.isEmpty();
+            boolean created = !existing.isPresent();
 
             var stage = existing.<CompletionStage<User>>map(CompletableFuture::completedFuture).orElseGet(() -> create(id, name));
 
@@ -298,9 +301,9 @@ public final class UserManagerImpl implements UserManager {
         for (var user : loadedSnapshots()) {
             var subject = user.name() + " (" + user.uniqueId() + ")";
 
-            var expiredGroups = user.groups().stream().filter(Node::expired).toList();
-            var expiredPermissions = user.explicitPermissions().stream().filter(Node::expired).toList();
-            var expiredOptions = user.explicitOptions().stream().filter(Node::expired).toList();
+            var expiredGroups = user.groups().stream().filter(Node::expired).collect(Immutables.toList());
+            var expiredPermissions = user.explicitPermissions().stream().filter(Node::expired).collect(Immutables.toList());
+            var expiredOptions = user.explicitOptions().stream().filter(Node::expired).collect(Immutables.toList());
 
             expiredGroups.forEach(node -> removals.add(new ExpiryRemoval("user", subject, "group membership", node.group() + contextSuffix(node))));
             expiredPermissions.forEach(node -> removals.add(new ExpiryRemoval("user", subject, "permission", node.permission() + contextSuffix(node))));
@@ -308,7 +311,7 @@ public final class UserManagerImpl implements UserManager {
 
             if (!expiredGroups.isEmpty() || !expiredPermissions.isEmpty() || !expiredOptions.isEmpty()) {
                 modifyNow(user.uniqueId(), modifier -> {
-                    modifier.setGroups(user.groups().stream().filter(node -> !node.expired()).toList());
+                    modifier.setGroups(user.groups().stream().filter(node -> !node.expired()).collect(Immutables.toList()));
 
                     expiredPermissions.forEach(modifier::removePermission);
 
@@ -317,7 +320,7 @@ public final class UserManagerImpl implements UserManager {
             }
         }
 
-        return List.copyOf(removals);
+        return Immutables.copyOfList(removals);
     }
 
     @Internal
@@ -334,7 +337,7 @@ public final class UserManagerImpl implements UserManager {
                                                         .group(newName)
                                                         .build()
                                                 : parent)
-                                        .toList()));
+                                        .collect(Immutables.toList())));
             }
         }
     }
@@ -346,7 +349,7 @@ public final class UserManagerImpl implements UserManager {
                 modifyNow(user.uniqueId(), modifier -> {
                     modifier.setGroups(user.groups().stream()
                             .filter(parent -> !parent.group().equals(name))
-                            .toList());
+                            .collect(Immutables.toList()));
                 });
             }
         }
@@ -421,7 +424,7 @@ public final class UserManagerImpl implements UserManager {
         }
 
         for (var membership : user.groups()) {
-            if (groups.cache().get(membership.group()).isEmpty()) {
+            if (!groups.cache().get(membership.group()).isPresent()) {
                 throw new GroupNotFoundException(membership.group());
             }
         }
@@ -452,7 +455,7 @@ public final class UserManagerImpl implements UserManager {
     private List<UserSnapshot> loadedSnapshots() {
         return cache.all().stream()
                 .map(UserSnapshot.class::cast)
-                .toList();
+                .collect(Immutables.toList());
     }
 
     private static String contextSuffix(Node node) {

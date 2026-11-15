@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.manager;
 
+import lombok.var;
+
 import dev.rono.permissions.api.exception.GroupAlreadyExistsException;
 import dev.rono.permissions.api.exception.GroupNotFoundException;
 import dev.rono.permissions.api.exception.InheritanceCycleException;
@@ -31,6 +33,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class GroupManagerImpl implements GroupManager {
 
@@ -106,7 +109,7 @@ public final class GroupManagerImpl implements GroupManager {
                     throw new GroupAlreadyExistsException(key);
                 }
 
-                var group = new GroupSnapshot(key, OptionalInt.empty(), Set.of(), Set.of(), Set.of());
+                var group = new GroupSnapshot(key, OptionalInt.empty(), Immutables.setOf(), Immutables.setOf(), Immutables.setOf());
 
                 save(group);
 
@@ -144,7 +147,7 @@ public final class GroupManagerImpl implements GroupManager {
                 for (var group : storage.allNow().values()) {
                     if (group.parents().stream().anyMatch(parent -> parent.group().equals(oldKey))) {
                         modifyNow(group.name(), modifier -> {
-                            modifier.setParents(group.parents().stream().map(parent -> parent.group().equals(oldKey) ? ParentNode.builder(parent).group(newKey).build() : parent).toList());
+                            modifier.setParents(group.parents().stream().map(parent -> parent.group().equals(oldKey) ? ParentNode.builder(parent).group(newKey).build() : parent).collect(Immutables.toList()));
                         });
                     }
                 }
@@ -183,7 +186,7 @@ public final class GroupManagerImpl implements GroupManager {
                 for (var group : storage.allNow().values()) {
                     if (group.parents().stream().anyMatch(parent -> parent.group().equals(key))) {
                         modifyNow(group.name(), modifier -> {
-                            modifier.setParents(group.parents().stream().filter(parent -> !parent.group().equals(key)).toList());
+                            modifier.setParents(group.parents().stream().filter(parent -> !parent.group().equals(key)).collect(Immutables.toList()));
                         });
                     }
                 }
@@ -219,9 +222,9 @@ public final class GroupManagerImpl implements GroupManager {
         var removals = new ArrayList<ExpiryRemoval>();
 
         for (var group : cache.snapshots()) {
-            var expiredParents = group.parents().stream().filter(Node::expired).toList();
-            var expiredPermissions = group.explicitPermissions().stream().filter(Node::expired).toList();
-            var expiredOptions = group.explicitOptions().stream().filter(Node::expired).toList();
+            var expiredParents = group.parents().stream().filter(Node::expired).collect(Immutables.toList());
+            var expiredPermissions = group.explicitPermissions().stream().filter(Node::expired).collect(Immutables.toList());
+            var expiredOptions = group.explicitOptions().stream().filter(Node::expired).collect(Immutables.toList());
 
             expiredParents.forEach(node -> removals.add(new ExpiryRemoval("group", group.name(), "parent", node.group() + contextSuffix(node))));
             expiredPermissions.forEach(node -> removals.add(new ExpiryRemoval("group", group.name(), "permission", node.permission() + contextSuffix(node))));
@@ -229,7 +232,7 @@ public final class GroupManagerImpl implements GroupManager {
 
             if (!expiredParents.isEmpty() || !expiredPermissions.isEmpty() || !expiredOptions.isEmpty()) {
                 modifyNow(group.name(), modifier -> {
-                    modifier.setParents(group.parents().stream().filter(node -> !node.expired()).toList());
+                    modifier.setParents(group.parents().stream().filter(node -> !node.expired()).collect(Immutables.toList()));
 
                     expiredPermissions.forEach(modifier::removePermission);
                     expiredOptions.forEach(modifier::removeOption);
@@ -237,7 +240,7 @@ public final class GroupManagerImpl implements GroupManager {
             }
         }
 
-        return List.copyOf(removals);
+        return Immutables.copyOfList(removals);
     }
 
     public synchronized Optional<GroupSnapshot> findNow(String name) {
@@ -315,7 +318,7 @@ public final class GroupManagerImpl implements GroupManager {
                 throw new InvalidParentException("A group cannot inherit itself: " + proposed.name());
             }
 
-            if (findNow(parent.group()).isEmpty()) {
+            if (!findNow(parent.group()).isPresent()) {
                 throw new GroupNotFoundException(parent.group());
             }
         }

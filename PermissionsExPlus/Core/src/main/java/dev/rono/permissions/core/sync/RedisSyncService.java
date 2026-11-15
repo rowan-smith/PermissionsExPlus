@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.sync;
 
+import lombok.var;
+
 import dev.rono.permissions.core.config.AdvancedConfiguration;
 import dev.rono.permissions.core.platform.PlatformLogger;
 import dev.rono.permissions.core.platform.PlatformScheduler;
@@ -10,6 +12,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
+import dev.rono.permissions.core.util.Strings;
 
 /**
  * Redis pub/sub cache-invalidation transport. Payloads are versioned and
@@ -135,7 +138,7 @@ public final class RedisSyncService {
     private Jedis connection() {
         var jedis = new Jedis(config.redisHost(), config.redisPort(), config.redisTimeout());
 
-        if (!config.redisPassword().isBlank()) {
+        if (!Strings.isBlank(config.redisPassword())) {
             jedis.auth(config.redisPassword());
         }
 

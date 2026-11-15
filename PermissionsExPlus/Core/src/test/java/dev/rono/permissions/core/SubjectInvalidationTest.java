@@ -1,5 +1,7 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
 import static dev.rono.permissions.core.RuntimeFixture.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,7 +32,8 @@ class SubjectInvalidationTest {
 
         first = await(runtime.users.modify(first, modifier -> modifier.denyPermission("keep.cache")));
 
-        // Second user's decision should still be served from cache after subject-scoped invalidation.
+        // Second user's decision should still be served from cache after subject-scoped
+        // invalidation.
         long hitsAfterMutation = cached.hitCount();
         assertEquals(PermissionResult.ALLOW, runtime.resolvers.permissions().check(second, "keep.cache", QueryOptions.global()));
         assertTrue(cached.hitCount() > hitsAfterMutation);

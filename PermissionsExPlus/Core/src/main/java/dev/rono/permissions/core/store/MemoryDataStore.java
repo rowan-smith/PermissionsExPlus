@@ -1,8 +1,11 @@
 package dev.rono.permissions.core.store;
 
+import lombok.var;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class MemoryDataStore implements DataStore {
     private final Map<String, Map<String, String>> data = new ConcurrentHashMap<>();
@@ -12,12 +15,12 @@ public final class MemoryDataStore implements DataStore {
 
     @Override
     public Optional<String> get(String category, String key) {
-        return Optional.ofNullable(data.getOrDefault(category, Map.of()).get(key));
+        return Optional.ofNullable(data.getOrDefault(category, Immutables.mapOf()).get(key));
     }
 
     @Override
     public Map<String, String> all(String category) {
-        return Map.copyOf(data.getOrDefault(category, Map.of()));
+        return Immutables.copyOfMap(data.getOrDefault(category, Immutables.mapOf()));
     }
 
     @Override

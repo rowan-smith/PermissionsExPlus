@@ -1,5 +1,9 @@
 package dev.rono.permissions.core.event;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.api.event.Event;
 import dev.rono.permissions.api.event.EventBus;
 import dev.rono.permissions.api.event.Subscription;
@@ -38,7 +42,17 @@ public final class EventBusImpl implements EventBus {
         }
     }
 
-    private record Listener<E extends Event>(Class<E> type, Consumer<? super E> consumer) {
+    @Value
+    @Accessors(fluent = true)
+    private static class Listener<E extends Event> {
+        Class<E> type;
+        Consumer<? super E> consumer;
+
+        private Listener(Class<E> type, Consumer<? super E> consumer) {
+            this.type = type;
+            this.consumer = consumer;
+        }
+
         void accept(Event event, Consumer<Throwable> errors) {
             try {
                 consumer.accept(type.cast(event));

@@ -4,6 +4,7 @@ import cloud.commandframework.CommandManager;
 
 import java.util.Set;
 import java.util.UUID;
+import dev.rono.permissions.core.util.Immutables;
 
 /**
  * Represents a platform abstraction that provides core utilities,
@@ -102,10 +103,10 @@ public interface Platform<C> {
      *         integrations
      */
     default Set<String> integrations() {
-        return Set.of();
+        return Immutables.setOf();
     }
 
     default Set<UUID> onlineUserIds() {
-        return Set.of();
+        return Immutables.setOf();
     }
 }

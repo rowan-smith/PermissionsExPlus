@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.command;
 
+import lombok.var;
+
 import cloud.commandframework.CloudCapability;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.annotations.AnnotationParser;

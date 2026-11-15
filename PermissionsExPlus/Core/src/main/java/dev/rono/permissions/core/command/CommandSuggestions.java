@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.command;
 
+import lombok.var;
+
 import cloud.commandframework.annotations.CommandMethod;
 import cloud.commandframework.annotations.suggestions.Suggestions;
 import cloud.commandframework.context.CommandContext;
@@ -16,6 +18,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
+import dev.rono.permissions.core.util.Immutables;
+import dev.rono.permissions.core.util.Optionals;
 
 @CommandMethod("pex")
 public final class CommandSuggestions<C> extends CommandSupport<C> {
@@ -53,7 +57,7 @@ public final class CommandSuggestions<C> extends CommandSupport<C> {
         var contexts = contexts(context);
 
         return matching(user(context).map(user -> knownPermissions()
-                .filter(permission -> user.explicitPermission(permission, contexts).isEmpty()))
+                .filter(permission -> !user.explicitPermission(permission, contexts).isPresent()))
                 .orElseGet(Stream::empty), input);
     }
 
@@ -61,7 +65,7 @@ public final class CommandSuggestions<C> extends CommandSupport<C> {
     public List<String> userPermissionsRemove(CommandContext<C> context, String input) {
         var contexts = contexts(context);
 
-        return matching(user(context).stream().flatMap(user -> user.explicitPermissions().stream())
+        return matching(Optionals.stream(user(context)).flatMap(user -> user.explicitPermissions().stream())
                 .filter(permission -> permission.contexts().equals(contexts))
                 .map(PermissionNode::permission), input);
     }
@@ -78,7 +82,7 @@ public final class CommandSuggestions<C> extends CommandSupport<C> {
     public List<String> userGroupsRemove(CommandContext<C> context, String input) {
         var contexts = contexts(context);
 
-        return matching(user(context).stream().flatMap(user -> user.groups().stream())
+        return matching(Optionals.stream(user(context)).flatMap(user -> user.groups().stream())
                 .filter(group -> group.contexts().equals(contexts)).map(ParentNode::group), input);
     }
 
@@ -101,7 +105,7 @@ public final class CommandSuggestions<C> extends CommandSupport<C> {
     private List<String> matching(Stream<String> values, String input) {
         var prefix = input.toLowerCase(Locale.ROOT);
 
-        return values.distinct().filter(value -> value.toLowerCase(Locale.ROOT).startsWith(prefix)).sorted().toList();
+        return values.distinct().filter(value -> value.toLowerCase(Locale.ROOT).startsWith(prefix)).sorted().collect(Immutables.toList());
     }
 
     private Optional<User> user(CommandContext<C> context) {

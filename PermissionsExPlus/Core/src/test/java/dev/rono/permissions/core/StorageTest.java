@@ -1,5 +1,7 @@
 package dev.rono.permissions.core;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -18,10 +20,10 @@ import dev.rono.permissions.core.store.SnapshotCodec;
 import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.util.OptionalInt;
-import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import dev.rono.permissions.core.util.Immutables;
 
 class StorageTest {
     @TempDir
@@ -45,7 +47,7 @@ class StorageTest {
 
         second.open();
 
-        assertEquals("{\"name\":\"Rono\"}", second.get("users", "id").orElseThrow());
+        assertEquals("{\"name\":\"Rono\"}", second.get("users", "id").get());
         assertTrue(second.remove("users", "id"));
         second.checkpoint();
 
@@ -62,13 +64,13 @@ class StorageTest {
 
         var contexts = ContextSet.builder().add("world", "nether").build();
         var group = new GroupSnapshot("staff", OptionalInt.of(100),
-                Set.of(PermissionNode.builder().permission("example.fly").contexts(contexts).build()),
-                Set.of(OptionNode.builder().key("prefix").value("Admin").contexts(contexts).build()),
-                Set.of(ParentNode.builder().group("default").contexts(contexts).build()));
+                Immutables.setOf(PermissionNode.builder().permission("example.fly").contexts(contexts).build()),
+                Immutables.setOf(OptionNode.builder().key("prefix").value("Admin").contexts(contexts).build()),
+                Immutables.setOf(ParentNode.builder().group("default").contexts(contexts).build()));
 
         store.putGroup(group);
 
-        assertEquals(group, store.getGroup("staff").orElseThrow());
+        assertEquals(group, store.getGroup("staff").get());
         assertEquals(group, store.allGroups().get("staff"));
         assertTrue(store.removeGroup("staff"));
 
@@ -85,15 +87,15 @@ class StorageTest {
 
         var contexts = ContextSet.builder().add("world", "nether").build();
         var group = new GroupSnapshot("staff", OptionalInt.of(100),
-                Set.of(PermissionNode.builder().permission("example.fly").contexts(contexts).build()),
-                Set.of(OptionNode.builder().key("prefix").value("Admin").contexts(contexts).build()),
-                Set.of(ParentNode.builder().group("default").contexts(contexts).build()));
+                Immutables.setOf(PermissionNode.builder().permission("example.fly").contexts(contexts).build()),
+                Immutables.setOf(OptionNode.builder().key("prefix").value("Admin").contexts(contexts).build()),
+                Immutables.setOf(ParentNode.builder().group("default").contexts(contexts).build()));
 
         var payload = SnapshotCodec.group(group);
 
         store.put("groups", "staff", payload);
 
-        assertEquals(group, SnapshotCodec.group(store.get("groups", "staff").orElseThrow()));
+        assertEquals(group, SnapshotCodec.group(store.get("groups", "staff").get()));
         assertEquals(group, SnapshotCodec.group(store.all("groups").get("staff")));
 
         try (var connection = DriverManager.getConnection(url); var tables = connection.getMetaData().getTables(null, null, "PEX_%", new String[]{"TABLE"})) {
@@ -103,7 +105,7 @@ class StorageTest {
                 names.add(tables.getString("TABLE_NAME"));
             }
 
-            assertTrue(names.containsAll(Set.of("PEX_USERS", "PEX_GROUPS", "PEX_LADDERS", "PEX_PERMISSIONS", "PEX_OPTIONS", "PEX_PARENTS", "PEX_CONTEXTS", "PEX_LADDER_GROUPS")));
+            assertTrue(names.containsAll(Immutables.setOf("PEX_USERS", "PEX_GROUPS", "PEX_LADDERS", "PEX_PERMISSIONS", "PEX_OPTIONS", "PEX_PARENTS", "PEX_CONTEXTS", "PEX_LADDER_GROUPS")));
             assertFalse(names.contains("PEX_DATA"));
         }
 

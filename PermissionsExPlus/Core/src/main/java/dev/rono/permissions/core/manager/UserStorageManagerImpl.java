@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.manager;
 
+import lombok.var;
+
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.api.user.UserStorageManager;
 import dev.rono.permissions.api.util.Identifiers;
@@ -12,7 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
+import dev.rono.permissions.core.util.Immutables;
 
 public final class UserStorageManagerImpl implements UserStorageManager {
 
@@ -40,7 +42,7 @@ public final class UserStorageManagerImpl implements UserStorageManager {
                 .keySet()
                 .stream()
                 .map(UUID::fromString)
-                .collect(Collectors.toUnmodifiableSet()), executor);
+                .collect(Immutables.toSet()), executor);
     }
 
     @Override
@@ -49,7 +51,7 @@ public final class UserStorageManagerImpl implements UserStorageManager {
                 .values()
                 .stream()
                 .map(UserSnapshot::name)
-                .collect(Collectors.toUnmodifiableSet()), executor);
+                .collect(Immutables.toSet()), executor);
     }
 
     Optional<UserSnapshot> getNow(UUID id) {

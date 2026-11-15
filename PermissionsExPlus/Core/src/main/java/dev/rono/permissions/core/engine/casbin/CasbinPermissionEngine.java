@@ -1,5 +1,9 @@
 package dev.rono.permissions.core.engine.casbin;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.permission.PermissionNode;
 import dev.rono.permissions.api.permission.PermissionResult;
@@ -22,6 +26,7 @@ import java.util.stream.Collectors;
 import org.casbin.jcasbin.main.EnforceResult;
 import org.casbin.jcasbin.main.Enforcer;
 import org.casbin.jcasbin.model.Model;
+import dev.rono.permissions.core.util.Immutables;
 
 /**
  * Authoritative jCasbin-backed permission engine.
@@ -35,19 +40,17 @@ import org.casbin.jcasbin.model.Model;
  * </p>
  */
 public final class CasbinPermissionEngine implements PermissionEngine {
-    private static final String MODEL = """
-            [request_definition]
-            r = sub, obj, ctx
-
-            [policy_definition]
-            p = sub, obj, eft, specificity, distance, weight, ctx
-
-            [policy_effect]
-            e = some(where (p.eft == allow)) && !some(where (p.eft == deny))
-
-            [matchers]
-            m = r.sub == p.sub && pexMatch(r.obj, p.obj) && pexCtx(p.ctx, r.ctx)
-            """;
+    private static final String MODEL = "[request_definition]\n"
+            + "r = sub, obj, ctx\n"
+            + "\n"
+            + "[policy_definition]\n"
+            + "p = sub, obj, eft, specificity, distance, weight, ctx\n"
+            + "\n"
+            + "[policy_effect]\n"
+            + "e = some(where (p.eft == allow)) && !some(where (p.eft == deny))\n"
+            + "\n"
+            + "[matchers]\n"
+            + "m = r.sub == p.sub && pexMatch(r.obj, p.obj) && pexCtx(p.ctx, r.ctx)\n";
 
     private final ResolutionSupport support;
     private final Enforcer enforcer;
@@ -145,7 +148,7 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         var normalized = support.normalizePermission(permission);
         // Always compile from the live domain graph; cache only the Casbin sync hash
         // so unchanged subjects skip removeFilteredPolicy/addPolicy on the hot path.
-        var compiled = List.copyOf(support.compile(holder, options));
+        var compiled = Immutables.copyOfList(support.compile(holder, options));
         var encodedContexts = ResolutionSupport.encodeContexts(options.contexts());
 
         var collector = effector.begin();
@@ -194,7 +197,7 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         var rows = new ArrayList<List<String>>(compiled.size());
 
         for (var policy : compiled) {
-            rows.add(List.of(
+            rows.add(Immutables.listOf(
                     policy.subject(),
                     policy.expression(),
                     policy.effect() == PermissionResult.ALLOW ? "allow" : "deny",
@@ -204,7 +207,7 @@ public final class CasbinPermissionEngine implements PermissionEngine {
                     policy.encodedContexts()));
         }
 
-        return List.copyOf(rows);
+        return Immutables.copyOfList(rows);
     }
 
     private List<ResolutionSupport.CompiledPermission> mapCasbinMatches(
@@ -278,12 +281,12 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         var decision = decide(permission, matches);
 
         if (matches.isEmpty()) {
-            return new Resolution(PermissionResult.UNDEFINED, permission, Optional.empty(), List.copyOf(candidates));
+            return new Resolution(PermissionResult.UNDEFINED, permission, Optional.empty(), Immutables.copyOfList(candidates));
         }
 
         var priority = matchComparator(permission);
-        var best = matches.stream().max(priority).orElseThrow();
-        var tied = matches.stream().filter(candidate -> priority.compare(candidate, best) == 0).toList();
+        var best = matches.stream().max(priority).get();
+        var tied = matches.stream().filter(candidate -> priority.compare(candidate, best) == 0).collect(Immutables.toList());
         var effects = tied.stream().map(ResolutionSupport.CompiledPermission::effect).collect(Collectors.toSet());
 
         if (effects.size() > 1 && support.conflictResolution() == PermissionConflictResolution.STRICT) {
@@ -298,7 +301,7 @@ public final class CasbinPermissionEngine implements PermissionEngine {
                             + tied.stream().map(match -> ResolutionSupport.subjectKey(match.source())).sorted().distinct().collect(Collectors.joining(", "))
                             + "; returning undefined");
 
-            return new Resolution(PermissionResult.UNDEFINED, permission, Optional.empty(), List.copyOf(candidates));
+            return new Resolution(PermissionResult.UNDEFINED, permission, Optional.empty(), Immutables.copyOfList(candidates));
         }
 
         var preferred = decision;
@@ -306,7 +309,7 @@ public final class CasbinPermissionEngine implements PermissionEngine {
                 .filter(match -> match.effect() == preferred)
                 .min(Comparator.comparing((ResolutionSupport.CompiledPermission match) -> ResolutionSupport.subjectKey(match.source()))
                         .thenComparing(match -> match.node().permission()))
-                .orElseThrow();
+                .get();
 
         EngineCandidate winner = null;
 
@@ -318,7 +321,7 @@ public final class CasbinPermissionEngine implements PermissionEngine {
             }
         }
 
-        return new Resolution(preferred, permission, Optional.ofNullable(winner), List.copyOf(candidates));
+        return new Resolution(preferred, permission, Optional.ofNullable(winner), Immutables.copyOfList(candidates));
     }
 
     private List<EngineCandidate> diagnosticCandidates(
@@ -374,8 +377,8 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         }
 
         var priority = matchComparator(permission);
-        var best = matches.stream().max(priority).orElseThrow();
-        var tied = matches.stream().filter(candidate -> priority.compare(candidate, best) == 0).toList();
+        var best = matches.stream().max(priority).get();
+        var tied = matches.stream().filter(candidate -> priority.compare(candidate, best) == 0).collect(Immutables.toList());
         var effects = tied.stream().map(ResolutionSupport.CompiledPermission::effect).collect(Collectors.toSet());
 
         if (effects.size() > 1 && support.conflictResolution() == PermissionConflictResolution.STRICT) {
@@ -462,9 +465,19 @@ public final class CasbinPermissionEngine implements PermissionEngine {
         }
     }
 
-    private record Resolution(
-            PermissionResult result,
-            String requestedPermission,
-            Optional<ResolutionCandidate> winner,
-            List<ResolutionCandidate> candidates) implements PermissionResolution {}
+    @Value
+    @Accessors(fluent = true)
+    private static class Resolution implements PermissionResolution {
+        PermissionResult result;
+        String requestedPermission;
+        Optional<ResolutionCandidate> winner;
+        List<ResolutionCandidate> candidates;
+
+        private Resolution(PermissionResult result, String requestedPermission, Optional<ResolutionCandidate> winner, List<ResolutionCandidate> candidates) {
+            this.result = result;
+            this.requestedPermission = requestedPermission;
+            this.winner = winner;
+            this.candidates = candidates;
+        }
+    }
 }

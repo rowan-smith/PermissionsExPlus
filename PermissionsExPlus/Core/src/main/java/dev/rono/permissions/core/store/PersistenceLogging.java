@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.store;
 
+import lombok.var;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;

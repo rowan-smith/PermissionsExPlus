@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.engine.casbin;
 
+import lombok.var;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.casbin.jcasbin.effect.DefaultEffector;

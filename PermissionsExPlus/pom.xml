@@ -23,13 +23,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hikari.version>4.0.3</hikari.version>
         <testcontainers.version>1.21.3</testcontainers.version>
+        <!-- H2 for Java 17+ distributions, and the last release that runs on Java 8. -->
         <h2.version>2.3.232</h2.version>
+        <h2.legacy.version>2.1.214</h2.legacy.version>
         <configurate.version>4.2.0</configurate.version>
         <sqlite.version>3.49.0.0</sqlite.version>
         <postgres.version>42.7.7</postgres.version>
         <mysql.version>9.3.0</mysql.version>
         <jedis.version>5.2.0</jedis.version>
-        <caffeine.version>3.2.4</caffeine.version>
+        <!-- 2.9.x is the last Caffeine line that runs on Java 8. -->
+        <caffeine.version>2.9.3</caffeine.version>
         <jcasbin.version>1.99.0</jcasbin.version>
     </properties>
 

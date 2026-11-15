@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.engine.casbin;
 
+import lombok.var;
+
 import com.googlecode.aviator.runtime.function.FunctionUtils;
 import com.googlecode.aviator.runtime.type.AviatorBoolean;
 import com.googlecode.aviator.runtime.type.AviatorObject;

@@ -1,9 +1,24 @@
 package dev.rono.permissions.core.config;
 
+import lombok.var;
+
+import lombok.Value;
+import lombok.experimental.Accessors;
 import dev.rono.permissions.api.config.ConfigurationManager;
 import dev.rono.permissions.core.platform.PlatformConfiguration;
 
-public record ConfigurationManagerImpl(GeneralConfiguration general, BackendConfiguration backend, AdvancedConfiguration advanced) implements ConfigurationManager {
+@Value
+@Accessors(fluent = true)
+public class ConfigurationManagerImpl implements ConfigurationManager {
+    GeneralConfiguration general;
+    BackendConfiguration backend;
+    AdvancedConfiguration advanced;
+
+    public ConfigurationManagerImpl(GeneralConfiguration general, BackendConfiguration backend, AdvancedConfiguration advanced) {
+        this.general = general;
+        this.backend = backend;
+        this.advanced = advanced;
+    }
 
     public static ConfigurationManagerImpl load(PlatformConfiguration platform) {
         var general = GeneralConfiguration.load(platform);
