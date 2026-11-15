@@ -4,7 +4,7 @@
 
     <groupId>ru.tehkode</groupId>
     <artifactId>PermissionsEx</artifactId>
-    <version>1.23.5</version>
+    <version>1.23.6</version>
 
     <name>PermissionsExPlus</name>
     <url>https://github.com/rowan-smith/PermissionsExPlus</url>
@@ -332,7 +332,7 @@
         <profile>
             <id>mc-latest</id>
             <properties>
-                <spigot.version>26.2-R0.1-SNAPSHOT</spigot.version>
+                <spigot.version>26.3-R0.1-SNAPSHOT</spigot.version>
                 <maven.compiler.release>17</maven.compiler.release>
             </properties>
         </profile>

@@ -8,8 +8,8 @@ sidebar_position: 1
 
 PermissionsExPlus runs on any server software that implements the Bukkit/Spigot/Paper API:
 
-- **Spigot**: 1.8.8 through 26.2
-- **Paper**: 1.8.8 through 26.2
+- **Spigot**: 1.8.8 through 26.3
+- **Paper**: 1.8.8 through 26.3
 - **Purpur**: any version within the supported range
 - **CraftBukkit**: may work but not recommended
 
@@ -18,7 +18,7 @@ CraftBukkit may have compatibility issues. Spigot or Paper is recommended.
 :::
 
 :::note
-Versions above 26.2 may work but are not tested. If you encounter issues, please [open an issue](https://github.com/rowan-smith/PermissionsExPlus/issues).
+Versions above 26.3 may work but are not tested. If you encounter issues, please [open an issue](https://github.com/rowan-smith/PermissionsExPlus/issues).
 :::
 
 ## Java
