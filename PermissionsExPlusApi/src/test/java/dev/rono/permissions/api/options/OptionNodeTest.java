@@ -1,5 +1,7 @@
 package dev.rono.permissions.api.options;
 
+import lombok.var;
+
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -30,7 +32,7 @@ class OptionNodeTest {
                 .expiry(expiry)
                 .build();
 
-        assertEquals(expiry, option.expiry().orElseThrow());
+        assertEquals(expiry, option.expiry().get());
 
         assertEquals(option, OptionNode.builder(option).build());
     }
@@ -43,7 +45,7 @@ class OptionNodeTest {
                 .permanent()
                 .build();
 
-        assertTrue(option.expiry().isEmpty());
+        assertFalse(option.expiry().isPresent());
     }
 
     @Test

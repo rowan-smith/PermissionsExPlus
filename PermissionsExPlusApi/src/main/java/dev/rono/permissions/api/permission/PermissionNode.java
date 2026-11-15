@@ -1,5 +1,7 @@
 package dev.rono.permissions.api.permission;
 
+import lombok.var;
+
 import dev.rono.permissions.api.util.Node;
 
 import java.util.Objects;

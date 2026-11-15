@@ -21,6 +21,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Single Java baseline for every module. Minecraft 1.20.5+ and Paper 1.21 require Java 21. -->
         <maven.compiler.release>21</maven.compiler.release>
+        <!-- Compile-only. Java 8 modules use lombok.var; Java 10+ modules use native var. -->
+        <lombok.version>1.18.46</lombok.version>
         <junit.version>5.11.4</junit.version>
         <dbcp.version>2.13.0</dbcp.version>
         <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
@@ -79,7 +81,20 @@
                         </indent>
                         <trimTrailingWhitespace/>
                         <formatAnnotations/>
+                        <!-- removeUnusedImports cannot see that `var` refers to lombok.var in Java 8
+                             modules, so park the import as a comment around that step. Only files that
+                             already import lombok.var are affected; native-var modules never do. -->
+                        <replaceRegex>
+                            <name>protect lombok.var import</name>
+                            <searchRegex>(?m)^import lombok\.var;$</searchRegex>
+                            <replacement>// spotless-keep: import lombok.var;</replacement>
+                        </replaceRegex>
                         <removeUnusedImports/>
+                        <replaceRegex>
+                            <name>restore lombok.var import</name>
+                            <searchRegex>(?m)^// spotless-keep: import lombok\.var;$</searchRegex>
+                            <replacement>import lombok.var;</replacement>
+                        </replaceRegex>
                         <replaceRegex>
                             <name>no blank line before closing braces</name>
                             <searchRegex>(?m)(\R)[^\S\r\n]*\R(?=[^\S\r\n]*})</searchRegex>

@@ -1,10 +1,11 @@
 package dev.rono.permissions.api.context;
 
-import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
 
 final class ContextSets {
 
-    private static final ContextSet EMPTY = new ImmutableContextSet(Map.of());
+    private static final ContextSet EMPTY = new ImmutableContextSet(Collections.<String, Set<String>>emptyMap());
 
     private ContextSets() {
         throw new AssertionError();

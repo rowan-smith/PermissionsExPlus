@@ -1,5 +1,7 @@
 package dev.rono.permissions.api.permission;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -95,7 +97,7 @@ class PermissionNodeTest {
 
         var latestExpected = Instant.now().plus(Duration.ofMinutes(61));
 
-        var expiry = node.expiry().orElseThrow();
+        var expiry = node.expiry().get();
 
         assertTrue(!expiry.isBefore(earliestExpected) && !expiry.isAfter(latestExpected));
     }
@@ -110,7 +112,7 @@ class PermissionNodeTest {
 
         assertFalse(node.temporary());
 
-        assertTrue(node.expiry().isEmpty());
+        assertFalse(node.expiry().isPresent());
     }
 
     @Test

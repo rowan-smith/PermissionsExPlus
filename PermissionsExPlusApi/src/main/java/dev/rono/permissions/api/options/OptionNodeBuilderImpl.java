@@ -21,7 +21,7 @@ final class OptionNodeBuilderImpl implements OptionNodeBuilder {
     public OptionNodeBuilder option(String key, String value) {
         Objects.requireNonNull(value, "value");
 
-        if (value.isBlank()) {
+        if (value.codePoints().allMatch(Character::isWhitespace)) {
             throw new IllegalArgumentException("value cannot be blank");
         }
 
@@ -43,7 +43,7 @@ final class OptionNodeBuilderImpl implements OptionNodeBuilder {
     public OptionNodeBuilder value(String value) {
         Objects.requireNonNull(value, "value");
 
-        if (value.isBlank()) {
+        if (value.codePoints().allMatch(Character::isWhitespace)) {
             throw new IllegalArgumentException("value cannot be blank");
         }
 

@@ -1,5 +1,7 @@
 package dev.rono.permissions.api.permission;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.options.OptionKeys;
 import dev.rono.permissions.api.options.OptionNode;

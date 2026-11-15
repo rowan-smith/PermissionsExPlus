@@ -1,5 +1,15 @@
 package dev.rono.permissions.api.permission;
 
+import lombok.var;
+
+import lombok.experimental.Accessors;
+
+import lombok.Value;
+
+import java.util.LinkedHashSet;
+
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,14 +27,14 @@ class PermissionHolderTest {
     void explicitPermissionLookupUsesPermissionAndExactContexts() {
         var nether = ContextSet.builder().add("world", "nether").build();
 
-        PermissionHolder holder = new TestHolder(Set.of(
+        PermissionHolder holder = new TestHolder(sets(
                 PermissionNode.builder().permission("example.test").build(),
                 PermissionNode.builder()
                         .permission("example.test")
                         .value(PermissionValue.DENY)
                         .contexts(nether)
                         .build()),
-                Set.of());
+                sets());
 
         assertTrue(holder.explicitlyAllows("EXAMPLE.TEST", ContextSet.empty()));
 
@@ -32,7 +42,7 @@ class PermissionHolderTest {
 
         assertFalse(holder.explicitlyAllows("example.test", nether));
 
-        assertTrue(holder.explicitPermission("missing.permission").isEmpty());
+        assertFalse(holder.explicitPermission("missing.permission").isPresent());
     }
 
     @Test
@@ -43,7 +53,7 @@ class PermissionHolderTest {
 
         PermissionResolver undefined = resolver(PermissionResult.UNDEFINED);
 
-        PermissionHolder holder = new TestHolder(Set.of(), Set.of());
+        PermissionHolder holder = new TestHolder(sets(), sets());
 
         assertTrue(allow.hasPermission(holder, "example.test", ContextSet.empty()));
 
@@ -73,7 +83,15 @@ class PermissionHolderTest {
         };
     }
 
-    private record TestHolder(
-            Set<PermissionNode> explicitPermissions,
-            Set<OptionNode> explicitOptions) implements PermissionHolder {}
+    @Value
+    @Accessors(fluent = true)
+    private static class TestHolder implements PermissionHolder {
+        Set<PermissionNode> explicitPermissions;
+        Set<OptionNode> explicitOptions;
+    }
+
+    @SafeVarargs
+    private static <T> Set<T> sets(T... values) {
+        return new LinkedHashSet<>(Arrays.asList(values));
+    }
 }

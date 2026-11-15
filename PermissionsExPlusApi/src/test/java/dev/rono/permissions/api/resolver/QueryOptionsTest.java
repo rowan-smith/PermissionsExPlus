@@ -1,5 +1,7 @@
 package dev.rono.permissions.api.resolver;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import org.junit.jupiter.api.Test;
 

@@ -1,5 +1,7 @@
 package dev.rono.permissions.api.context;
 
+import lombok.var;
+
 import dev.rono.permissions.api.util.Identifiers;
 
 import java.util.*;
@@ -28,7 +30,7 @@ final class ImmutableContextSet implements ContextSet {
     public Set<String> values(String key) {
         Objects.requireNonNull(key, "key");
 
-        return contexts.getOrDefault(Identifiers.contextKey(key), Set.of());
+        return contexts.getOrDefault(Identifiers.contextKey(key), Collections.<String>emptySet());
     }
 
     @Override
@@ -56,7 +58,7 @@ final class ImmutableContextSet implements ContextSet {
             return true;
         }
 
-        return other instanceof ContextSet contextSet && contexts.equals(contextSet.asMap());
+        return other instanceof ContextSet && contexts.equals(((ContextSet) other).asMap());
     }
 
     @Override

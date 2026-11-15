@@ -1,5 +1,7 @@
 package dev.rono.permissions.api.user;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextKeys;
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.parent.ParentNode;

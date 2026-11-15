@@ -1,5 +1,7 @@
 package dev.rono.permissions.api.context;
 
+import lombok.var;
+
 import dev.rono.permissions.api.util.Identifiers;
 
 import java.util.*;
@@ -12,7 +14,7 @@ final class ContextBuilderImpl implements ContextBuilder {
     public ContextBuilder add(String key, String value) {
         Objects.requireNonNull(value, "value");
 
-        if (value.isBlank()) {
+        if (value.codePoints().allMatch(Character::isWhitespace)) {
             throw new IllegalArgumentException("value cannot be blank");
         }
 
@@ -27,7 +29,7 @@ final class ContextBuilderImpl implements ContextBuilder {
 
         Objects.requireNonNull(value, "value");
 
-        if (value.isBlank()) {
+        if (value.codePoints().allMatch(Character::isWhitespace)) {
             throw new IllegalArgumentException("value cannot be blank");
         }
 

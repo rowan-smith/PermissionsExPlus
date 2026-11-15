@@ -1,5 +1,11 @@
 package dev.rono.permissions.api.context;
 
+import lombok.var;
+
+import java.util.LinkedHashSet;
+
+import java.util.Arrays;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -34,7 +40,7 @@ class ContextSetTest {
 
         builder.add("world", "nether");
 
-        assertEquals(Set.of("overworld"), first.values("world"));
+        assertEquals(sets("overworld"), first.values("world"));
     }
 
     @Test
@@ -48,9 +54,9 @@ class ContextSetTest {
 
         var contexts = builder.build();
 
-        assertEquals(Set.of("overworld"), contexts.values("world"));
+        assertEquals(sets("overworld"), contexts.values("world"));
 
-        assertEquals(Set.of("lobby"), contexts.values("server"));
+        assertEquals(sets("lobby"), contexts.values("server"));
 
         builder.clear();
 
@@ -70,5 +76,10 @@ class ContextSetTest {
         assertTrue(contexts.contains("WORLD", "Nether"));
 
         assertFalse(contexts.contains("world", "nether"));
+    }
+
+    @SafeVarargs
+    private static <T> Set<T> sets(T... values) {
+        return new LinkedHashSet<>(Arrays.asList(values));
     }
 }

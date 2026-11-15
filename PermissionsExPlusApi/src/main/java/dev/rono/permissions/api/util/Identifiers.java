@@ -44,7 +44,7 @@ public final class Identifiers {
     private static String lowercase(String value, String description) {
         Objects.requireNonNull(value, description);
 
-        if (value.isBlank()) {
+        if (value.codePoints().allMatch(Character::isWhitespace)) {
             throw new IllegalArgumentException(description + " cannot be blank");
         }
 

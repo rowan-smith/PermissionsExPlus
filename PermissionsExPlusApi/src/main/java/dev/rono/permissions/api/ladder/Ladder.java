@@ -1,5 +1,7 @@
 package dev.rono.permissions.api.ladder;
 
+import lombok.var;
+
 import dev.rono.permissions.api.util.Identifiers;
 
 import java.util.List;
@@ -33,7 +35,7 @@ public interface Ladder {
     default Optional<String> next(String group) {
         var position = positionOf(group);
 
-        if (position.isEmpty()) {
+        if (!position.isPresent()) {
             return Optional.empty();
         }
 
@@ -49,7 +51,7 @@ public interface Ladder {
     default Optional<String> previous(String group) {
         var position = positionOf(group);
 
-        if (position.isEmpty()) {
+        if (!position.isPresent()) {
             return Optional.empty();
         }
 
