@@ -191,10 +191,14 @@ abstract class PexSubjectCollection implements SubjectCollection {
 
         /** Users need a unique name; use the account name when Sponge knows it. */
         private static String name(UUID id) {
-            Optional<UserStorageService> storage = Sponge.getServiceManager().provide(UserStorageService.class);
-            Optional<User> user = storage.isPresent() ? storage.get().get(id) : Optional.<User>empty();
+            try {
+                Optional<UserStorageService> storage = Sponge.getServiceManager().provide(UserStorageService.class);
+                Optional<User> user = storage.isPresent() ? storage.get().get(id) : Optional.<User>empty();
 
-            return user.isPresent() ? user.get().getName() : id.toString();
+                return user.isPresent() ? user.get().getName() : id.toString();
+            } catch (RuntimeException unavailable) {
+                return id.toString(); // Sponge not ready; the name is updated when the player joins.
+            }
         }
 
         @Override
