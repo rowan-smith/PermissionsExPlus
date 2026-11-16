@@ -16,6 +16,7 @@
         <module>Paper</module>
         <module>SpigotLegacy</module>
         <module>Sponge7</module>
+        <module>Sponge8</module>
     </modules>
 
     <artifactId>PermissionsExPlus</artifactId>

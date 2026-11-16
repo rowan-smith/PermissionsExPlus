@@ -2,8 +2,10 @@
 # Boots a real Minecraft server in Docker with PermissionsExPlus installed and
 # drives it over RCON. Fails on any plugin startup error or command mismatch.
 #
-# usage: scripts/smoke-test.sh <type> <minecraft-version> <java-tag> <plugin.jar> [adapter.jar ...]
-#   type       PAPER or SPIGOT (itzg/minecraft-server TYPE)
+# usage: scripts/smoke-test.sh <type> <version> <java-tag> <plugin.jar> [adapter.jar ...]
+#   type       PAPER or SPIGOT (itzg/minecraft-server TYPE), SPONGE7 or SPONGE8
+#   version    Minecraft version; for SPONGE7/SPONGE8 the full Sponge build,
+#              e.g. 1.12.2-7.4.7 or 1.16.5-8.2.1-RC2708
 #   java-tag   itzg/minecraft-server image tag: java8, java17, java21, ...
 #
 # With the command adapter installed, the original PEX command syntax is tested;
@@ -12,6 +14,7 @@
 # examples:
 #   scripts/smoke-test.sh PAPER 1.8.8 java8 PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-SpigotLegacy-*.jar
 #   scripts/smoke-test.sh PAPER 1.12.2 java8 <legacy.jar> <api-adapter.jar> <command-adapter.jar>
+#   scripts/smoke-test.sh SPONGE7 1.12.2-7.4.7 java8 PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
 set -euo pipefail
 
 type="$1"; version="$2"; java="$3"; shift 3
@@ -19,9 +22,15 @@ name="pex-smoke-${version//./-}-$$"
 data="$(mktemp -d)"
 legacy_commands=false
 
-mkdir -p "$data/plugins"
+# Sponge loads plugins from mods/; Bukkit servers from plugins/.
+case "$type" in
+    SPONGE*) plugin_dir="$data/mods" ;;
+    *) plugin_dir="$data/plugins" ;;
+esac
+
+mkdir -p "$plugin_dir"
 for jar in "$@"; do
-    cp "$jar" "$data/plugins/"
+    cp "$jar" "$plugin_dir/"
     case "$(basename "$jar")" in PermissionsExCommandAdapter*) legacy_commands=true ;; esac
 done
 
@@ -31,17 +40,48 @@ cleanup() {
 }
 trap cleanup EXIT
 
-docker run -d --name "$name" \
-    -e EULA=TRUE -e TYPE="$type" -e VERSION="$version" -e ONLINE_MODE=FALSE -e MEMORY=1G \
-    -e ENABLE_RCON=true -e RCON_PASSWORD=pex \
-    -v "$data:/data" "itzg/minecraft-server:$java" >/dev/null
+case "$type" in
+    SPONGE7)
+        server=( -e TYPE=SPONGEVANILLA -e VERSION="${version%%-*}" -e SPONGEVERSION="$version" )
+        ;;
+    SPONGE8)
+        # The image cannot resolve Sponge 8 release-candidate builds; fetch the official jar.
+        curl -sfL -o "$data/spongevanilla.jar" \
+            "https://repo.spongepowered.org/repository/maven-releases/org/spongepowered/spongevanilla/$version/spongevanilla-$version-universal.jar"
+        server=( -e TYPE=CUSTOM -e CUSTOM_SERVER=/data/spongevanilla.jar )
+        ;;
+    *)
+        server=( -e TYPE="$type" -e VERSION="$version" )
+        ;;
+esac
+
+# SpongeVanilla 8 remaps the Minecraft jar on first boot and stalls below ~2 GB of heap.
+case "$type" in SPONGE8) memory=3G ;; *) memory=1500M ;; esac
+
+start_server() {
+    docker run -d --name "$name" \
+        -e EULA=TRUE "${server[@]}" -e ONLINE_MODE=FALSE -e MEMORY="$memory" \
+        -e ENABLE_RCON=true -e RCON_PASSWORD=pex \
+        -v "$data:/data" "itzg/minecraft-server:$java" >/dev/null
+}
+
+start_server
+restarted=false
 
 echo "Waiting for $type $version ($java) to start..."
-for _ in $(seq 1 600); do  # first boot of old Paper patches the vanilla jar: allow 20 minutes
+for _ in $(seq 1 600); do  # first boots download and patch the server: allow 20 minutes
     if docker logs "$name" 2>&1 | grep -qE 'Done \([0-9.]+s\)!'; then
         break
     fi
     if [ "$(docker inspect -f '{{.State.Running}}' "$name")" != "true" ]; then
+        # SpongeVanilla 1.12 downloads its launcher libraries on first boot but builds its
+        # classpath before they exist, so the very first start always fails once.
+        if [ "$type" = SPONGE7 ] && [ "$restarted" = false ] && docker logs "$name" 2>&1 | grep -q 'launchwrapper/Launch'; then
+            restarted=true
+            docker rm -f "$name" >/dev/null
+            start_server
+            continue
+        fi
         docker logs "$name" 2>&1 | tail -50
         echo "FAIL: server exited during startup"
         exit 1
@@ -51,7 +91,8 @@ done
 
 log() { docker logs "$name" 2>&1; }
 
-if ! log | grep -q 'PermissionsExPlus\] API ready'; then
+# Bukkit logs "[PermissionsExPlus] API ready"; Sponge logs "[permissionsexplus]: API ready".
+if ! log | grep -qiE 'permissionsexplus\]:? API ready'; then
     log | tail -60
     echo "FAIL: PermissionsExPlus did not report 'API ready'"
     exit 1

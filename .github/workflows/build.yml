@@ -33,6 +33,8 @@ jobs:
             PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-SpigotLegacy-*.jar
             PermissionsExPlus/Spigot/target/PermissionsExPlus-Spigot-*.jar
             PermissionsExPlus/Paper/target/PermissionsExPlus-Paper-*.jar
+            PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
+            PermissionsExPlus/Sponge8/target/PermissionsExPlus-Sponge8-*.jar
             PermissionsExApiAdapter/target/*-shaded.jar
             PermissionsExCommandAdapter/target/*-shaded.jar
           if-no-files-found: error
@@ -66,14 +68,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { version: '1.8.8',  java: java8,  jar: legacy, adapters: true }
-          - { version: '1.12.2', java: java8,  jar: legacy, adapters: true }
-          - { version: '1.16.5', java: java8,  jar: legacy, adapters: true }
-          - { version: '1.17.1', java: java16, jar: legacy, adapters: true }
-          - { version: '1.8.8',  java: java8,  jar: legacy, adapters: false }
-          - { version: '1.21.4', java: java21, jar: paper,  adapters: false }
-          - { version: '1.21.4', java: java21, jar: paper,  adapters: true }
-    name: Smoke ${{ matrix.version }} (${{ matrix.jar }}${{ matrix.adapters && ' + adapters' || '' }})
+          - { type: PAPER,   version: '1.8.8',  java: java8,  jar: legacy, adapters: true }
+          - { type: PAPER,   version: '1.12.2', java: java8,  jar: legacy, adapters: true }
+          - { type: PAPER,   version: '1.16.5', java: java8,  jar: legacy, adapters: true }
+          - { type: PAPER,   version: '1.17.1', java: java16, jar: legacy, adapters: true }
+          - { type: PAPER,   version: '1.8.8',  java: java8,  jar: legacy, adapters: false }
+          - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  adapters: false }
+          - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  adapters: true }
+          - { type: SPONGE7, version: '1.12.2-7.4.7', java: java8, jar: sponge7, adapters: false }
+          - { type: SPONGE8, version: '1.16.5-8.2.1-RC2708', java: java8, jar: sponge8, adapters: false }
+    name: Smoke ${{ matrix.type }} ${{ matrix.version }} (${{ matrix.jar }}${{ matrix.adapters && ' + adapters' || '' }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -85,9 +89,11 @@ jobs:
           case "${{ matrix.jar }}" in
             legacy) plugin=$(find jars -name 'PermissionsExPlus-SpigotLegacy-*.jar' ! -name 'original-*') ;;
             paper)  plugin=$(find jars -name 'PermissionsExPlus-Paper-*.jar' ! -name 'original-*') ;;
+            sponge7) plugin=$(find jars -name 'PermissionsExPlus-Sponge7-*.jar' ! -name 'original-*') ;;
+            sponge8) plugin=$(find jars -name 'PermissionsExPlus-Sponge8-*.jar' ! -name 'original-*') ;;
           esac
           extra=()
           if [ "${{ matrix.adapters }}" = "true" ]; then
             extra=( $(find jars -name 'PermissionsExApiAdapter-*-shaded.jar') $(find jars -name 'PermissionsExCommandAdapter-*-shaded.jar') )
           fi
-          bash scripts/smoke-test.sh PAPER "${{ matrix.version }}" "${{ matrix.java }}" "$plugin" "${extra[@]}"
+          bash scripts/smoke-test.sh "${{ matrix.type }}" "${{ matrix.version }}" "${{ matrix.java }}" "$plugin" "${extra[@]}"
