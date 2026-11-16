@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import ru.tehkode.permissions.HierarchyTraverser;
 import ru.tehkode.permissions.NativeInterface;
 import ru.tehkode.permissions.PermissionCheckResult;
@@ -104,6 +106,10 @@ class PublicApiBinaryContractTest {
     private static final String BASELINE_VERSION = "1.23.5";
 
     @Test
+    // The checked-in baseline jar was compiled for Java 11, so it cannot be loaded
+    // on a
+    // Java 8 JVM. The JDK 21/25 builds still run this contract check.
+    @EnabledForJreRange(min = JRE.JAVA_11)
     void requiredPublicMembersFrom1235RemainPresent() throws Exception {
         Path baselineJar = ApiSignatures.resolveBaselineJar();
         List<Class<?>> baselineTypes = ApiSignatures.loadTypes(

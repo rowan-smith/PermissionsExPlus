@@ -12,9 +12,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 21 is the compile baseline (maven.compiler.release); 25 checks the newest LTS runtime.
+        # Java 8 modules (API, Core, SpigotLegacy, adapters) compile with release 8 on these
+        # JDKs; Spigot/Paper compile with release 21. 25 checks the newest LTS toolchain.
         java: [ '21', '25' ]
-    name: Test (JDK ${{ matrix.java }})
+    name: Build and test (JDK ${{ matrix.java }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -23,3 +24,70 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - run: mvn -B verify
+      - name: Upload plugin jars
+        if: matrix.java == '21'
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-jars
+          path: |
+            PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-SpigotLegacy-*.jar
+            PermissionsExPlus/Spigot/target/PermissionsExPlus-Spigot-*.jar
+            PermissionsExPlus/Paper/target/PermissionsExPlus-Paper-*.jar
+            PermissionsExApiAdapter/target/*-shaded.jar
+            PermissionsExCommandAdapter/target/*-shaded.jar
+          if-no-files-found: error
+
+  java8-runtime:
+    # Compiling with release 8 proves the API surface; this proves the code and its
+    # dependencies actually run on a Java 8 JVM.
+    runs-on: ubuntu-latest
+    name: Tests on a Java 8 JVM
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Compile with JDK 21
+        run: mvn -B install -DskipTests -Dspotless.check.skip=true -pl PermissionsExPlusApi,PermissionsExPlus/Core,PermissionsExApiAdapter -am
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+      - name: Run tests on Java 8
+        run: java -version && mvn -B -o surefire:test -pl PermissionsExPlusApi,PermissionsExPlus/Core,PermissionsExApiAdapter
+
+  smoke:
+    # Boots real servers in Docker with the built jars and drives them over RCON.
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { version: '1.8.8',  java: java8,  jar: legacy, adapters: true }
+          - { version: '1.12.2', java: java8,  jar: legacy, adapters: true }
+          - { version: '1.16.5', java: java8,  jar: legacy, adapters: true }
+          - { version: '1.17.1', java: java16, jar: legacy, adapters: true }
+          - { version: '1.8.8',  java: java8,  jar: legacy, adapters: false }
+          - { version: '1.21.4', java: java21, jar: paper,  adapters: false }
+          - { version: '1.21.4', java: java21, jar: paper,  adapters: true }
+    name: Smoke ${{ matrix.version }} (${{ matrix.jar }}${{ matrix.adapters && ' + adapters' || '' }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: plugin-jars
+          path: jars
+      - name: Run server
+        run: |
+          case "${{ matrix.jar }}" in
+            legacy) plugin=$(find jars -name 'PermissionsExPlus-SpigotLegacy-*.jar' ! -name 'original-*') ;;
+            paper)  plugin=$(find jars -name 'PermissionsExPlus-Paper-*.jar' ! -name 'original-*') ;;
+          esac
+          extra=()
+          if [ "${{ matrix.adapters }}" = "true" ]; then
+            extra=( $(find jars -name 'PermissionsExApiAdapter-*-shaded.jar') $(find jars -name 'PermissionsExCommandAdapter-*-shaded.jar') )
+          fi
+          bash scripts/smoke-test.sh PAPER "${{ matrix.version }}" "${{ matrix.java }}" "$plugin" "${extra[@]}"

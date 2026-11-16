@@ -1,0 +1,2 @@
+# Shell scripts run on Linux CI runners and in containers; keep LF endings.
+*.sh text eol=lf

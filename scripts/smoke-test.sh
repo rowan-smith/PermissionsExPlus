@@ -37,7 +37,7 @@ docker run -d --name "$name" \
     -v "$data:/data" "itzg/minecraft-server:$java" >/dev/null
 
 echo "Waiting for $type $version ($java) to start..."
-for _ in $(seq 1 300); do
+for _ in $(seq 1 600); do  # first boot of old Paper patches the vanilla jar: allow 20 minutes
     if docker logs "$name" 2>&1 | grep -qE 'Done \([0-9.]+s\)!'; then
         break
     fi
