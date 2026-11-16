@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.rono.permissions</groupId>
+        <artifactId>PermissionsExPlus</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+    </parent>
+
+    <!--
+        SpongeAPI 7 (Minecraft 1.12.2) on Java 8. An independent PermissionsExPlus
+        platform that registers a Sponge PermissionService, so every permission check
+        on the server is answered by PermissionsExPlus without any reflection.
+    -->
+    <artifactId>Sponge7</artifactId>
+
+    <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <finalName>${project.parent.artifactId}-${project.artifactId}-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/LICENSE*</exclude>
+                                        <exclude>META-INF/NOTICE*</exclude>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <!-- SpongeVanilla's launch class loader delegates org.spongepowered.* to
+                                 the server's loader, which cannot see mod jars, so bundled Configurate
+                                 must live elsewhere. SnakeYAML is relocated so the server's copy is
+                                 never picked up in its place. -->
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.spongepowered.configurate</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.configurate</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.yaml.snakeyaml</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.snakeyaml</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.leangen.geantyref</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.geantyref</shadedPattern>
+                                </relocation>
+                                <!-- Sponge ships older Caffeine, HikariCP, Gson and H2; its copies
+                                     (Not Aviator: jCasbin's expression engine generates bytecode from
+                                     class-name strings that relocation cannot rewrite.)
+                                     would otherwise be resolved in place of ours. -->
+                                <relocation>
+                                    <pattern>com.github.benmanes.caffeine</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.caffeine</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.zaxxer.hikari</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.hikari</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.gson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.h2</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.h2</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.commons</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.commons</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>inet.ipaddr</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.ipaddr</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>sponge</id>
+            <url>https://repo.spongepowered.org/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>dev.rono.permissions</groupId>
+            <artifactId>Core</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <!-- Last H2 release that runs on Java 8. -->
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.legacy.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Declared after Core: at equal depth Maven takes the first declaration, and
+             Core's library versions (Caffeine 2.9, ...) must win over SpongeAPI's older ones. -->
+        <dependency>
+            <groupId>org.spongepowered</groupId>
+            <artifactId>spongeapi</artifactId>
+            <version>7.4.0</version>
+            <scope>provided</scope>
+            <exclusions>
+                <!-- SpongeAPI 7 depends on Configurate 3 under the same group; without this,
+                     Maven picks 3.x over Core's Configurate 4 and it is never bundled. -->
+                <exclusion>
+                    <groupId>org.spongepowered</groupId>
+                    <artifactId>configurate-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.spongepowered</groupId>
+                    <artifactId>configurate-yaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.spongepowered</groupId>
+                    <artifactId>configurate-gson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.spongepowered</groupId>
+                    <artifactId>configurate-hocon</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

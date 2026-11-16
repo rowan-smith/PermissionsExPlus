@@ -1,0 +1,10 @@
+[
+  {
+    "modid": "permissionsexplus",
+    "name": "PermissionsExPlus",
+    "version": "${project.version}",
+    "description": "PermissionsExPlus permission service for Sponge",
+    "authorList": ["Rono"],
+    "dependencies": ["spongeapi@7.4"]
+  }
+]
