@@ -1,5 +1,7 @@
 package ru.tehkode.permissions.backends.data;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.parent.ParentNode;
 import dev.rono.permissions.api.permission.PermissionHolder;
@@ -78,7 +80,7 @@ final class UserData extends AbstractData implements PermissionsUserData {
 
     @Override
     public boolean isVirtual() {
-        return find(identifier).isEmpty();
+        return !find(identifier).isPresent();
     }
 
     @Override

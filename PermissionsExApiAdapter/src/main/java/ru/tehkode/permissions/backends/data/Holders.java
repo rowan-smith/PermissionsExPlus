@@ -1,5 +1,7 @@
 package ru.tehkode.permissions.backends.data;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.user.User;
@@ -7,6 +9,8 @@ import dev.rono.permissions.core.PexImplProvider;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
+import dev.rono.permissions.core.util.Strings;
+import dev.rono.permissions.core.util.Optionals;
 
 /**
  * Shared identity lookup for the ApiAdapter → PermissionsExPlus bridge.
@@ -16,7 +20,7 @@ final class Holders {
     private Holders() {}
 
     public static ContextSet world(String world) {
-        return world == null || world.isBlank() ? ContextSet.empty() : ContextSet.builder().add("world", world).build();
+        return world == null || Strings.isBlank(world) ? ContextSet.empty() : ContextSet.builder().add("world", world).build();
     }
 
     public static Optional<User> findUser(String identifier) {
@@ -51,8 +55,7 @@ final class Holders {
     public static Group group(String identifier) {
         var api = PexImplProvider.get();
 
-        return api.groups().cache().get(identifier)
-                .or(() -> api.groups().storage().get(identifier).toCompletableFuture().join())
+        return Optionals.or(api.groups().cache().get(identifier), () -> api.groups().storage().get(identifier).toCompletableFuture().join())
                 .orElseGet(() -> api.groups().create(identifier).toCompletableFuture().join());
     }
 }

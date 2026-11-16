@@ -197,23 +197,28 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 
     @Override
     public List<String> onTabComplete(@NonNull CommandSender sender, @NonNull Command command, @NonNull String alias, @NonNull String[] args) {
-        // Command UX is owned by PermissionsExCommandAdapter; this override exists so the
-        // PermissionsEx 1.23.5 binary surface (TabCompleter) remains intact for dependents.
+        // Command UX is owned by PermissionsExCommandAdapter; this override exists so
+        // the
+        // PermissionsEx 1.23.5 binary surface (TabCompleter) remains intact for
+        // dependents.
         return java.util.Collections.emptyList();
     }
 
     @Override
     public boolean onCommand(@NonNull CommandSender sender, @NonNull Command command, @NonNull String commandLabel, @NonNull String[] args) {
-        // Command UX is owned by PermissionsExCommandAdapter; keep TabCompleter/CommandExecutor surface.
+        // Command UX is owned by PermissionsExCommandAdapter; keep
+        // TabCompleter/CommandExecutor surface.
         if (args.length == 0) {
             PluginDescriptionFile pdf = this.getDescription();
             if (sender instanceof Player) {
                 sender.sendMessage("[" + ChatColor.RED + "PermissionsEx" + ChatColor.WHITE + "] version [" + ChatColor.BLUE + pdf.getVersion() + ChatColor.WHITE + "]");
                 return this.permissionsManager == null || !this.permissionsManager.has((Player) sender, "permissions.manage");
             }
+
             sender.sendMessage("[PermissionsEx] version [" + pdf.getVersion() + "]");
             return false;
         }
+
         try {
             return this.commandsManager != null && this.commandsManager.execute(sender, command, args);
         } catch (Throwable t) {
@@ -284,7 +289,7 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
             return null;
         }
 
-        return worlds.getFirst().getUID();
+        return worlds.get(0).getUID();
     }
 
     @Override

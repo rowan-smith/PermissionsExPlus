@@ -1,5 +1,5 @@
 name: PermissionsExCommandAdapter
-main: ru.tehkode.permissions.bukkit.PermissionsEx
+main: dev.rono.permissions.compat.commands.PexCommandAdapter
 version: "${project.version}"
 author: [t3hk0d3, zml, Rono]
 api-version: 1.13

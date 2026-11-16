@@ -18,6 +18,8 @@
  */
 package ru.tehkode.permissions;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.permission.PermissionResult;
@@ -36,6 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import ru.tehkode.permissions.events.PermissionEntityEvent;
+import dev.rono.permissions.core.util.Strings;
+import dev.rono.permissions.core.util.Optionals;
 
 /**
  * @author code
@@ -433,7 +437,7 @@ public abstract class PermissionEntity {
     }
 
     protected static ContextSet worldContext(String world) {
-        return world == null || world.isBlank() ? ContextSet.empty() : ContextSet.builder().add("world", world).build();
+        return world == null || Strings.isBlank(world) ? ContextSet.empty() : ContextSet.builder().add("world", world).build();
     }
 
     protected static PermissionHolder resolveUser(String identifier) {
@@ -453,8 +457,7 @@ public abstract class PermissionEntity {
 
     protected static PermissionHolder resolveGroup(String identifier) {
         var api = PexImplProvider.get();
-        return api.groups().cache().get(identifier)
-                .or(() -> api.groups().storage().get(identifier).toCompletableFuture().join())
+        return Optionals.or(api.groups().cache().get(identifier), () -> api.groups().storage().get(identifier).toCompletableFuture().join())
                 .orElseGet(() -> api.groups().create(identifier).toCompletableFuture().join());
     }
 

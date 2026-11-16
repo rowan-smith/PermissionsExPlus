@@ -1,5 +1,7 @@
 package ru.tehkode.permissions.backends.data;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.options.OptionNode;
 import dev.rono.permissions.api.parent.ParentNode;
@@ -14,6 +16,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import ru.tehkode.permissions.PermissionsData;
+import dev.rono.permissions.core.util.Immutables;
+import dev.rono.permissions.core.util.Strings;
 
 abstract class AbstractData implements PermissionsData {
     protected String identifier;
@@ -47,12 +51,12 @@ abstract class AbstractData implements PermissionsData {
         var contexts = contexts(world);
 
         return holder().explicitPermissions().stream().filter(node -> node.contexts().equals(contexts))
-                .map(PermissionNode::permission).toList();
+                .map(PermissionNode::permission).collect(Immutables.toList());
     }
 
     @Override
     public void setPermissions(List<String> permissions, String world) {
-        replacePermissions(contexts(world), List.copyOf(permissions));
+        replacePermissions(contexts(world), Immutables.copyOfList(permissions));
     }
 
     @Override
@@ -110,7 +114,7 @@ abstract class AbstractData implements PermissionsData {
         for (var node : holder().explicitOptions()) {
             var key = world(node.contexts());
 
-            var values = new LinkedHashMap<>(result.getOrDefault(key, Map.of()));
+            var values = new LinkedHashMap<>(result.getOrDefault(key, Immutables.mapOf()));
             values.put(node.key(), node.value());
             result.put(key, Collections.unmodifiableMap(values));
         }
@@ -123,12 +127,12 @@ abstract class AbstractData implements PermissionsData {
         var contexts = contexts(world);
 
         return parents().stream().filter(node -> node.contexts().equals(contexts) && !node.expired())
-                .map(ParentNode::group).toList();
+                .map(ParentNode::group).collect(Immutables.toList());
     }
 
     @Override
     public void setParents(List<String> parents, String world) {
-        replaceParents(contexts(world), List.copyOf(parents));
+        replaceParents(contexts(world), Immutables.copyOfList(parents));
     }
 
     @Override
@@ -148,7 +152,7 @@ abstract class AbstractData implements PermissionsData {
     }
 
     protected static ContextSet contexts(String world) {
-        return world == null || world.isBlank() ? ContextSet.empty() : ContextSet.builder().add("world", world).build();
+        return world == null || Strings.isBlank(world) ? ContextSet.empty() : ContextSet.builder().add("world", world).build();
     }
 
     private static String world(ContextSet contexts) {
@@ -166,7 +170,7 @@ abstract class AbstractData implements PermissionsData {
     private static Map<String, List<String>> immutableLists(Map<String, List<String>> source) {
         var result = new LinkedHashMap<String, List<String>>();
 
-        source.forEach((key, value) -> result.put(key, List.copyOf(value)));
+        source.forEach((key, value) -> result.put(key, Immutables.copyOfList(value)));
 
         return Collections.unmodifiableMap(result);
     }

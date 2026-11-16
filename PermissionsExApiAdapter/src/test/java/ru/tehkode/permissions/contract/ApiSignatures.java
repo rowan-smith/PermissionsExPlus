@@ -22,14 +22,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import dev.rono.permissions.core.util.Strings;
+import java.nio.file.Paths;
 
 /**
- * Reflection helpers that fingerprint the public binary surface plugins compile against.
- * Signatures use JVM-ish descriptors so return type / parameter changes fail loudly.
+ * Reflection helpers that fingerprint the public binary surface plugins compile
+ * against.
+ * Signatures use JVM-ish descriptors so return type / parameter changes fail
+ * loudly.
  */
 final class ApiSignatures {
-    private ApiSignatures() {
-    }
+    private ApiSignatures() {}
 
     static List<String> fingerprint(Class<?> type) {
         Set<String> lines = new LinkedHashSet<>();
@@ -105,8 +108,10 @@ final class ApiSignatures {
 
     /**
      * Load contract types from a baseline JAR (e.g. classic PermissionsEx 1.23.5).
-     * Uses child-first loading for {@code ru.tehkode.*} so the adapter classpath cannot
-     * shadow the frozen 1.23.5 bytecode. Bukkit and other provided types still resolve
+     * Uses child-first loading for {@code ru.tehkode.*} so the adapter classpath
+     * cannot
+     * shadow the frozen 1.23.5 bytecode. Bukkit and other provided types still
+     * resolve
      * via {@code parent}.
      */
     static List<Class<?>> loadTypes(Path jar, ClassLoader parent, String... typeNames) throws Exception {
@@ -147,9 +152,9 @@ final class ApiSignatures {
 
     static Path resolveBaselineJar() throws IOException {
         String override = System.getProperty("pex.contracts.baselineJar");
-        if (override != null && !override.isBlank()) {
+        if (override != null && !Strings.isBlank(override)) {
 
-            Path path = Path.of(override);
+            Path path = Paths.get(override);
             if (!Files.isRegularFile(path)) {
                 throw new IOException("Baseline JAR not found: " + path.toAbsolutePath());
             }
@@ -162,17 +167,19 @@ final class ApiSignatures {
             throw new IOException("Missing classpath resource /baselines/PermissionsEx-1.23.5-api.jar");
         }
 
-        // When running from Maven, the resource is inside target/test-classes or a jar URL.
+        // When running from Maven, the resource is inside target/test-classes or a jar
+        // URL.
         if ("file".equals(resource.getProtocol())) {
             try {
-                return Path.of(resource.toURI());
+                return Paths.get(resource.toURI());
             } catch (Exception e) {
                 throw new IOException("Cannot convert baseline JAR URL to path: " + resource, e);
             }
         }
 
-        // Fall back to the source-tree copy for update mode / IDE runs from module root.
-        Path moduleRelative = Path.of("src/test/resources/baselines/PermissionsEx-1.23.5-api.jar");
+        // Fall back to the source-tree copy for update mode / IDE runs from module
+        // root.
+        Path moduleRelative = Paths.get("src/test/resources/baselines/PermissionsEx-1.23.5-api.jar");
         if (Files.isRegularFile(moduleRelative)) {
             return moduleRelative.toAbsolutePath().normalize();
         }
@@ -227,20 +234,18 @@ final class ApiSignatures {
         String kind;
         if (type.isAnnotation()) {
             kind = "ANNOTATION";
-
         } else if (type.isInterface()) {
             kind = "INTERFACE";
-
         } else if (type.isEnum()) {
             kind = "ENUM_TYPE";
-
         } else {
             kind = "CLASS";
         }
 
         return kind + " " + modifiers(type.getModifiers()) + " " + type.getName()
                 + (type.getSuperclass() != null && type.getSuperclass() != Object.class
-                ? " extends " + type.getSuperclass().getName() : "")
+                        ? " extends " + type.getSuperclass().getName()
+                        : "")
                 + interfacesSuffix(type);
     }
 
@@ -289,6 +294,7 @@ final class ApiSignatures {
         if (type.isArray()) {
             return name(type.getComponentType()) + "[]";
         }
+
         return type.getName();
     }
 
@@ -309,8 +315,7 @@ final class ApiSignatures {
 
         if (comparator != null) {
             list.sort(comparator);
-
-        } else if (!list.isEmpty() && list.getFirst() instanceof Class) {
+        } else if (!list.isEmpty() && list.get(0) instanceof Class) {
             @SuppressWarnings("unchecked")
             Comparator<T> className = (Comparator<T>) Comparator.comparing((Class<?> c) -> c.getName());
             list.sort(className);

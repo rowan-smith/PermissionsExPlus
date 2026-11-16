@@ -68,6 +68,9 @@
       <groupId>dev.rono.permissions</groupId>
       <artifactId>Core</artifactId>
       <version>2.0.0-SNAPSHOT</version>
+      <!-- Supplied by PermissionsExPlus at runtime; shading a second copy of Core
+           (and its dependencies) into this plugin would duplicate its classes. -->
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

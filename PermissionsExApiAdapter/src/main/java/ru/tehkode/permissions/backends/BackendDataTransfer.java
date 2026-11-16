@@ -1,5 +1,7 @@
 package ru.tehkode.permissions.backends;
 
+import lombok.var;
+
 import ru.tehkode.permissions.PermissionsData;
 import ru.tehkode.permissions.PermissionsGroupData;
 import ru.tehkode.permissions.PermissionsUserData;

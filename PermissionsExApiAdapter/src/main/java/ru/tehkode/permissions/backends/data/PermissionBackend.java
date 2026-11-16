@@ -1,5 +1,7 @@
 package ru.tehkode.permissions.backends.data;
 
+import lombok.var;
+
 import dev.rono.permissions.core.PexImplProvider;
 import java.io.IOException;
 import java.io.Writer;
@@ -12,6 +14,7 @@ import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionsGroupData;
 import ru.tehkode.permissions.PermissionsUserData;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
+import dev.rono.permissions.core.util.Immutables;
 
 /**
  * Legacy PermissionsEx storage view backed by PermissionsExPlus managers.
@@ -61,14 +64,14 @@ public class PermissionBackend extends ru.tehkode.permissions.backends.Permissio
     public Collection<String> getUserIdentifiers() {
         var api = PexImplProvider.get();
 
-        return api.users().cache().identifiers().stream().map(Object::toString).sorted().toList();
+        return api.users().cache().identifiers().stream().map(Object::toString).sorted().collect(Immutables.toList());
     }
 
     @Override
     public Collection<String> getUserNames() {
         var api = PexImplProvider.get();
 
-        return api.users().cache().names().stream().sorted().toList();
+        return api.users().cache().names().stream().sorted().collect(Immutables.toList());
     }
 
     @Override
@@ -80,16 +83,16 @@ public class PermissionBackend extends ru.tehkode.permissions.backends.Permissio
 
     @Override
     public synchronized List<String> getWorldInheritance(String world) {
-        return List.copyOf(worldInheritance.getOrDefault(world, List.of()));
+        return Immutables.copyOfList(worldInheritance.getOrDefault(world, Immutables.listOf()));
     }
 
     @Override
     public synchronized Map<String, List<String>> getAllWorldInheritance() {
         var copy = new LinkedHashMap<String, List<String>>();
 
-        worldInheritance.forEach((key, value) -> copy.put(key, List.copyOf(value)));
+        worldInheritance.forEach((key, value) -> copy.put(key, Immutables.copyOfList(value)));
 
-        return Map.copyOf(copy);
+        return Immutables.copyOfMap(copy);
     }
 
     @Override
@@ -97,7 +100,7 @@ public class PermissionBackend extends ru.tehkode.permissions.backends.Permissio
         if (inheritance == null || inheritance.isEmpty()) {
             worldInheritance.remove(world);
         } else {
-            worldInheritance.put(world, List.copyOf(inheritance));
+            worldInheritance.put(world, Immutables.copyOfList(inheritance));
         }
     }
 

@@ -1,5 +1,6 @@
 package ru.tehkode.permissions.backends.data;
 
+import ru.tehkode.permissions.support.TestFiles;
 import static org.junit.jupiter.api.Assertions.fail;
 import cloud.commandframework.CommandManager;
 import dev.rono.permissions.api.PexRegistration;
@@ -9,46 +10,42 @@ import dev.rono.permissions.core.platform.PlatformConfiguration;
 import dev.rono.permissions.core.platform.PlatformLogger;
 import dev.rono.permissions.core.platform.PlatformScheduler;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Boots a real in-memory PermissionsExPlus runtime for ApiAdapter data-bridge tests.
+ * Boots a real in-memory PermissionsExPlus runtime for ApiAdapter data-bridge
+ * tests.
  */
 public final class PlusTestFixture implements AutoCloseable {
     private final PexApiImpl<?> api;
 
     public PlusTestFixture(Path directory) throws IOException {
-        Files.writeString(directory.resolve("config.yml"), "default-group: default\n");
-        Files.writeString(directory.resolve("advanced.yml"), """
-                cache:
-                  preload-on-join: false
-                  cache-failure-fallback: deny
-                threading:
-                  worker-pool-size: 2
-                commands:
-                  register-base-commands: false
-                temporary-permissions:
-                  expiry-check-interval: 30
-                  log-expiry: false
-                  log-expiry-mode: total
-                advanced-version: 1
-                """);
-        Files.writeString(directory.resolve("database.yml"), """
-                type: memory
-                local:
-                  filename: permissions
-                credentials:
-                  host: localhost
-                  database: permissions
-                  username: test
-                pool:
-                  maximum-pool-size: 2
-                  minimum-idle: 0
-                data-version: 1
-                """);
+        TestFiles.writeString(directory.resolve("config.yml"), "default-group: default\n");
+        TestFiles.writeString(directory.resolve("advanced.yml"), ("cache:\n"
+                + "  preload-on-join: false\n"
+                + "  cache-failure-fallback: deny\n"
+                + "threading:\n"
+                + "  worker-pool-size: 2\n"
+                + "commands:\n"
+                + "  register-base-commands: false\n"
+                + "temporary-permissions:\n"
+                + "  expiry-check-interval: 30\n"
+                + "  log-expiry: false\n"
+                + "  log-expiry-mode: total\n"
+                + "advanced-version: 1\n"));
+        TestFiles.writeString(directory.resolve("database.yml"), ("type: memory\n"
+                + "local:\n"
+                + "  filename: permissions\n"
+                + "credentials:\n"
+                + "  host: localhost\n"
+                + "  database: permissions\n"
+                + "  username: test\n"
+                + "pool:\n"
+                + "  maximum-pool-size: 2\n"
+                + "  minimum-idle: 0\n"
+                + "data-version: 1\n"));
 
         api = new PexApiImpl<>(new TestPlatform(directory));
         api.start();

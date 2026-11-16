@@ -1,5 +1,7 @@
 package ru.tehkode.permissions.contract;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -34,9 +36,11 @@ import ru.tehkode.permissions.events.PermissionEntityEvent;
 import ru.tehkode.permissions.events.PermissionSystemEvent;
 import ru.tehkode.permissions.exceptions.PermissionsNotAvailable;
 import ru.tehkode.permissions.exceptions.RankingException;
+import dev.rono.permissions.core.util.Immutables;
 
 /**
- * Behavioral contracts for the legacy public API. These encode semantics third-party
+ * Behavioral contracts for the legacy public API. These encode semantics
+ * third-party
  * plugins rely on so the Plus-backed shim cannot silently diverge.
  */
 @DisplayName("Legacy public API behavioral contracts")
@@ -246,7 +250,7 @@ class LegacyPublicApiContractTest extends PEXTestBase {
         void setPermissionsReplacesOwnList() {
             PermissionUser user = manager.getUser("entity-set");
             user.setPermissions(Arrays.asList("a.one", "a.two"), null);
-            assertEquals(Set.of("a.one", "a.two"), new HashSet<>(user.getOwnPermissions(null)));
+            assertEquals(Immutables.setOf("a.one", "a.two"), new HashSet<>(user.getOwnPermissions(null)));
 
             user.setPermissions(Collections.singletonList("b.only"), null);
             assertEquals(Collections.singletonList("b.only"), user.getOwnPermissions(null));
@@ -315,7 +319,8 @@ class LegacyPublicApiContractTest extends PEXTestBase {
             PermissionUser user = manager.getUser("entity-timed");
             user.addTimedPermission("temp.fly", null, PermissionManager.TRANSIENT_PERMISSION);
             assertTrue(user.getTimedPermissions(null).contains("temp.fly"));
-            // has() resolves through Plus; process-local timed nodes are tracked separately.
+            // has() resolves through Plus; process-local timed nodes are tracked
+            // separately.
             user.removeTimedPermission("temp.fly", null);
             assertFalse(user.getTimedPermissions(null).contains("temp.fly"));
         }
@@ -420,7 +425,7 @@ class LegacyPublicApiContractTest extends PEXTestBase {
 
             var ladders = (LadderManagerImpl) PexImplProvider.get().ladders();
             ladders.create("main").toCompletableFuture().join();
-            ladders.modify("main", modifier -> modifier.setGroups(List.of("ladderlow", "ladderhigh")))
+            ladders.modify("main", modifier -> modifier.setGroups(Immutables.listOf("ladderlow", "ladderhigh")))
                     .toCompletableFuture()
                     .join();
 
@@ -548,7 +553,8 @@ class LegacyPublicApiContractTest extends PEXTestBase {
             assertFalse(user.inGroup(group, false), "remove() must detach users");
             assertFalse(child.getOwnParents().contains(group), "remove() must detach child groups");
 
-            // After cache reset, a reloaded group from Plus storage starts without the old nodes.
+            // After cache reset, a reloaded group from Plus storage starts without the old
+            // nodes.
             manager.resetGroup("ToRemove");
             PermissionGroup again = manager.getGroup("ToRemove");
             assertFalse(again.getOwnPermissions(null).contains("gone.soon"));

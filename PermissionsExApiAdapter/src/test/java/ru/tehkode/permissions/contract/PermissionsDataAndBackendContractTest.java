@@ -1,5 +1,7 @@
 package ru.tehkode.permissions.contract;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,9 +24,11 @@ import ru.tehkode.permissions.PermissionsUserData;
 import ru.tehkode.permissions.backends.PermissionBackend;
 import ru.tehkode.permissions.backends.file.FileBackend;
 import ru.tehkode.permissions.backends.memory.MemoryBackend;
+import dev.rono.permissions.core.util.Immutables;
 
 /**
- * Contracts for storage SPI interfaces and backend alias registry that plugins and
+ * Contracts for storage SPI interfaces and backend alias registry that plugins
+ * and
  * the shim both depend on.
  */
 @DisplayName("Legacy data / backend contracts")
@@ -33,7 +37,7 @@ class PermissionsDataAndBackendContractTest extends PEXTestBase {
     @Test
     void permissionsDataDeclaresClassicMutationSurface() {
         Set<String> methods = publicMethodNames(PermissionsData.class);
-        for (String required : List.of(
+        for (String required : Immutables.listOf(
                 "load",
                 "getIdentifier",
                 "getPermissions",
@@ -81,7 +85,8 @@ class PermissionsDataAndBackendContractTest extends PEXTestBase {
 
     @Test
     void backendAliasLookupIsCaseInsensitiveEnoughForPlugins() throws Exception {
-        // Historic PEX resolves configured backend names via the alias map as registered.
+        // Historic PEX resolves configured backend names via the alias map as
+        // registered.
         assertNotNull(PermissionBackend.getBackendClass("file"));
         assertNotNull(PermissionBackend.getBackendClass("memory"));
     }
@@ -89,12 +94,12 @@ class PermissionsDataAndBackendContractTest extends PEXTestBase {
     @Test
     void entityPublicApiPersistsThroughBackendDataSpi() {
         var user = manager.getUser("spi-user");
-        user.setPermissions(List.of("a.b"), null);
-        assertEquals(List.of("a.b"), user.getOwnPermissions(null));
+        user.setPermissions(Immutables.listOf("a.b"), null);
+        assertEquals(Immutables.listOf("a.b"), user.getOwnPermissions(null));
         user.setOption("prefix", "[X]", null);
         assertEquals("[X]", user.getOwnOption("prefix", null));
-        user.setParentsIdentifier(List.of("default"), null);
-        assertEquals(List.of("default"), user.getOwnParentIdentifiers(null));
+        user.setParentsIdentifier(Immutables.listOf("default"), null);
+        assertEquals(Immutables.listOf("default"), user.getOwnParentIdentifiers(null));
         Map<String, List<String>> allPerms = user.getAllPermissions();
         assertTrue(allPerms.values().stream().anyMatch(list -> list.contains("a.b")));
         Map<String, Map<String, String>> options = user.getAllOptions();
@@ -111,7 +116,7 @@ class PermissionsDataAndBackendContractTest extends PEXTestBase {
                 .map(Method::getName)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        for (String required : List.of(
+        for (String required : Immutables.listOf(
                 "getUserData",
                 "getGroupData",
                 "hasUser",
@@ -126,7 +131,8 @@ class PermissionsDataAndBackendContractTest extends PEXTestBase {
                 "setWorldInheritance",
                 "writeContents")) {
             if (!abstractMethods.contains(required)) {
-                // Some may be concrete in this fork; still require they exist publicly/protected
+                // Some may be concrete in this fork; still require they exist
+                // publicly/protected
                 try {
                     PermissionBackend.class.getDeclaredMethod(required, findParamTypes(PermissionBackend.class, required));
                 } catch (NoSuchMethodException e) {
@@ -148,6 +154,7 @@ class PermissionsDataAndBackendContractTest extends PEXTestBase {
                 return method.getParameterTypes();
             }
         }
+
         throw new NoSuchMethodException(name);
     }
 }

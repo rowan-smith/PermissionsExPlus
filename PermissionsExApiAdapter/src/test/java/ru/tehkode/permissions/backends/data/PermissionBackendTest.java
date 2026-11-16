@@ -1,18 +1,20 @@
 package ru.tehkode.permissions.backends.data;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import dev.rono.permissions.api.context.ContextSet;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import ru.tehkode.permissions.PermissionManager;
+import dev.rono.permissions.core.util.Immutables;
 
 class PermissionBackendTest {
     @TempDir
@@ -40,15 +42,15 @@ class PermissionBackendTest {
 
         defaultData.save();
 
-        backend.getGroupData("parent").setPermissions(List.of("example.parent"), null);
+        backend.getGroupData("parent").setPermissions(Immutables.listOf("example.parent"), null);
 
         var data = backend.getGroupData("staff");
 
         assertTrue(data.isVirtual());
 
-        data.setPermissions(List.of("example.use", "-example.blocked"), "world_nether");
+        data.setPermissions(Immutables.listOf("example.use", "-example.blocked"), "world_nether");
 
-        data.setParents(List.of("parent"), null);
+        data.setParents(Immutables.listOf("parent"), null);
 
         data.setOption("prefix", "[Staff]", "world_nether");
 
@@ -57,14 +59,14 @@ class PermissionBackendTest {
         assertThrows(UnsupportedOperationException.class,
                 () -> data.setOption("default", "true", "world_nether"));
 
-        var staff = fixture.api().groups().cache().get("staff").orElseThrow();
+        var staff = fixture.api().groups().cache().get("staff").get();
 
-        assertEquals(java.util.Set.of("example.use", "-example.blocked"),
-                java.util.Set.copyOf(data.getPermissions("world_nether")));
+        assertEquals(Immutables.setOf("example.use", "-example.blocked"),
+                Immutables.copyOfSet(data.getPermissions("world_nether")));
 
         assertTrue(staff.hasDirectParent("parent", ContextSet.empty()));
 
-        assertEquals(50, staff.weight().orElseThrow());
+        assertEquals(50, staff.weight().getAsInt());
 
         assertEquals("[Staff]", data.getOption("prefix", "world_nether"));
 
@@ -85,11 +87,11 @@ class PermissionBackendTest {
 
         data.setOption("name", "Rono", null);
 
-        data.setPermissions(List.of("example.use"), null);
+        data.setPermissions(Immutables.listOf("example.use"), null);
 
-        data.setParents(List.of("member"), "survival");
+        data.setParents(Immutables.listOf("member"), "survival");
 
-        var user = fixture.api().users().cache().get(id).orElseThrow();
+        var user = fixture.api().users().cache().get(id).get();
 
         assertEquals("Rono", user.name());
 

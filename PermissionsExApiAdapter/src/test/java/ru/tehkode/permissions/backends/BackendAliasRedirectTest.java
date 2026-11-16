@@ -1,5 +1,7 @@
 package ru.tehkode.permissions.backends;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -7,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,6 +21,7 @@ import ru.tehkode.permissions.backends.data.PlusTestFixture;
 import ru.tehkode.permissions.backends.file.FileBackend;
 import ru.tehkode.permissions.backends.memory.MemoryBackend;
 import ru.tehkode.permissions.backends.sql.SQLBackend;
+import dev.rono.permissions.core.util.Immutables;
 
 class BackendAliasRedirectTest {
     @TempDir
@@ -71,12 +73,12 @@ class BackendAliasRedirectTest {
         assertInstanceOf(ru.tehkode.permissions.backends.data.PermissionBackend.class, data);
 
         var id = UUID.randomUUID();
-        file.getUserData(id.toString()).setPermissions(List.of("alias.redirect"), null);
+        file.getUserData(id.toString()).setPermissions(Immutables.listOf("alias.redirect"), null);
         file.getUserData(id.toString()).setOption("prefix", "[R]", null);
 
         assertTrue(sql.hasUser(id.toString()));
         assertTrue(memory.hasUser(id.toString()));
-        assertEquals(List.of("alias.redirect"), multi.getUserData(id.toString()).getPermissions(null));
+        assertEquals(Immutables.listOf("alias.redirect"), multi.getUserData(id.toString()).getPermissions(null));
         assertEquals("[R]", data.getUserData(id.toString()).getOption("prefix", null));
     }
 

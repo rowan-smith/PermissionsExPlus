@@ -1,13 +1,15 @@
 package ru.tehkode.permissions;
 
+import lombok.var;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.rono.permissions.core.PexImplProvider;
 import dev.rono.permissions.core.manager.LadderManagerImpl;
 import java.util.Collections;
-import java.util.List;
 import org.junit.jupiter.api.Test;
+import dev.rono.permissions.core.util.Immutables;
 
 public class PermissionGroupTest extends PEXTestBase {
 
@@ -41,7 +43,7 @@ public class PermissionGroupTest extends PEXTestBase {
 
         var ladders = (LadderManagerImpl) PexImplProvider.get().ladders();
         ladders.create("default").toCompletableFuture().join();
-        ladders.modify("default", modifier -> modifier.setGroups(List.of("group1", "group2")))
+        ladders.modify("default", modifier -> modifier.setGroups(Immutables.listOf("group1", "group2")))
                 .toCompletableFuture()
                 .join();
 

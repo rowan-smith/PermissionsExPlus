@@ -18,6 +18,8 @@
  */
 package ru.tehkode.permissions;
 
+import lombok.var;
+
 import com.google.common.collect.Maps;
 import dev.rono.permissions.api.ladder.PromotionStatus;
 import dev.rono.permissions.api.user.User;
@@ -362,7 +364,7 @@ public class PermissionUser extends PermissionEntity {
 
         clearCache();
         this.callEvent(PermissionEntityEvent.Action.RANK_CHANGED);
-        return manager.getGroup(result.newGroup().orElseThrow());
+        return manager.getGroup(result.newGroup().get());
     }
 
     /**
@@ -395,7 +397,7 @@ public class PermissionUser extends PermissionEntity {
 
         clearCache();
         this.callEvent(PermissionEntityEvent.Action.RANK_CHANGED);
-        return manager.getGroup(result.newGroup().orElseThrow());
+        return manager.getGroup(result.newGroup().get());
     }
 
     private void ensureOnLadder(PermissionUser actor, String ladderName) throws RankingException {

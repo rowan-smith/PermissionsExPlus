@@ -54,13 +54,18 @@ public abstract class PEXTestBase {
         fixture = new PlusTestFixture(tempDir);
 
         world = (World) Proxy.newProxyInstance(World.class.getClassLoader(), new Class[]{World.class}, (proxy, method, args) -> {
-            return switch (method.getName()) {
-                case "getName" -> "world";
-                case "equals" -> proxy == args[0];
-                case "hashCode" -> System.identityHashCode(proxy);
-                case "toString" -> "MockWorld";
-                default -> null;
-            };
+            switch (method.getName()) {
+                case "getName" :
+                    return "world";
+                case "equals" :
+                    return proxy == args[0];
+                case "hashCode" :
+                    return System.identityHashCode(proxy);
+                case "toString" :
+                    return "MockWorld";
+                default :
+                    return null;
+            }
         });
 
         server = (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class[]{Server.class}, new InvocationHandler() {
@@ -69,32 +74,46 @@ public abstract class PEXTestBase {
 
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                return switch (method.getName()) {
-                    case "equals" -> proxy == args[0];
-                    case "hashCode" -> System.identityHashCode(proxy);
-                    case "toString" -> "MockServer";
-                    case "getLogger" -> Logger.getLogger("Minecraft");
-                    case "getName" -> "TestServer";
-                    case "getVersion", "getBukkitVersion" -> "1.0";
-                    case "getWorlds" -> Collections.singletonList(world);
-                    case "getWorld" -> world;
-                    case "getOnlinePlayers" -> Collections.emptyList();
-                    case "getPluginManager" -> {
+                switch (method.getName()) {
+                    case "equals" :
+                        return proxy == args[0];
+                    case "hashCode" :
+                        return System.identityHashCode(proxy);
+                    case "toString" :
+                        return "MockServer";
+                    case "getLogger" :
+                        return Logger.getLogger("Minecraft");
+                    case "getName" :
+                        return "TestServer";
+                    case "getVersion" :
+                    case "getBukkitVersion" :
+                        return "1.0";
+                    case "getWorlds" :
+                        return Collections.singletonList(world);
+                    case "getWorld" :
+                        return world;
+                    case "getOnlinePlayers" :
+                        return Collections.emptyList();
+                    case "getPluginManager" : {
                         if (pluginManager == null) {
                             pluginManager = Proxy.newProxyInstance(PluginManager.class.getClassLoader(),
                                     new Class[]{PluginManager.class}, (pm, pmMethod, pmArgs) -> {
                                         if (pmMethod.getName().equals("equals")) {
                                             return pm == pmArgs[0];
                                         }
+
                                         if (pmMethod.getName().equals("hashCode")) {
                                             return System.identityHashCode(pm);
                                         }
+
                                         if (pmMethod.getName().equals("toString")) {
                                             return "MockPluginManager";
                                         }
+
                                         if (pmMethod.getName().equals("getPermissions")) {
                                             return Collections.emptySet();
                                         }
+
                                         if (pmMethod.getName().equals("registerEvents")) {
                                             Listener listener = (Listener) pmArgs[0];
                                             for (Method m : listener.getClass().getMethods()) {
@@ -104,8 +123,10 @@ public abstract class PEXTestBase {
                                                     listeners.computeIfAbsent(eventClass, k -> new ArrayList<>()).add(listener);
                                                 }
                                             }
+
                                             return null;
                                         }
+
                                         if (pmMethod.getName().equals("callEvent")) {
                                             Event event = (Event) pmArgs[0];
                                             List<Listener> eventListeners = listeners.get(event.getClass());
@@ -119,15 +140,20 @@ public abstract class PEXTestBase {
                                                     }
                                                 }
                                             }
+
                                             return null;
                                         }
+
                                         return null;
                                     });
                         }
-                        yield pluginManager;
+
+                        return pluginManager;
                     }
-                    default -> null;
-                };
+
+                    default :
+                        return null;
+                }
             }
         });
 
@@ -138,8 +164,7 @@ public abstract class PEXTestBase {
         } catch (Exception e) {
             try {
                 Bukkit.setServer(server);
-            } catch (UnsupportedOperationException ignored) {
-            }
+            } catch (UnsupportedOperationException ignored) {}
         }
 
         config = new PermissionsExConfig(null);
@@ -178,9 +203,9 @@ public abstract class PEXTestBase {
         if (manager != null) {
             try {
                 manager.end();
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
         }
+
         if (fixture != null) {
             fixture.close();
         }

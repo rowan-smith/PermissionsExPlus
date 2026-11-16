@@ -1,0 +1,11 @@
+name: PermissionsExPlus
+version: '${project.version}'
+
+main: dev.rono.permissions.spigot.legacy.SpigotLegacyPlugin
+# This build targets Minecraft 1.8.8 - 1.17. 1.8 - 1.12 ignore api-version; 1.13+ accept
+# 1.13, and an api-version newer than the server's own would make it refuse the plugin.
+api-version: '1.13'
+load: STARTUP
+
+authors: [Rono]
+softdepend: [PlaceholderAPI, Vault]

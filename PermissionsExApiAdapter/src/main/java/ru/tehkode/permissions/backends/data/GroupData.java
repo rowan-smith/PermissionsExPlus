@@ -1,5 +1,7 @@
 package ru.tehkode.permissions.backends.data;
 
+import lombok.var;
+
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.parent.ParentNode;
@@ -107,7 +109,7 @@ final class GroupData extends AbstractData implements PermissionsGroupData {
 
     @Override
     public boolean isVirtual() {
-        return Holders.findGroup(identifier).isEmpty();
+        return !Holders.findGroup(identifier).isPresent();
     }
 
     @Override

@@ -28,16 +28,24 @@ import ru.tehkode.permissions.events.PermissionSystemEvent;
 import ru.tehkode.permissions.exceptions.PermissionBackendException;
 import ru.tehkode.permissions.exceptions.PermissionsNotAvailable;
 import ru.tehkode.permissions.exceptions.RankingException;
+import dev.rono.permissions.core.util.Immutables;
+import java.nio.file.Paths;
 
 /**
- * Locks the ApiAdapter public binary surface against classic PermissionsEx <b>1.23.5</b>
+ * Locks the ApiAdapter public binary surface against classic PermissionsEx
+ * <b>1.23.5</b>
  * ({@code STABLE-1.23.5}), the final stable API plugins compile against.
  *
- * <p>Source of truth: {@code src/test/resources/baselines/PermissionsEx-1.23.5-api.jar}
- * (classes-only jar built from that tag). Required members from 1.23.5 must remain present;
+ * <p>
+ * Source of truth:
+ * {@code src/test/resources/baselines/PermissionsEx-1.23.5-api.jar}
+ * (classes-only jar built from that tag). Required members from 1.23.5 must
+ * remain present;
  * additive public members on the shim are allowed.
  *
- * <p>Regenerate the checked-in signature dump from the baseline JAR (not from the adapter):
+ * <p>
+ * Regenerate the checked-in signature dump from the baseline JAR (not from the
+ * adapter):
  * {@code mvn -pl PermissionsExApiAdapter test -Dtest=PublicApiBinaryContractTest -Dpex.contracts.update=true}
  */
 class PublicApiBinaryContractTest {
@@ -105,7 +113,7 @@ class PublicApiBinaryContractTest {
         List<String> requiredFromJar = ApiSignatures.fingerprintAll(baselineTypes);
 
         if (Boolean.getBoolean("pex.contracts.update")) {
-            Path out = Path.of("src/test/resources/contracts/public-api-signatures.txt");
+            Path out = Paths.get("src/test/resources/contracts/public-api-signatures.txt");
             ApiSignatures.writeLines(out, requiredFromJar);
             System.out.println("Updated " + BASELINE_VERSION + " public API contract dump at "
                     + out.toAbsolutePath() + " from " + baselineJar);
@@ -142,7 +150,7 @@ class PublicApiBinaryContractTest {
         assertTrue(jar.getFileName().toString().contains("1.23.5"),
                 "Baseline JAR name must identify 1.23.5: " + jar);
         assertTrue(jar.toString().replace('\\', '/').contains("baselines/")
-                        || System.getProperty("pex.contracts.baselineJar") != null,
+                || System.getProperty("pex.contracts.baselineJar") != null,
                 "Baseline should come from test resources/baselines unless overridden");
     }
 
@@ -153,7 +161,7 @@ class PublicApiBinaryContractTest {
             assertEquals(PUBLIC_CONTRACT_TYPE_NAMES[i], ADAPTER_CONTRACT_TYPES[i].getName());
         }
 
-        List<String> names = Arrays.stream(PUBLIC_CONTRACT_TYPE_NAMES).sorted().toList();
+        List<String> names = Arrays.stream(PUBLIC_CONTRACT_TYPE_NAMES).sorted().collect(Immutables.toList());
         assertTrue(names.contains("ru.tehkode.permissions.PermissionManager"));
         assertTrue(names.contains("ru.tehkode.permissions.PermissionUser"));
         assertTrue(names.contains("ru.tehkode.permissions.PermissionGroup"));
