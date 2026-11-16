@@ -46,6 +46,7 @@ public class ErrorReport {
         if (sender != null) {
             sender.sendMessage("PermissionsEx error: " + msg);
         }
+
         withException(msg, t).send();
     }
 

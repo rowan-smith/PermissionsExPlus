@@ -47,8 +47,7 @@ public class SQLConnection implements Closeable {
         if (conn != null) {
             try {
                 conn.close();
-            } catch (SQLException ignored) {
-            }
+            } catch (SQLException ignored) {}
         }
     }
 }

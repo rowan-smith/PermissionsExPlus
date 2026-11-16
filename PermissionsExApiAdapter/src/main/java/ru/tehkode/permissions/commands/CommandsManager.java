@@ -54,6 +54,7 @@ public class CommandsManager {
         for (Map<CommandSyntax, CommandBinding> map : this.listeners.values()) {
             commands.addAll(map.values());
         }
+
         return commands;
     }
 

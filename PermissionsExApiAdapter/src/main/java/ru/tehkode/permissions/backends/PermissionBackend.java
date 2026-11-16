@@ -50,7 +50,8 @@ public abstract class PermissionBackend {
     protected PermissionBackend(PermissionManager manager, ConfigurationSection backendConfig) throws PermissionBackendException {
         this.manager = manager;
         this.backendConfig = backendConfig;
-        // Persistence is owned by PermissionsExPlus — keep an immediate executor for ABI/tests.
+        // Persistence is owned by PermissionsExPlus — keep an immediate executor for
+        // ABI/tests.
         this.asyncExecutor = Executors.newSingleThreadExecutor();
         this.onThreadExecutor = Runnable::run;
         this.activeExecutor = onThreadExecutor;

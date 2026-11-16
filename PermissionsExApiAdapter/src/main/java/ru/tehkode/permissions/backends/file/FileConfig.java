@@ -12,7 +12,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
  * Compatibility stub for the legacy file-backend config type.
  *
  * <p>
- * Retained so plugins referencing {@link FileBackend#permissions} keep a binary-
+ * Retained so plugins referencing {@link FileBackend#permissions} keep a
+ * binary-
  * compatible field type. Persistence is owned by PermissionsExPlus; load/save
  * are no-ops.
  * </p>

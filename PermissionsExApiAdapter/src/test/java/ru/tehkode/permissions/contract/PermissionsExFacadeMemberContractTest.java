@@ -17,8 +17,10 @@ import ru.tehkode.permissions.bukkit.regexperms.RegexPermissions;
 import ru.tehkode.permissions.exceptions.PermissionsNotAvailable;
 
 /**
- * Explicit facade entry points most plugins call reflectively or as static imports.
- * Complements the fingerprint baseline with named assertions that read well in failure output.
+ * Explicit facade entry points most plugins call reflectively or as static
+ * imports.
+ * Complements the fingerprint baseline with named assertions that read well in
+ * failure output.
  */
 @DisplayName("PermissionsEx facade member contracts")
 class PermissionsExFacadeMemberContractTest {
@@ -68,10 +70,13 @@ class PermissionsExFacadeMemberContractTest {
             assertTrue(expected.getMessage().contains("PermissionsEx"));
             return;
         } catch (ExceptionInInitializerError | NoClassDefFoundError | Exception ignored) {
-            // Some environments may fail earlier while resolving Bukkit statics; the type contract still holds.
+            // Some environments may fail earlier while resolving Bukkit statics; the type
+            // contract still holds.
             return;
         }
-        // If a manager somehow exists in this JVM (leftover from other tests), availability is fine.
+
+        // If a manager somehow exists in this JVM (leftover from other tests),
+        // availability is fine.
         assertTrue(PermissionsEx.isAvailable());
     }
 }

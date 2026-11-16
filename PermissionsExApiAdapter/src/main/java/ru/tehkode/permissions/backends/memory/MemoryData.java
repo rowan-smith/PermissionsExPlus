@@ -10,11 +10,13 @@ import ru.tehkode.permissions.PermissionsGroupData;
 import ru.tehkode.permissions.PermissionsUserData;
 
 /**
- * Public in-memory {@link PermissionsUserData}/{@link PermissionsGroupData} type.
+ * Public in-memory {@link PermissionsUserData}/{@link PermissionsGroupData}
+ * type.
  *
  * <p>
  * Retained for binary compatibility. Production storage is owned by
- * PermissionsExPlus; {@link MemoryBackend} redirects to the data bridge and does
+ * PermissionsExPlus; {@link MemoryBackend} redirects to the data bridge and
+ * does
  * not use this class.
  * </p>
  */
