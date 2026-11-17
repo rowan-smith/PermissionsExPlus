@@ -1,0 +1,5 @@
+name: PermissionsExPlus
+main: dev.rono.permissions.bungee.BungeePlugin
+version: '${project.version}'
+author: Rono
+description: PermissionsExPlus permissions for BungeeCord

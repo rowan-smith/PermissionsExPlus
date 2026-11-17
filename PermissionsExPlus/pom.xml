@@ -17,6 +17,9 @@
         <module>SpigotLegacy</module>
         <module>Sponge7</module>
         <module>Sponge8</module>
+        <module>Sponge9</module>
+        <module>Velocity</module>
+        <module>BungeeCord</module>
     </modules>
 
     <artifactId>PermissionsExPlus</artifactId>

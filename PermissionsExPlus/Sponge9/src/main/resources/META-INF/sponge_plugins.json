@@ -1,0 +1,33 @@
+{
+  "loader": {
+    "name": "java_plain",
+    "version": "1.0"
+  },
+  "license": "All Rights Reserved",
+  "global": {
+    "version": "${project.version}",
+    "links": {
+      "issues": "https://github.com/rowan-smith/PermissionsExPlus/issues"
+    },
+    "contributors": [
+      {
+        "name": "Rono",
+        "description": "Lead Developer"
+      }
+    ],
+    "dependencies": [
+      {
+        "id": "spongeapi",
+        "version": "9.0.0"
+      }
+    ]
+  },
+  "plugins": [
+    {
+      "id": "permissionsexplus",
+      "name": "PermissionsExPlus",
+      "entrypoint": "dev.rono.permissions.sponge9.Sponge9Plugin",
+      "description": "PermissionsExPlus permission service for Sponge"
+    }
+  ]
+}

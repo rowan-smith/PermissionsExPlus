@@ -35,6 +35,9 @@ jobs:
             PermissionsExPlus/Paper/target/PermissionsExPlus-Paper-*.jar
             PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
             PermissionsExPlus/Sponge8/target/PermissionsExPlus-Sponge8-*.jar
+            PermissionsExPlus/Sponge9/target/PermissionsExPlus-Sponge9-*.jar
+            PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
+            PermissionsExPlus/BungeeCord/target/PermissionsExPlus-BungeeCord-*.jar
             PermissionsExApiAdapter/target/*-shaded.jar
             PermissionsExCommandAdapter/target/*-shaded.jar
           if-no-files-found: error
@@ -77,6 +80,10 @@ jobs:
           - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  adapters: true }
           - { type: SPONGE7, version: '1.12.2-7.4.7', java: java8, jar: sponge7, adapters: false }
           - { type: SPONGE8, version: '1.16.5-8.2.1-RC2708', java: java8, jar: sponge8, adapters: false }
+          - { type: SPONGE9, version: '1.18.2-9.0.0-RC1306', java: java17, jar: sponge9, adapters: false }
+          # Proxy images add RCON through a plugin that needs Java 21.
+          - { type: VELOCITY, version: '3.4.0-SNAPSHOT', java: java21, jar: velocity, adapters: false }
+          - { type: BUNGEECORD, version: 'latest', java: java21, jar: bungeecord, adapters: false }
     name: Smoke ${{ matrix.type }} ${{ matrix.version }} (${{ matrix.jar }}${{ matrix.adapters && ' + adapters' || '' }})
     steps:
       - uses: actions/checkout@v4
@@ -91,6 +98,9 @@ jobs:
             paper)  plugin=$(find jars -name 'PermissionsExPlus-Paper-*.jar' ! -name 'original-*') ;;
             sponge7) plugin=$(find jars -name 'PermissionsExPlus-Sponge7-*.jar' ! -name 'original-*') ;;
             sponge8) plugin=$(find jars -name 'PermissionsExPlus-Sponge8-*.jar' ! -name 'original-*') ;;
+            sponge9) plugin=$(find jars -name 'PermissionsExPlus-Sponge9-*.jar' ! -name 'original-*') ;;
+            velocity) plugin=$(find jars -name 'PermissionsExPlus-Velocity-*.jar' ! -name 'original-*') ;;
+            bungeecord) plugin=$(find jars -name 'PermissionsExPlus-BungeeCord-*.jar' ! -name 'original-*') ;;
           esac
           extra=()
           if [ "${{ matrix.adapters }}" = "true" ]; then

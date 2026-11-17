@@ -1,0 +1,9 @@
+{
+  "id": "permissionsexplus",
+  "name": "PermissionsExPlus",
+  "version": "${project.version}",
+  "description": "PermissionsExPlus permissions for Velocity",
+  "authors": ["Rono"],
+  "dependencies": [],
+  "main": "dev.rono.permissions.velocity.VelocityPlugin"
+}
