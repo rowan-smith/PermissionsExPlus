@@ -31,6 +31,7 @@ jobs:
           name: plugin-jars
           path: |
             PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-SpigotLegacy-*.jar
+            PermissionsExPlus/Bukkit17/target/PermissionsExPlus-Bukkit17-*.jar
             PermissionsExPlus/Spigot/target/PermissionsExPlus-Spigot-*.jar
             PermissionsExPlus/Paper/target/PermissionsExPlus-Paper-*.jar
             PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
@@ -75,8 +76,18 @@ jobs:
           - { type: PAPER,   version: '1.12.2', java: java8,  jar: legacy, adapters: true }
           - { type: PAPER,   version: '1.16.5', java: java8,  jar: legacy, adapters: true }
           - { type: PAPER,   version: '1.17.1', java: java16, jar: legacy, adapters: true }
-          - { type: PAPER,   version: '1.8.8',  java: java8,  jar: legacy, adapters: false }
-          - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  adapters: false }
+          - { type: PAPER,   version: '1.18.2', java: java17, jar: legacy, adapters: false }
+          - { type: PAPER,   version: '1.19.4', java: java17, jar: legacy, adapters: false }
+          - { type: PAPER,   version: '1.20.4', java: java17, jar: legacy, adapters: false }
+          - { type: PAPER,   version: '1.20.6', java: java21, jar: legacy, adapters: false }
+          # player: a headless client joins and checks real permission checks, not just the console.
+          - { type: PAPER,   version: '1.8.8',  java: java8,  jar: legacy, adapters: false, player: true }
+          - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  adapters: false, player: true }
+          # Plain Spigot, built with BuildTools, which needs a JDK (the java8 image has one).
+          - { type: SPIGOT,  version: '1.8.8',  java: java8,  jar: legacy, adapters: false, player: true }
+          - { type: SPIGOT,  version: '1.21.4', java: java21-jdk, jar: spigot, adapters: false, player: true }
+          # Minecraft 1.7.10 (Crucible, a Forge + Bukkit server).
+          - { type: CRUCIBLE, version: '1.7.10', java: java8, jar: bukkit17, adapters: false }
           - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  adapters: true }
           - { type: SPONGE7, version: '1.12.2-7.4.7', java: java8, jar: sponge7, adapters: false }
           - { type: SPONGE8, version: '1.16.5-8.2.1-RC2708', java: java8, jar: sponge8, adapters: false }
@@ -95,6 +106,8 @@ jobs:
         run: |
           case "${{ matrix.jar }}" in
             legacy) plugin=$(find jars -name 'PermissionsExPlus-SpigotLegacy-*.jar' ! -name 'original-*') ;;
+            bukkit17) plugin=$(find jars -name 'PermissionsExPlus-Bukkit17-*.jar' ! -name 'original-*') ;;
+            spigot) plugin=$(find jars -name 'PermissionsExPlus-Spigot-*.jar' ! -name 'original-*') ;;
             paper)  plugin=$(find jars -name 'PermissionsExPlus-Paper-*.jar' ! -name 'original-*') ;;
             sponge7) plugin=$(find jars -name 'PermissionsExPlus-Sponge7-*.jar' ! -name 'original-*') ;;
             sponge8) plugin=$(find jars -name 'PermissionsExPlus-Sponge8-*.jar' ! -name 'original-*') ;;
@@ -104,6 +117,7 @@ jobs:
           esac
           extra=()
           if [ "${{ matrix.adapters }}" = "true" ]; then
-            extra=( $(find jars -name 'PermissionsExApiAdapter-*-shaded.jar') $(find jars -name 'PermissionsExCommandAdapter-*-shaded.jar') )
+            mapfile -t extra < <(find jars -name 'PermissionsExApiAdapter-*-shaded.jar' -o -name 'PermissionsExCommandAdapter-*-shaded.jar')
           fi
-          bash scripts/smoke-test.sh "${{ matrix.type }}" "${{ matrix.version }}" "${{ matrix.java }}" "$plugin" "${extra[@]}"
+          PLAYER_TEST="${{ matrix.player && '1' || '0' }}" \
+            bash scripts/smoke-test.sh "${{ matrix.type }}" "${{ matrix.version }}" "${{ matrix.java }}" "$plugin" "${extra[@]}"

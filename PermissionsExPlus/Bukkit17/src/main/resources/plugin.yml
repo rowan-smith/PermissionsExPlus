@@ -1,0 +1,9 @@
+name: PermissionsExPlus
+version: '${project.version}'
+
+main: dev.rono.permissions.bukkit17.Bukkit17Plugin
+# This build targets Minecraft 1.7.10 servers, which predate api-version.
+load: STARTUP
+
+authors: [Rono]
+softdepend: [PlaceholderAPI, Vault]

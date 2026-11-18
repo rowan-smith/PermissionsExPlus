@@ -4,8 +4,9 @@
 # mismatch.
 #
 # usage: scripts/smoke-test.sh <type> <version> <java-tag> <plugin.jar> [adapter.jar ...]
-#   type       PAPER or SPIGOT (itzg/minecraft-server TYPE), SPONGE7, SPONGE8, SPONGE9,
-#              VELOCITY or BUNGEECORD (itzg/mc-proxy TYPE)
+#   type       PAPER, SPIGOT (built with BuildTools) or CRUCIBLE (1.7.10), all
+#              itzg/minecraft-server TYPEs; SPONGE7, SPONGE8, SPONGE9; VELOCITY or
+#              BUNGEECORD (itzg/mc-proxy TYPE)
 #   version    Minecraft version; for Sponge the full build (e.g. 1.12.2-7.4.7,
 #              1.16.5-8.2.1-RC2708, 1.18.2-9.0.0-RC1306); for proxies "latest" or a
 #              Velocity version such as 3.4.0-SNAPSHOT
@@ -13,6 +14,10 @@
 #
 # With the command adapter installed, the original PEX command syntax is tested;
 # otherwise the modern PermissionsExPlus commands are.
+#
+# environment:
+#   PLAYER_TEST=1  also join with a headless player and check real permission checks
+#   KEEP=1         leave the containers running afterwards, for debugging
 #
 # examples:
 #   scripts/smoke-test.sh PAPER 1.8.8 java8 PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-SpigotLegacy-*.jar
@@ -26,8 +31,16 @@ name="pex-smoke-$(echo "$type-$version" | tr '.A-Z' '-a-z')-$$"
 work="$(mktemp -d)"
 legacy_commands=false
 
+bot="$name-bot"
+network="$name-net"
+
 cleanup() {
-    docker rm -f -v "$name" >/dev/null 2>&1 || true
+    if [ "${KEEP:-0}" = 1 ]; then
+        echo "KEEP=1: leaving containers $name and $bot running"
+        return
+    fi
+    docker rm -f -v "$bot" "$name" >/dev/null 2>&1 || true
+    docker network rm "$network" >/dev/null 2>&1 || true
     rm -rf "$work" 2>/dev/null || true
 }
 trap cleanup EXIT
@@ -44,6 +57,9 @@ esac
 server=( -e TYPE="$type" -e VERSION="$version" )
 memory=1500M
 case "$type" in
+    SPIGOT)
+        # Build Spigot with SpigotMC's BuildTools rather than downloading a third-party mirror.
+        server=( -e TYPE=SPIGOT -e VERSION="$version" -e BUILD_FROM_SOURCE=true ) ;;
     SPONGE7)
         server=( -e TYPE=SPONGEVANILLA -e VERSION="${version%%-*}" -e SPONGEVERSION="$version" ) ;;
     SPONGE8 | SPONGE9)
@@ -149,6 +165,61 @@ else
     expect "pex group smoke permissions check smoke.node" "ALLOWED"
     expect "pex reload" "reloaded"
     expect "pex group smoke permissions list" "smoke.node"
+fi
+
+# PLAYER_TEST=1: a headless player (scripts/player-bot) joins and checks that granting and
+# revoking a node through PermissionsExPlus changes what that player may do. This is the
+# path real permission checks take (Bukkit injection, Sponge's PermissionService), which
+# RCON, running as the console, bypasses. Servers only: a proxy needs a backend behind it.
+if [ "${PLAYER_TEST:-0}" = 1 ] && [ "$proxy" = false ] && [ "$legacy_commands" = false ]; then
+    script_dir="$(cd "$(dirname "$0")" && pwd)"
+
+    docker network create "$network" >/dev/null
+    docker network connect --alias mc "$network" "$name"
+    # cd inside the container rather than -w /tmp, which Git Bash on Windows rewrites.
+    docker create --name "$bot" --network "$network" node:20-alpine \
+        sh -c 'cd /tmp && npm install --silent --no-audit --no-fund mineflayer@4 >/dev/null 2>&1 && node bot.js mc' >/dev/null
+    cp "$script_dir/player-bot/bot.js" "$work/bot.js"
+    docker cp "$work/bot.js" "$bot:/tmp/bot.js"
+    docker start "$bot" >/dev/null
+
+    for _ in $(seq 1 150); do
+        docker logs "$bot" 2>&1 | grep -qE 'SPAWNED|KICKED|ERROR|ENDED' && break
+        sleep 2
+    done
+
+    if ! docker logs "$bot" 2>&1 | grep -q SPAWNED; then
+        docker logs "$bot" 2>&1 | tail -20
+        echo "FAIL: player bot did not join"
+        failures=$((failures + 1))
+    else
+        # Runs a command as the player and prints only the chat that followed it.
+        player() {
+            local before
+            before=$(docker logs "$bot" 2>&1 | wc -l)
+            docker exec "$bot" sh -c "printf '%s\n' '$1' >> /tmp/commands"
+            sleep 4
+            docker logs "$bot" 2>&1 | tail -n +"$((before + 1))" | grep '^CHAT ' | tr '\n' ' '
+        }
+
+        check_player() { # <description> <regex-expected> <regex-forbidden>
+            local output
+            output="$(player '/pex groups' || true)"
+            if printf '%s' "$output" | grep -qE "$2" && ! printf '%s' "$output" | grep -qE "$3"; then
+                echo "ok   player: $1"
+            else
+                echo "FAIL player: $1 -> got: $output"
+                failures=$((failures + 1))
+            fi
+        }
+
+        denied='permission|Unknown command'
+        check_player "denied /pex groups without pex.groups.list" "$denied" 'Groups:'
+        console "pex user PexBot permissions add pex.groups.list" >/dev/null
+        check_player "allowed /pex groups after the grant" 'Groups:' "$denied"
+        console "pex user PexBot permissions remove pex.groups.list" >/dev/null
+        check_player "denied again after the revoke" "$denied" 'Groups:'
+    fi
 fi
 
 # Any stack trace from PermissionsExPlus or the adapters is a failure.

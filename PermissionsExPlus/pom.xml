@@ -15,6 +15,7 @@
         <module>Spigot</module>
         <module>Paper</module>
         <module>SpigotLegacy</module>
+        <module>Bukkit17</module>
         <module>Sponge7</module>
         <module>Sponge8</module>
         <module>Sponge9</module>

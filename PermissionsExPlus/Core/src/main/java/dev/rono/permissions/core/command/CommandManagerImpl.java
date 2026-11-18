@@ -39,6 +39,8 @@ public class CommandManagerImpl<C> {
 
     public <T> void register(T commandInstance) {
         parser.parse(commandInstance);
+        // Registration rebuilds node permissions, so widen them again after each one.
+        CommandTreePermissions.widenExecutableParents(manager);
     }
 
     public void unregister(String commandName) {
