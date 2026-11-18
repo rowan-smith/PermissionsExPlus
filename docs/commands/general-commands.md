@@ -19,3 +19,9 @@ General administrative and utility commands.
 - `/pex backend list`: List all loaded backends.
 - `/pex backend info`: Show detailed backend information.
 - `/pex backend switch <backend>`: Switch the active backend.
+
+## Importing
+
+- `/pex import permissionsex [folder]`: Import data from an original PermissionsEx
+  installation. `folder` defaults to the `PermissionsEx` folder beside this plugin's
+  own. See [Migrating from PermissionsEx](../guides/migrating-from-pex-1.md).

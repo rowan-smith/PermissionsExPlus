@@ -65,7 +65,7 @@ public final class GroupCommands<C> extends CommandSupport<C> {
     @CommandMethod("<group> clone <new_name>")
     @CommandPermission("pex.group.clone")
     public void clone(C sender, @Argument(value = "group", suggestions = "groups") String name, @Argument("new_name") String newName) {
-        var source = await(core.groups().find(name)).get();
+        var source = group(name);
 
         await(core.groups().create(newName));
         await(core.groups().modify(newName, modifier -> {
@@ -100,7 +100,7 @@ public final class GroupCommands<C> extends CommandSupport<C> {
     @CommandMethod("<group> permissions list")
     @CommandPermission("pex.group.permissions.list")
     public void permissionList(C sender, @Argument(value = "group", suggestions = "groups") String name) {
-        var group = await(core.groups().find(name)).get();
+        var group = group(name);
 
         heading(sender, "Group", group.name());
         section(sender, "Permissions", group.explicitPermissions().stream().map(this::permission).collect(Immutables.toList()));
@@ -109,7 +109,7 @@ public final class GroupCommands<C> extends CommandSupport<C> {
     @CommandMethod("<group> permissions check <permission>")
     @CommandPermission("pex.group.permissions.check")
     public void permissionCheck(C sender, @Argument(value = "group", suggestions = "groups") String name, @Argument(value = "permission", suggestions = "permissions") String permission, ContextSet contexts) {
-        var group = await(core.groups().find(name)).get();
+        var group = group(name);
 
         check(sender, group, permission, queryOptions(contexts));
     }
@@ -117,7 +117,7 @@ public final class GroupCommands<C> extends CommandSupport<C> {
     @CommandMethod("<group> permissions trace <permission>")
     @CommandPermission("pex.group.permissions.trace")
     public void permissionTrace(C sender, @Argument(value = "group", suggestions = "groups") String name, @Argument(value = "permission", suggestions = "permissions") String permission, ContextSet contexts) {
-        var group = await(core.groups().find(name)).get();
+        var group = group(name);
 
         trace(sender, group, permission, queryOptions(contexts));
     }
@@ -150,7 +150,7 @@ public final class GroupCommands<C> extends CommandSupport<C> {
     @CommandMethod("<group> members add <user>")
     @CommandPermission("pex.group.members.add")
     public void memberAdd(C sender, @Argument(value = "group", suggestions = "groups") String group, @Argument(value = "user", suggestions = "users") String name, ContextSet contexts) {
-        var user = await(core.users().find(name)).get();
+        var user = user(name);
 
         await(core.users().modify(user, modifier -> modifier.addGroup(group, contexts)));
 
@@ -160,7 +160,7 @@ public final class GroupCommands<C> extends CommandSupport<C> {
     @CommandMethod("<group> members remove <user>")
     @CommandPermission("pex.group.members.remove")
     public void memberRemove(C sender, @Argument(value = "group", suggestions = "groups") String group, @Argument(value = "user", suggestions = "users") String name, ContextSet contexts) {
-        var user = await(core.users().find(name)).get();
+        var user = user(name);
 
         await(core.users().modify(user, modifier -> modifier.removeGroup(group, contexts)));
 
@@ -178,7 +178,7 @@ public final class GroupCommands<C> extends CommandSupport<C> {
     @CommandMethod("<group> options list")
     @CommandPermission("pex.group.options.list")
     public void optionList(C sender, @Argument(value = "group", suggestions = "groups") String name) {
-        var group = await(core.groups().find(name)).get();
+        var group = group(name);
 
         heading(sender, "Group", group.name());
         section(sender, "Options", group.explicitOptions().stream().map(this::option).collect(Immutables.toList()));
@@ -187,7 +187,7 @@ public final class GroupCommands<C> extends CommandSupport<C> {
     @CommandMethod("<group> options get <key>")
     @CommandPermission("pex.group.options.get")
     public void optionGet(C sender, @Argument(value = "group", suggestions = "groups") String name, @Argument(value = "key", suggestions = "options") String key, ContextSet contexts) {
-        var group = await(core.groups().find(name)).get();
+        var group = group(name);
         var value = core.resolvers().options().resolve(group, key, queryOptions(contexts));
 
         reply(sender, value.map(result -> "§6" + key + ": §f" + result).orElse("§cOption is not set: " + key));

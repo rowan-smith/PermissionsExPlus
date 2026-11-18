@@ -5,6 +5,7 @@ import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.arguments.StaticArgument;
 import cloud.commandframework.exceptions.ArgumentParseException;
+import cloud.commandframework.exceptions.CommandExecutionException;
 import cloud.commandframework.exceptions.InvalidCommandSenderException;
 import cloud.commandframework.exceptions.InvalidSyntaxException;
 import cloud.commandframework.exceptions.NoPermissionException;
@@ -124,10 +125,18 @@ public final class Sponge7CommandManager extends CommandManager<CommandSource> {
                 Throwable cause = error.getCause() == null ? error : error.getCause();
 
                 source.sendMessage(Text.of(TextColors.RED, "Invalid argument: ", String.valueOf(cause.getMessage())));
+            } else if (error instanceof CommandExecutionException) {
+                // Registered handlers (such as the one for expected command failures) decide
+                // first.
+                handleException(source, CommandExecutionException.class, (CommandExecutionException) error, (sender, failure) -> internalError(sender, failure));
             } else {
-                source.sendMessage(Text.of(TextColors.RED, "An internal error occurred while running this command."));
-                logger.error("PermissionsExPlus command failed: /" + root, error);
+                internalError(source, error);
             }
+        }
+
+        private void internalError(CommandSource source, Throwable error) {
+            source.sendMessage(Text.of(TextColors.RED, "An internal error occurred while running this command."));
+            logger.error("PermissionsExPlus command failed: /" + root, error);
         }
 
         @Override

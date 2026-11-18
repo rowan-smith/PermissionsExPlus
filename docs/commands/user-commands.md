@@ -18,9 +18,11 @@ Commands for managing individual users.
 
 ## Groups
 
-- `/pex user <user> group add <group>`: Add user to a group.
-- `/pex user <user> group remove <group>`: Remove user from a group.
-- `/pex user <user> group set <group>`: Set user's primary group.
+- `/pex user <user> groups add <group> [duration]`: Add user to a group. With a duration
+  (seconds, or units such as `7d`, `1h30m`), the membership expires by itself, like a
+  PermissionsEx timed group. Adding again replaces the duration.
+- `/pex user <user> groups remove <group>`: Remove user from a group.
+- `/pex user <user> groups set <group>`: Make `<group>` the user's only group.
 
 ## Options
 

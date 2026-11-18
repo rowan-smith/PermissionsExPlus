@@ -6,7 +6,6 @@ import dev.rono.permissions.core.PexImplProvider;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,8 +20,6 @@ import dev.rono.permissions.core.util.Immutables;
  * Plus is resolved via {@code PexImplProvider.get()}.
  */
 public class PermissionBackend extends ru.tehkode.permissions.backends.PermissionBackend {
-    private final Map<String, List<String>> worldInheritance = new LinkedHashMap<>();
-
     public PermissionBackend(PermissionManager manager, ConfigurationSection config) throws PermissionBackendException {
         super(manager, config);
     }
@@ -82,26 +79,18 @@ public class PermissionBackend extends ru.tehkode.permissions.backends.Permissio
     }
 
     @Override
-    public synchronized List<String> getWorldInheritance(String world) {
-        return Immutables.copyOfList(worldInheritance.getOrDefault(world, Immutables.listOf()));
+    public List<String> getWorldInheritance(String world) {
+        return PexImplProvider.get().worlds().parents(world);
     }
 
     @Override
-    public synchronized Map<String, List<String>> getAllWorldInheritance() {
-        var copy = new LinkedHashMap<String, List<String>>();
-
-        worldInheritance.forEach((key, value) -> copy.put(key, Immutables.copyOfList(value)));
-
-        return Immutables.copyOfMap(copy);
+    public Map<String, List<String>> getAllWorldInheritance() {
+        return PexImplProvider.get().worlds().all();
     }
 
     @Override
-    public synchronized void setWorldInheritance(String world, List<String> inheritance) {
-        if (inheritance == null || inheritance.isEmpty()) {
-            worldInheritance.remove(world);
-        } else {
-            worldInheritance.put(world, Immutables.copyOfList(inheritance));
-        }
+    public void setWorldInheritance(String world, List<String> inheritance) {
+        PexImplProvider.get().worlds().set(world, inheritance == null ? Immutables.listOf() : inheritance);
     }
 
     @Override

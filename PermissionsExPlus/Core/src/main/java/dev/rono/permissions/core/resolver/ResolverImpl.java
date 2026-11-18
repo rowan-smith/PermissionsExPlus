@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import dev.rono.permissions.core.util.Immutables;
 
 public final class ResolverImpl implements Resolvers, PermissionResolver, OptionResolver, InheritanceResolver, DefaultGroupResolver {
@@ -50,6 +51,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
     private final ResolutionSupport support;
     private final PermissionEngine permissionEngine;
     private final MetaFormatting metaFormatting;
+    private volatile UnaryOperator<ContextSet> contextExpansion = UnaryOperator.identity();
 
     public ResolverImpl(GroupManagerImpl groups, int maxDepth) {
         this(groups, maxDepth, false, true, true, "default");
@@ -129,16 +131,35 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
         return permissionEngine;
     }
 
+    /**
+     * Applies {@code expansion} to the contexts of every query before it is
+     * resolved; used for world inheritance. Must be idempotent.
+     */
+    public void expandContexts(UnaryOperator<ContextSet> expansion) {
+        this.contextExpansion = Objects.requireNonNull(expansion, "expansion");
+    }
+
+    private QueryOptions expand(QueryOptions options) {
+        Objects.requireNonNull(options, "options");
+
+        var contexts = options.contexts();
+        var expanded = contextExpansion.apply(contexts);
+
+        return expanded == contexts ? options : QueryOptions.builder(options).contexts(expanded).build();
+    }
+
     @Override
     public ResolvedData resolve(PermissionHolder holder, QueryOptions options) {
         Objects.requireNonNull(holder, "holder");
-        Objects.requireNonNull(options, "options");
+        options = expand(options);
 
         return new Data(options, permissionData(holder, options), metaData(holder, options));
     }
 
     @Override
     public ResolvedUserData resolve(User user, QueryOptions options) {
+        options = expand(options);
+
         return new UserData(options, permissionData(user, options), metaData(user, options), groups(user, options), resolvePrimary(user, options));
     }
 
@@ -159,7 +180,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
 
     @Override
     public PrimaryGroupResolver primaryGroup() {
-        return this::resolvePrimary;
+        return (user, options) -> resolvePrimary(user, expand(options));
     }
 
     @Override
@@ -169,18 +190,18 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
 
     @Override
     public PermissionResult check(PermissionHolder holder, String permission, QueryOptions options) {
-        return permissionEngine.check(holder, permission, options);
+        return permissionEngine.check(holder, permission, expand(options));
     }
 
     @Override
     public PermissionResolution explain(PermissionHolder holder, String requested, QueryOptions options) {
-        return permissionEngine.explain(holder, requested, options);
+        return permissionEngine.explain(holder, requested, expand(options));
     }
 
     @Override
     public Optional<String> resolve(PermissionHolder holder, String key, QueryOptions options) {
         var normalized = Identifiers.optionKey(key);
-        var candidates = optionCandidates(holder, normalized, options);
+        var candidates = optionCandidates(holder, normalized, expand(options));
 
         if (metaFormatting == MetaFormatting.ACCUMULATED && (OptionKeys.PREFIX.equals(normalized) || OptionKeys.SUFFIX.equals(normalized))) {
             var accumulated = candidates.stream()
@@ -196,6 +217,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
 
     @Override
     public Set<Group> groups(User user, QueryOptions options) {
+        options = expand(options);
         var result = new LinkedHashSet<Group>();
         var direct = applicableMemberships(user, options.contexts());
 
@@ -216,6 +238,7 @@ public final class ResolverImpl implements Resolvers, PermissionResolver, Option
 
     @Override
     public Set<Group> parents(Group group, QueryOptions options) {
+        options = expand(options);
         var result = new LinkedHashSet<Group>();
 
         for (var parent : group.parents()) {

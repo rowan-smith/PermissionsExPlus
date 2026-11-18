@@ -77,6 +77,29 @@ case "$type" in
         server=( -e TYPE=BUNGEECORD ) ;;
 esac
 
+# Original PermissionsEx data for the import check: a group, a timed membership for
+# the player bot (offline-mode UUID of PexBot) and world inheritance.
+mkdir -p "$work/data/pex-import"
+cat > "$work/data/pex-import/permissions.yml" <<YAML
+groups:
+  imported:
+    options:
+      rank: '10'
+    permissions:
+    - imported.node
+users:
+  3533c1af-4de4-3cc4-b333-68d89b418277:
+    group:
+    - imported
+    options:
+      name: PexBot
+      group-imported-until: '$(( $(date +%s) + 86400 ))'
+worlds:
+  world_nether:
+    inheritance:
+    - world
+YAML
+
 mkdir -p "$work/staging"
 for jar in "$@"; do
     cp "$jar" "$work/staging/"
@@ -85,14 +108,17 @@ done
 
 # The data directory is a container volume (fast on every OS, unlike bind mounts on
 # Windows/macOS); files are copied into the created container before the first start.
-docker create --name "$name" -i -v "$root" \
+# MSYS_NO_PATHCONV: Git Bash on Windows would rewrite in-container paths such as
+# CUSTOM_SERVER=/data/... into Windows paths. It has no effect elsewhere.
+MSYS_NO_PATHCONV=1 docker create --name "$name" -i -v "$root" \
     -e EULA=TRUE "${server[@]}" -e ONLINE_MODE=FALSE -e MEMORY="$memory" \
     -e ENABLE_RCON=true -e RCON_PASSWORD=pex \
     "$image" >/dev/null
 docker cp "$work/staging/." "$name:$staging/"
-if [ -d "$work/data" ]; then
-    docker cp "$work/data/." "$name:$root/"
-fi
+# Entry by entry: "docker cp dir/. dest" nests the directory on Docker for Windows.
+for entry in "$work/data"/*; do
+    docker cp "$entry" "$name:$root/"
+done
 docker start "$name" >/dev/null
 restarted=false
 
@@ -165,6 +191,22 @@ else
     expect "pex group smoke permissions check smoke.node" "ALLOWED"
     expect "pex reload" "reloaded"
     expect "pex group smoke permissions list" "smoke.node"
+    expect "pex user NoSuchUser groups" "User not found: NoSuchUser"
+
+    # Import original PermissionsEx data. The import runs off the server thread, so its
+    # report goes to the sender after RCON has already returned; check the result instead.
+    expect "pex import permissionsex $root/pex-import" "Importing PermissionsEx data"
+    sleep 5
+    expect "pex group imported permissions list" "imported.node"
+    expect "pex user PexBot groups" "imported .*expires in (23h|1d)"
+    expect "pex ladder default" "imported"
+    expect "pex world world_nether" "world"
+
+    # World inheritance commands, saved to worlds.yml.
+    expect "pex world world_the_end inherit world world_nether" "now inherits from world, world_nether"
+    expect "pex reload" "reloaded"
+    expect "pex worlds" "world_the_end inherits world, world_nether"
+    expect "pex world world_the_end clear" "no longer inherits"
 fi
 
 # PLAYER_TEST=1: a headless player (scripts/player-bot) joins and checks that granting and

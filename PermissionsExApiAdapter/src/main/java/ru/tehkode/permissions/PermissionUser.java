@@ -25,6 +25,7 @@ import dev.rono.permissions.api.ladder.PromotionStatus;
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.api.util.Identifiers;
 import dev.rono.permissions.core.PexImplProvider;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,6 +40,7 @@ import java.util.logging.Level;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import ru.tehkode.permissions.backends.data.TimedGroups;
 import ru.tehkode.permissions.events.PermissionEntityEvent;
 import ru.tehkode.permissions.exceptions.RankingException;
 
@@ -191,6 +193,14 @@ public class PermissionUser extends PermissionEntity {
     }
 
     public void addGroup(String groupName, String worldName, long lifetime) {
+        if (lifetime > 0 && groupName != null && !groupName.isEmpty()
+                && TimedGroups.add(getData(), Identifiers.group(groupName), worldName, Instant.now().plusSeconds(lifetime))) {
+            // PermissionsExPlus stores the expiry on the membership and removes it itself.
+            clearCache();
+            this.callEvent(PermissionEntityEvent.Action.INHERITANCE_CHANGED);
+            return;
+        }
+
         this.addGroup(groupName, worldName);
 
         if (lifetime > 0) {

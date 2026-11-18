@@ -74,7 +74,7 @@ public final class LadderCommands<C> extends CommandSupport<C> {
     @CommandMethod("<ladder> promote <user>")
     @CommandPermission("pex.ladder.promote")
     public void promote(C sender, @Argument(value = "ladder", suggestions = "ladders") String ladder, @Argument(value = "user", suggestions = "users") String user, ContextSet contexts) {
-        var subject = await(core.users().find(user)).get();
+        var subject = user(user);
         var result = await(core.ladders().promote(subject, ladder, contexts));
 
         heading(sender, "Promotion result", result.status().toString());
@@ -83,7 +83,7 @@ public final class LadderCommands<C> extends CommandSupport<C> {
     @CommandMethod("<ladder> demote <user>")
     @CommandPermission("pex.ladder.demote")
     public void demote(C sender, @Argument(value = "ladder", suggestions = "ladders") String ladder, @Argument(value = "user", suggestions = "users") String user, ContextSet contexts) {
-        var subject = await(core.users().find(user)).get();
+        var subject = user(user);
         var result = await(core.ladders().demote(subject, ladder, contexts));
 
         heading(sender, "Demotion result", result.status().toString());

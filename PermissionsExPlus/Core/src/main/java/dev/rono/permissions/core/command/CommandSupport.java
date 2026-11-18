@@ -12,6 +12,9 @@ import dev.rono.permissions.api.resolver.QueryOptions;
 import dev.rono.permissions.api.resolver.ResolutionCandidate;
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.core.PexApiImpl;
+import dev.rono.permissions.core.util.Durations;
+import java.time.Duration;
+import java.time.Instant;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -38,6 +41,16 @@ abstract class CommandSupport<C> {
 
     protected <T> T await(CompletionStage<T> stage) {
         return stage.toCompletableFuture().join();
+    }
+
+    /** The named user; replies "not found" to the sender if there is none. */
+    protected User user(String name) {
+        return await(core.users().find(name)).orElseThrow(() -> new CommandFailure("§cUser not found: " + name));
+    }
+
+    /** The named group; replies "not found" to the sender if there is none. */
+    protected Group group(String name) {
+        return await(core.groups().find(name)).orElseThrow(() -> new CommandFailure("§cGroup not found: " + name));
     }
 
     protected void heading(C sender, String type, String value) {
@@ -69,7 +82,9 @@ abstract class CommandSupport<C> {
     }
 
     protected String parent(ParentNode node) {
-        return contextual(node.group(), node.contexts());
+        var value = contextual(node.group(), node.contexts());
+
+        return node.expiry().map(expiry -> value + " §7(expires in " + Durations.format(Duration.between(Instant.now(), expiry)) + ")").orElse(value);
     }
 
     protected QueryOptions queryOptions(ContextSet contexts) {

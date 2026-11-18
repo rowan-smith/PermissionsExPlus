@@ -21,6 +21,7 @@ import dev.rono.permissions.core.context.CoreStateTracker;
 import dev.rono.permissions.core.context.RuntimeContextCalculators;
 import dev.rono.permissions.core.context.RuntimeContextRegistry;
 import dev.rono.permissions.core.context.RuntimeStateTracker;
+import dev.rono.permissions.core.context.WorldInheritanceImpl;
 import dev.rono.permissions.core.engine.PermissionEngine;
 import dev.rono.permissions.core.engine.PermissionEngines;
 import dev.rono.permissions.core.event.EventBusImpl;
@@ -177,6 +178,21 @@ public final class PexApiImpl<C> implements PexApi {
     @Override
     public ContextManagerImpl contexts() {
         return runtime.contexts;
+    }
+
+    @Override
+    public WorldInheritanceImpl worlds() {
+        return runtime.worlds;
+    }
+
+    /** This plugin's data folder. */
+    public Path dataDirectory() {
+        return platform.configuration().dataDirectory();
+    }
+
+    /** Runs long work, such as an import, off the server thread. */
+    public void runAsync(Runnable task) {
+        runtime.tasks.execute(task);
     }
 
     @Override
@@ -389,6 +405,12 @@ public final class PexApiImpl<C> implements PexApi {
         var placeholders = new PlaceholderApiService(users, groups, ladders, resolvers, contexts, store, config.advanced().messagingType());
         var backendManager = new BackendManagerImpl(store, () -> started);
 
+        var worlds = new WorldInheritanceImpl(platform.configuration().resolve("worlds.yml"), () -> {
+            placeholders.invalidateAll();
+            permissionEngine.invalidate();
+        });
+        resolvers.expandContexts(worlds::expand);
+
         // The event bus outlives this runtime, so every runtime-owned subscription is
         // tracked and released when the runtime stops.
         subscriptions.add(events.subscribe(UserModifiedEvent.class, event -> {
@@ -404,7 +426,7 @@ public final class PexApiImpl<C> implements PexApi {
         platform.logger().info("Loaded config.yml, advanced.yml, and database.yml for API");
         platform.logger().info("Permission engine: " + permissionEngine.id());
 
-        return new Runtime<>(config, store, groups, users, ladders, resolvers, permissionEngine, contexts, placeholders, backendManager, identity, tasks, scheduler, logger, subscriptions);
+        return new Runtime<>(config, store, groups, users, ladders, resolvers, permissionEngine, contexts, worlds, placeholders, backendManager, identity, tasks, scheduler, logger, subscriptions);
     }
 
     private DataStore createStore(ConfigurationManagerImpl config) {
@@ -582,6 +604,7 @@ public final class PexApiImpl<C> implements PexApi {
         ResolverImpl resolvers;
         PermissionEngine permissionEngine;
         ContextManagerImpl contexts;
+        WorldInheritanceImpl worlds;
         PlaceholderApiService placeholders;
         BackendManagerImpl backend;
         IdentityResolver identity;
@@ -590,7 +613,7 @@ public final class PexApiImpl<C> implements PexApi {
         LoggerManagerImpl logger;
         List<Subscription> subscriptions;
 
-        private Runtime(ConfigurationManagerImpl config, DataStore store, GroupManagerImpl groups, UserManagerImpl users, LadderManagerImpl ladders, ResolverImpl resolvers, PermissionEngine permissionEngine, ContextManagerImpl contexts, PlaceholderApiService placeholders, BackendManagerImpl backend, IdentityResolver identity, CoreTaskExecutor tasks, ManagedPlatformScheduler scheduler, LoggerManagerImpl logger, List<Subscription> subscriptions) {
+        private Runtime(ConfigurationManagerImpl config, DataStore store, GroupManagerImpl groups, UserManagerImpl users, LadderManagerImpl ladders, ResolverImpl resolvers, PermissionEngine permissionEngine, ContextManagerImpl contexts, WorldInheritanceImpl worlds, PlaceholderApiService placeholders, BackendManagerImpl backend, IdentityResolver identity, CoreTaskExecutor tasks, ManagedPlatformScheduler scheduler, LoggerManagerImpl logger, List<Subscription> subscriptions) {
             this.config = config;
             this.store = store;
             this.groups = groups;
@@ -599,6 +622,7 @@ public final class PexApiImpl<C> implements PexApi {
             this.resolvers = resolvers;
             this.permissionEngine = permissionEngine;
             this.contexts = contexts;
+            this.worlds = worlds;
             this.placeholders = placeholders;
             this.backend = backend;
             this.identity = identity;

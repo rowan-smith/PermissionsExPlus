@@ -20,6 +20,11 @@
     "category": "General"
   },
   {
+    "command": "/pex import permissionsex [folder]",
+    "description": "Import data from an original PermissionsEx installation.",
+    "category": "General"
+  },
+  {
     "command": "/pex user <user> list",
     "description": "List details for a specific user.",
     "category": "Users"
@@ -40,8 +45,8 @@
     "category": "Users"
   },
   {
-    "command": "/pex user <user> group add <group>",
-    "description": "Add a user to a group.",
+    "command": "/pex user <user> groups add <group> [duration]",
+    "description": "Add a user to a group, optionally for a time such as 7d.",
     "category": "Users"
   },
   {
@@ -122,6 +127,21 @@
   {
     "command": "/pex world <world> inherit <parent>",
     "description": "Set world-specific inheritance.",
+    "category": "Worlds"
+  },
+  {
+    "command": "/pex worlds",
+    "description": "List world inheritance.",
+    "category": "Worlds"
+  },
+  {
+    "command": "/pex world <world> inherit <worlds...>",
+    "description": "Set the worlds a world inherits permissions from.",
+    "category": "Worlds"
+  },
+  {
+    "command": "/pex world <world> clear",
+    "description": "Remove a world's inheritance.",
     "category": "Worlds"
   }
 ]

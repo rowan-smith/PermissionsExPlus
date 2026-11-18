@@ -2,6 +2,7 @@ package dev.rono.permissions.api;
 
 import dev.rono.permissions.api.backend.BackendManager;
 import dev.rono.permissions.api.config.ConfigurationManager;
+import dev.rono.permissions.api.context.WorldInheritance;
 import dev.rono.permissions.api.event.EventBus;
 import dev.rono.permissions.api.group.GroupManager;
 import dev.rono.permissions.api.ladder.LadderManager;
@@ -47,6 +48,9 @@ public interface PexApi {
 
     /** Returns the runtime context registry used to build user query options. */
     ContextManager<UUID> contexts();
+
+    /** Returns this server's world inheritance, applied to every query. */
+    WorldInheritance worlds();
 
     ConfigurationManager config();
 }

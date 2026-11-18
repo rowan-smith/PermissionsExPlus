@@ -39,6 +39,29 @@ World-scoped permissions are applied using the `--world` flag with user and grou
 /pex group <group> parents add <parent> --world <world>
 ```
 
-## Legacy World Commands
+## World Inheritance
 
-The legacy PermissionsEx 1.x `/pex world` commands for managing world inheritance are not supported in PermissionsExPlus. World inheritance is now handled through the context system.
+As in PermissionsEx, a world can inherit from other worlds: with `world_nether`
+inheriting from `world`, everything set with `--world world` (permissions, options,
+prefixes and group memberships) also applies to players in `world_nether`.
+Inheritance is transitive and applies to every permission check.
+
+- `/pex worlds`: List every world's inheritance.
+- `/pex world <world>`: Show the worlds `<world>` inherits from.
+- `/pex world <world> inherit <worlds...>`: Set the worlds `<world>` inherits from, replacing the previous list. Separate names with spaces or commas.
+- `/pex world <world> clear`: Remove `<world>`'s inheritance.
+
+Inheritance is stored per server in `worlds.yml`, in the same shape as the `worlds`
+section of a PermissionsEx `permissions.yml`:
+
+```yaml
+worlds:
+  world_nether:
+    inheritance:
+    - world
+```
+
+When a world and a world it inherits from set the same node differently, the
+`inheritance.conflict-resolution` setting in `advanced.yml` decides, as for any other
+conflict between equally specific nodes. (PermissionsEx preferred the player's own
+world.)

@@ -69,6 +69,8 @@ The command surface remains rooted at `/pex` and includes:
 - user inspection, permission add/remove/check, group membership, and options;
 - group create/delete, permission, and parent management;
 - ladder create/delete, group ordering, promotion, and demotion;
+- world inheritance (`/pex worlds`, `/pex world <world> inherit <worlds...>`);
+- importing an original PermissionsEx installation (`/pex import permissionsex`);
 - backend status, version, help, and reload.
 
 The plural registry commands (`/pex users`, `/pex groups`, and `/pex ladders`), backend
@@ -90,11 +92,11 @@ weight, and custom metadata use option nodes.
 ## Compatibility boundaries
 
 The legacy adapter routes user/group permissions, options, parent groups, default groups,
-weights, identifiers, and enumeration through API. Its world-inheritance configuration is
-currently a process-local compatibility view; API context resolution remains authoritative.
+weights, identifiers, world inheritance, timed group memberships, and enumeration through
+API. World inheritance is stored in `worlds.yml` and applied to every query.
 
 The model intentionally does not reproduce the old command-extension
 registry, or every fine-grained/cancellable v1 event type. Metadata translates to option
 nodes, and publishes lifecycle plus aggregate
-modification events. Existing v1 flat-file/SQL data also requires an explicit migration into
-the store; startup does not silently rewrite it.
+modification events. Existing v1 flat-file/SQL data is imported explicitly with
+`/pex import permissionsex`; startup does not silently rewrite it.

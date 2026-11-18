@@ -3,11 +3,15 @@ package ru.tehkode.permissions.backends.data;
 import lombok.var;
 
 import dev.rono.permissions.api.context.ContextSet;
+import dev.rono.permissions.api.options.OptionNode;
 import dev.rono.permissions.api.parent.ParentNode;
 import dev.rono.permissions.api.permission.PermissionHolder;
 import dev.rono.permissions.api.permission.PermissionNode;
 import dev.rono.permissions.api.user.User;
+import dev.rono.permissions.api.util.Identifiers;
 import dev.rono.permissions.core.PexImplProvider;
+import dev.rono.permissions.core.util.Immutables;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -55,8 +59,30 @@ final class UserData extends AbstractData implements PermissionsUserData {
         var user = user();
 
         api.users().modify(user, modifier -> {
-            user.groups().stream().filter(node -> node.contexts().equals(contexts)).forEach(modifier::removeGroup);
-            parents.forEach(value -> modifier.addGroup(value, contexts));
+            var existing = user.groups().stream().filter(node -> node.contexts().equals(contexts)).collect(Immutables.toList());
+
+            existing.forEach(modifier::removeGroup);
+            // Keep each remaining membership's own node, so a timed membership keeps its
+            // expiry.
+            parents.forEach(value -> modifier.addGroup(existing.stream().filter(node -> node.group().equals(Identifiers.group(value))).findFirst()
+                    .orElseGet(() -> ParentNode.builder().group(value).contexts(contexts).build())));
+        }).toCompletableFuture().join();
+    }
+
+    /**
+     * Adds a membership that expires at {@code expiry}, with the PermissionsEx
+     * {@code group-<name>-until} option expiring alongside it for plugins that read
+     * it.
+     */
+    void addTimedGroup(String group, String world, Instant expiry) {
+        var api = PexImplProvider.get();
+        var user = user();
+        var contexts = contexts(world);
+
+        api.users().modify(user, modifier -> {
+            modifier.addGroup(ParentNode.builder().group(group).contexts(contexts).expiry(expiry).build());
+            modifier.setOption(OptionNode.builder().key("group-" + group + "-until").value(Long.toString(expiry.getEpochSecond()))
+                    .contexts(contexts).expiry(expiry).build());
         }).toCompletableFuture().join();
     }
 

@@ -5,10 +5,12 @@ import lombok.var;
 import cloud.commandframework.CloudCapability;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.annotations.AnnotationParser;
+import cloud.commandframework.exceptions.CommandExecutionException;
 import cloud.commandframework.meta.SimpleCommandMeta;
 import dev.rono.permissions.api.context.ContextRegistry;
 import dev.rono.permissions.core.PexApiImpl;
 
+import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 
 public class CommandManagerImpl<C> {
@@ -22,6 +24,24 @@ public class CommandManagerImpl<C> {
     }
 
     public void registerDefaultCommands(PexApiImpl<C> core, BiConsumer<C, String> messages) {
+        // A CommandFailure is an expected outcome, such as an unknown user: show its
+        // message rather than an internal error and a stack trace.
+        manager.registerExceptionHandler(CommandExecutionException.class, (sender, error) -> {
+            Throwable cause = error.getCause() == null ? error : error.getCause();
+
+            while (cause instanceof CompletionException && cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+
+            if (cause instanceof CommandFailure) {
+                messages.accept(sender, cause.getMessage());
+                return;
+            }
+
+            core.logger().error("Exception executing command", cause);
+            messages.accept(sender, "§cAn internal error occurred while running this command; see the server log.");
+        });
+
         register(new CommandSuggestions<>(core, messages));
         register(new RootCommands<>(core, messages));
         register(new BackendCommands<>(core, messages));
@@ -31,6 +51,8 @@ public class CommandManagerImpl<C> {
         register(new UserCommands<>(core, messages));
         register(new LaddersCommands<>(core, messages));
         register(new LadderCommands<>(core, messages));
+        register(new WorldCommands<>(core, messages));
+        register(new ImportCommands<>(core, messages));
     }
 
     public CommandManager<C> manager() {

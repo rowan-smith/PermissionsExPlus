@@ -16,7 +16,7 @@ public final class RootCommands<C> extends CommandSupport<C> {
     @CommandMethod("")
     public void root(C sender) {
         heading(sender, "PermissionsExPlus", "API Commands");
-        section(sender, "Commands", Immutables.listOf("/pex user <user>", "/pex group <group>", "/pex ladder <ladder>", "/pex backend", "/pex reload"));
+        section(sender, "Commands", Immutables.listOf("/pex user <user>", "/pex group <group>", "/pex ladder <ladder>", "/pex worlds", "/pex backend", "/pex import permissionsex [folder]", "/pex reload"));
     }
 
     @CommandMethod("help")
