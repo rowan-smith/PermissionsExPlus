@@ -18,6 +18,8 @@
  */
 package dev.rono.permissions.compat.commands.handlers;
 
+import dev.rono.permissions.compat.commands.util.PEXAdventure;
+
 import lombok.var;
 
 import dev.rono.permissions.api.ladder.PromotionResult;
@@ -43,16 +45,16 @@ public class PromotionCommands extends PermissionsCommand {
                 var ladder = ApiWrapper.await(ApiWrapper.ladders().find(ladderName));
 
                 if (!ladder.isPresent()) {
-                    sender.sendMessage("Group " + groupName + " is unranked");
+                    PEXAdventure.sendMessage(sender, "Group " + groupName + " is unranked");
                     return;
                 }
 
                 var position = ladder.get().positionOf(groupName);
 
                 if (!position.isPresent()) {
-                    sender.sendMessage("Group " + groupName + " is unranked");
+                    PEXAdventure.sendMessage(sender, "Group " + groupName + " is unranked");
                 } else {
-                    sender.sendMessage("Group " + groupName + " rank is " + position.getAsInt() + " (ladder = " + ladderName + ")");
+                    PEXAdventure.sendMessage(sender, "Group " + groupName + " rank is " + position.getAsInt() + " (ladder = " + ladderName + ")");
                 }
 
                 return;
@@ -71,7 +73,7 @@ public class PromotionCommands extends PermissionsCommand {
                 modifier.setGroups(groups);
             }));
 
-            sender.sendMessage("Group " + groupName + " rank is " + rank + " (ladder = " + ladderName + ")");
+            PEXAdventure.sendMessage(sender, "Group " + groupName + " rank is " + rank + " (ladder = " + ladderName + ")");
         } catch (Exception error) {
             sendError(sender, error);
         }
@@ -114,13 +116,13 @@ public class PromotionCommands extends PermissionsCommand {
     private void sendPromotion(PexCommandAdapter plugin, CommandSender sender, String user, String ladder, PromotionResult result, boolean promote) {
         if (result.status() == PromotionStatus.PROMOTED || result.status() == PromotionStatus.DEMOTED) {
             String newGroup = result.newGroup().orElse("?");
-            sender.sendMessage("User " + user + " " + (promote ? "promoted" : "demoted") + " to " + newGroup + " group");
+            PEXAdventure.sendMessage(sender, "User " + user + " " + (promote ? "promoted" : "demoted") + " to " + newGroup + " group");
             informPlayer(plugin, user, "You have been " + (promote ? "promoted" : "demoted") + " on " + ladder
                     + " ladder to " + newGroup + " group");
             return;
         }
 
         String label = promote ? "Promotion" : "Demotion";
-        sender.sendMessage(ChatColor.RED + label + " error: " + result.status().name());
+        PEXAdventure.sendMessage(sender, ChatColor.RED + label + " error: " + result.status().name());
     }
 }

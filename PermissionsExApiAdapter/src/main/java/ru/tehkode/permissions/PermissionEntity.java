@@ -37,6 +37,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
+import ru.tehkode.permissions.backends.data.TimedPermissions;
 import ru.tehkode.permissions.events.PermissionEntityEvent;
 import dev.rono.permissions.core.util.Strings;
 import dev.rono.permissions.core.util.Optionals;
@@ -213,6 +214,14 @@ public abstract class PermissionEntity {
             return true;
         }
 
+        // Transient timed permissions (lifetime 0) live only here, and timed
+        // permissions
+        // come first in PermissionsEx, so they decide before the stored data.
+        String transientMatch = transientTimedMatch(permission, world);
+        if (transientMatch != null) {
+            return explainExpression(transientMatch);
+        }
+
         boolean allowed = PexImplProvider.get().resolvers().permissions()
                 .hasPermission(plusHolder(), permission, worldContext(world));
 
@@ -254,7 +263,7 @@ public abstract class PermissionEntity {
      */
     public Map<String, List<String>> getAllPermissions() {
         Map<String, List<String>> ret = new HashMap<>(getData().getPermissionsMap());
-        for (Map.Entry<String, List<String>> timedEnt : timedPermissions.entrySet()) {
+        for (Map.Entry<String, List<String>> timedEnt : allTimedPermissions().entrySet()) {
             String worldKey = timedEnt.getKey().isEmpty() ? null : timedEnt.getKey();
             List<String> addTo = new LinkedList<>();
             addTo.addAll(timedEnt.getValue());
@@ -703,11 +712,49 @@ public abstract class PermissionEntity {
             world = "";
         }
 
-        if (!this.timedPermissions.containsKey(world)) {
-            return Collections.emptyList();
+        List<String> result = new ArrayList<>(this.timedPermissions.getOrDefault(world, Collections.<String>emptyList()));
+
+        for (String permission : TimedPermissions.list(getData(), world).keySet()) {
+            if (!result.contains(permission)) {
+                result.add(permission);
+            }
         }
 
-        return Collections.unmodifiableList(this.timedPermissions.get(world));
+        return Collections.unmodifiableList(result);
+    }
+
+    private String transientTimedMatch(String permission, String world) {
+        for (String key : world == null || world.isEmpty() ? new String[]{""} : new String[]{world, ""}) {
+            List<String> transientPermissions = this.timedPermissions.get(key);
+
+            if (transientPermissions != null && !transientPermissions.isEmpty()) {
+                String match = getMatchingExpression(new ArrayList<>(transientPermissions), permission);
+
+                if (match != null) {
+                    return match;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /** Transient and stored timed permissions by world ("" is global). */
+    private Map<String, List<String>> allTimedPermissions() {
+        Map<String, List<String>> result = new HashMap<>();
+
+        this.timedPermissions.forEach((world, permissions) -> result.put(world, new ArrayList<>(permissions)));
+        TimedPermissions.all(getData()).forEach((world, permissions) -> {
+            List<String> list = result.computeIfAbsent(world, ignored -> new ArrayList<>());
+
+            for (String permission : permissions.keySet()) {
+                if (!list.contains(permission)) {
+                    list.add(permission);
+                }
+            }
+        });
+
+        return result;
     }
 
     /**
@@ -722,6 +769,11 @@ public abstract class PermissionEntity {
     public int getTimedPermissionLifetime(String permission, String world) {
         if (world == null) {
             world = "";
+        }
+
+        java.time.Instant stored = TimedPermissions.list(getData(), world).get(permission);
+        if (stored != null) {
+            return (int) Math.max(0, stored.getEpochSecond() - System.currentTimeMillis() / 1000L);
         }
 
         if (!this.timedPermissionsTime.containsKey(world + ":" + permission)) {
@@ -743,6 +795,17 @@ public abstract class PermissionEntity {
     public void addTimedPermission(final String permission, String world, int lifeTime) {
         if (world == null) {
             world = "";
+        }
+
+        // As in PermissionsEx 1.23.6, a timed permission survives restarts: it is
+        // stored
+        // with its expiry, and PermissionsExPlus removes it when it expires. Transient
+        // permissions (lifetime 0) stay in memory.
+        if (lifeTime > 0 && TimedPermissions.add(getData(), permission, world,
+                java.time.Instant.ofEpochSecond(System.currentTimeMillis() / 1000L + lifeTime))) {
+            clearCache();
+            this.callEvent(PermissionEntityEvent.Action.PERMISSIONS_CHANGED);
+            return;
         }
 
         if (!this.timedPermissions.containsKey(world)) {
@@ -782,7 +845,14 @@ public abstract class PermissionEntity {
             world = "";
         }
 
+        boolean stored = TimedPermissions.remove(getData(), permission, world);
+
         if (!this.timedPermissions.containsKey(world)) {
+            if (stored) {
+                clearCache();
+                this.callEvent(PermissionEntityEvent.Action.PERMISSIONS_CHANGED);
+            }
+
             return;
         }
 

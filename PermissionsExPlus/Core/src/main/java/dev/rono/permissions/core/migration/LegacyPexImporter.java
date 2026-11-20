@@ -12,6 +12,7 @@ import dev.rono.permissions.api.util.Identifiers;
 import dev.rono.permissions.core.PexApiImpl;
 import dev.rono.permissions.core.migration.LegacyPexData.Entity;
 
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 /**
@@ -69,6 +71,46 @@ public final class LegacyPexImporter {
         void warn(String warning) {
             warnings.add(warning);
         }
+    }
+
+    /**
+     * Reads and imports an original PermissionsEx installation off the server
+     * thread, reporting progress and the result through {@code reply}.
+     *
+     * @param folder
+     *            the PermissionsEx data folder; null for the PermissionsEx
+     *            folder beside this plugin's own
+     * @param audit
+     *            told where the data came from once the import succeeds
+     */
+    public static void importInstallation(PexApiImpl<?> core, String folder, Consumer<String> reply, Consumer<String> audit) {
+        var path = folder == null ? core.dataDirectory().toAbsolutePath().getParent().resolve("PermissionsEx") : Paths.get(folder);
+
+        reply.accept("§7Importing PermissionsEx data from §f" + path + "§7...");
+
+        core.runAsync(() -> {
+            try {
+                var source = LegacyPexReader.readInstallation(path);
+
+                reply.accept("§7Read §f" + source.data.groupCount() + " §7groups and §f" + source.data.userCount() + " §7users from §f" + source.description);
+
+                var report = apply(core, source.data);
+
+                audit.accept(source.description);
+
+                reply.accept("§aImported PermissionsEx data:");
+                reply.accept("§7- Groups: §f" + report.groupsCreated + " §7created, §f" + report.groupsUpdated + " §7already existed");
+                reply.accept("§7- Users: §f" + report.usersImported);
+                reply.accept("§7- Permissions: §f" + report.permissions + "§7, options: §f" + report.options);
+                reply.accept("§7- Group memberships: §f" + report.memberships + " §7(" + report.timedMemberships + " timed; "
+                        + report.expiredMemberships + " already expired and skipped)");
+                reply.accept("§7- Ladders: §f" + report.ladders + "§7, world inheritance: §f" + report.worlds);
+                report.warnings.forEach(warning -> reply.accept("§e! " + warning));
+            } catch (Exception error) {
+                core.logger().error("PermissionsEx import from " + path + " failed", error);
+                reply.accept("§cImport failed: " + (error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage()));
+            }
+        });
     }
 
     public static Report apply(PexApiImpl<?> core, LegacyPexData data) {

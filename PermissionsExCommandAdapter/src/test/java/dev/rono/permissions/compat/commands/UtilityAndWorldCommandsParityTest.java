@@ -63,6 +63,6 @@ class UtilityAndWorldCommandsParityTest extends CommandAdapterTestSupport {
         assertMessageContains("UUID conversion is handled by PermissionsExPlus");
 
         assertTrue(run("pex import file"));
-        assertMessageContains("Import from legacy backends is not available");
+        assertMessageContains("nothing to import from");
     }
 }

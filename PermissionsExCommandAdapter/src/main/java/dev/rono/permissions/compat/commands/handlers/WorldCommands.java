@@ -18,6 +18,8 @@
  */
 package dev.rono.permissions.compat.commands.handlers;
 
+import dev.rono.permissions.compat.commands.util.PEXAdventure;
+
 import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,10 +32,10 @@ public class WorldCommands extends PermissionsCommand {
 
     @Command(name = "pex", syntax = "worlds", description = "Print loaded worlds", isPrimary = true, permission = "permissions.manage.worlds")
     public void worldsList(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
-        sender.sendMessage("Worlds on server: ");
+        PEXAdventure.sendMessage(sender, "Worlds on server: ");
 
         for (World world : Bukkit.getWorlds()) {
-            sender.sendMessage(" " + world.getName());
+            PEXAdventure.sendMessage(sender, " " + world.getName());
         }
     }
 
@@ -43,11 +45,11 @@ public class WorldCommands extends PermissionsCommand {
         World bukkitWorld = Bukkit.getWorld(world);
 
         if (bukkitWorld == null) {
-            sender.sendMessage("Specified world \"" + world + "\" not found.");
+            PEXAdventure.sendMessage(sender, "Specified world \"" + world + "\" not found.");
             return;
         }
 
-        sender.sendMessage("World \"" + bukkitWorld.getName() + "\" inherits nothing.");
+        PEXAdventure.sendMessage(sender, "World \"" + bukkitWorld.getName() + "\" inherits nothing.");
     }
 
     @Command(name = "pex", syntax = "world <world> inherit <parentWorlds>", description = "Set world inheritance", permission = "permissions.manage.worlds.inheritance")
@@ -55,11 +57,11 @@ public class WorldCommands extends PermissionsCommand {
         String world = args.get("world");
 
         if (Bukkit.getWorld(world) == null) {
-            sender.sendMessage("Specified world \"" + world + "\" not found.");
+            PEXAdventure.sendMessage(sender, "Specified world \"" + world + "\" not found.");
             return;
         }
 
-        sender.sendMessage(ChatColor.YELLOW + "World inheritance is not managed by the command adapter.");
-        sender.sendMessage(ChatColor.DARK_GRAY + "Use PermissionsExPlus context configuration / permission contexts instead.");
+        PEXAdventure.sendMessage(sender, ChatColor.YELLOW + "World inheritance is not managed by the command adapter.");
+        PEXAdventure.sendMessage(sender, ChatColor.DARK_GRAY + "Use PermissionsExPlus context configuration / permission contexts instead.");
     }
 }

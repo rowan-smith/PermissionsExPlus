@@ -80,7 +80,7 @@ class GroupCommandsParityTest extends CommandAdapterTestSupport {
 
         assertTrue(run("pex group staff prefix &c[S]"));
         assertTrue(run("pex group staff prefix"));
-        assertExactMessage("staff's prefix is \"&c[S]\"");
+        assertExactMessage("staff's prefix is \"[S]\"");
 
         assertTrue(run("pex group staff suffix !"));
         assertTrue(run("pex group staff set build true"));

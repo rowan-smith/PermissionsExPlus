@@ -6,7 +6,9 @@ import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.options.OptionNode;
 import dev.rono.permissions.api.parent.ParentNode;
 import dev.rono.permissions.api.permission.PermissionHolder;
+import dev.rono.permissions.api.permission.PermissionHolderModifier;
 import dev.rono.permissions.api.permission.PermissionNode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import ru.tehkode.permissions.PermissionsData;
 import dev.rono.permissions.core.util.Immutables;
 import dev.rono.permissions.core.util.Strings;
@@ -36,6 +39,12 @@ abstract class AbstractData implements PermissionsData {
 
     protected abstract void setOptionNode(ContextSet contexts, String key, String value);
 
+    /**
+     * Applies {@code action} to this holder through PermissionsExPlus and waits for
+     * it.
+     */
+    protected abstract void modifyPermissions(Consumer<PermissionHolderModifier<?>> action);
+
     @Override
     public void load() {
         holder();
@@ -50,8 +59,66 @@ abstract class AbstractData implements PermissionsData {
     public List<String> getPermissions(String world) {
         var contexts = contexts(world);
 
-        return holder().explicitPermissions().stream().filter(node -> node.contexts().equals(contexts))
+        // Timed permissions are listed separately, as in PermissionsEx 1.23.6.
+        return holder().explicitPermissions().stream().filter(node -> node.contexts().equals(contexts) && !node.expiry().isPresent())
                 .map(PermissionNode::permission).collect(Immutables.toList());
+    }
+
+    /**
+     * Unexpired timed permissions in {@code world}, with their expiry, in storage
+     * order.
+     */
+    Map<String, Instant> getTimedPermissions(String world) {
+        var contexts = contexts(world);
+        var result = new LinkedHashMap<String, Instant>();
+
+        holder().explicitPermissions().stream().filter(node -> node.contexts().equals(contexts) && node.expiry().isPresent() && !node.expired())
+                .forEach(node -> result.put(node.permission(), node.expiry().get()));
+
+        return Collections.unmodifiableMap(result);
+    }
+
+    /**
+     * Unexpired timed permissions in every world; the global world is {@code ""}.
+     */
+    Map<String, Map<String, Instant>> getAllTimedPermissions() {
+        var result = new LinkedHashMap<String, Map<String, Instant>>();
+
+        holder().explicitPermissions().stream().filter(node -> node.expiry().isPresent() && !node.expired()).forEach(node -> {
+            var world = world(node.contexts());
+            result.computeIfAbsent(world == null ? "" : world, ignored -> new LinkedHashMap<>()).put(node.permission(), node.expiry().get());
+        });
+
+        return Collections.unmodifiableMap(result);
+    }
+
+    void addTimedPermission(String permission, String world, Instant expiry) {
+        var node = PermissionNode.builder().permission(permission).contexts(contexts(world)).expiry(expiry).build();
+
+        modifyPermissions(modifier -> modifier.setPermission(node));
+    }
+
+    /**
+     * Removes {@code permission} from {@code world} if it is a timed permission
+     * there.
+     */
+    boolean removeTimedPermission(String permission, String world) {
+        if (!getTimedPermissions(world).containsKey(permission)) {
+            return false;
+        }
+
+        var contexts = contexts(world);
+        modifyPermissions(modifier -> modifier.removePermission(permission, contexts));
+        return true;
+    }
+
+    /**
+     * Replaces the permanent permissions in {@code contexts}, keeping timed ones.
+     */
+    protected static void replacePermanent(PermissionHolderModifier<?> modifier, PermissionHolder holder, ContextSet contexts, List<String> permissions) {
+        holder.explicitPermissions().stream().filter(node -> node.contexts().equals(contexts) && !node.expiry().isPresent())
+                .collect(Immutables.toList()).forEach(modifier::removePermission);
+        permissions.forEach(value -> modifier.setPermission(PermissionNode.builder().permission(value).contexts(contexts).build()));
     }
 
     @Override
@@ -64,7 +131,9 @@ abstract class AbstractData implements PermissionsData {
         var result = new LinkedHashMap<String, List<String>>();
 
         for (var node : holder().explicitPermissions()) {
-            result.computeIfAbsent(world(node.contexts()), ignored -> new ArrayList<>()).add(node.permission());
+            if (!node.expiry().isPresent()) {
+                result.computeIfAbsent(world(node.contexts()), ignored -> new ArrayList<>()).add(node.permission());
+            }
         }
 
         return immutableLists(result);

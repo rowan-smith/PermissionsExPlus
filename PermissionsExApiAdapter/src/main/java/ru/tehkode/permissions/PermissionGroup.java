@@ -18,6 +18,11 @@
  */
 package ru.tehkode.permissions;
 
+import lombok.var;
+
+import dev.rono.permissions.api.util.Identifiers;
+import dev.rono.permissions.core.PexImplProvider;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,12 +102,15 @@ public class PermissionGroup extends PermissionEntity implements Comparable<Perm
      *            Rank for group. Specify 0 to remove group from ranking
      */
     public void setRank(int rank) {
+        String previousLadder = isRanked() ? getRankLadder() : null;
+
         if (rank > 0) {
             this.setOption("rank", Integer.toString(rank));
         } else {
             this.setOption("rank", null);
         }
 
+        syncRankLadder(previousLadder);
         this.callEvent(PermissionEntityEvent.Action.RANK_CHANGED);
     }
 
@@ -126,9 +134,59 @@ public class PermissionGroup extends PermissionEntity implements Comparable<Perm
             rankLadder = null;
         }
 
+        String previousLadder = isRanked() ? getRankLadder() : null;
+
         this.setOption("rank-ladder", rankLadder);
 
+        syncRankLadder(previousLadder);
         this.callEvent(PermissionEntityEvent.Action.RANK_CHANGED);
+    }
+
+    /**
+     * Keeps PermissionsExPlus ladders, which promotion uses, in step with the
+     * PermissionsEx rank options: the group leaves the ladder it was ranked on and
+     * joins its current one at the place its rank gives it (PermissionsEx ranks
+     * count down, and ladders list the lowest group first). Groups placed on a
+     * ladder some other way keep their places.
+     */
+    private void syncRankLadder(String previousLadder) {
+        String currentLadder = isRanked() ? getRankLadder() : null;
+        String self = Identifiers.group(getIdentifier());
+        var ladders = PexImplProvider.get().ladders();
+
+        if (previousLadder != null && !previousLadder.equals(currentLadder)) {
+            ladders.find(Identifiers.ladder(previousLadder)).toCompletableFuture().join().ifPresent(ladder -> ladders
+                    .modify(ladder.name(), modifier -> modifier.remove(self)).toCompletableFuture().join());
+        }
+
+        if (currentLadder == null) {
+            return;
+        }
+
+        String name = Identifiers.ladder(currentLadder);
+        var ladder = ladders.find(name).toCompletableFuture().join();
+        List<String> groups = new ArrayList<>(ladder.isPresent() ? ladder.get().groups() : java.util.Collections.<String>emptyList());
+
+        if (!ladder.isPresent()) {
+            ladders.create(name).toCompletableFuture().join();
+        }
+
+        groups.remove(self);
+
+        int rank = getRank();
+        int index = groups.size();
+
+        for (int i = 0; i < groups.size(); i++) {
+            PermissionGroup other = manager.getGroup(groups.get(i));
+
+            if (other.isRanked() && currentLadder.equals(other.getRankLadder()) && other.getRank() < rank) {
+                index = i;
+                break;
+            }
+        }
+
+        groups.add(index, self);
+        ladders.modify(name, modifier -> modifier.setGroups(groups)).toCompletableFuture().join();
     }
 
     /**

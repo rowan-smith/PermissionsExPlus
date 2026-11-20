@@ -60,6 +60,24 @@ public class ParityTest extends PEXTestBase {
         assertFalse(user.has("world.build", "world_the_end"));
     }
 
+    @Test
+    public void convertingAUserStoredByNameToItsUuidKeepsItsData() throws Exception {
+        PermissionUser byName = manager.getUser("Steve");
+        byName.setPrefix("&a[Steve]", null);
+        byName.addPermission("steve.node");
+
+        // What PermissionManager.getUser(Player) does the first time a player joins.
+        java.lang.reflect.Method getUser = PermissionManager.class.getDeclaredMethod("getUser", String.class, String.class, boolean.class);
+        getUser.setAccessible(true);
+        java.util.UUID id = java.util.UUID.randomUUID();
+        PermissionUser converted = (PermissionUser) getUser.invoke(manager, id.toString(), "Steve", true);
+
+        assertEquals(id.toString(), converted.getIdentifier());
+        assertEquals("&a[Steve]", converted.getPrefix(null));
+        assertTrue(converted.has("steve.node"));
+        assertEquals("Steve", fixture.api().users().find(id).toCompletableFuture().join().get().name());
+    }
+
     private User plusUser() {
         return fixture.api().users().find("TestUser").toCompletableFuture().join().get();
     }

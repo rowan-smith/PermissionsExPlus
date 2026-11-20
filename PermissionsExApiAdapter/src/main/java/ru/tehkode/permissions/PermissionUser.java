@@ -422,6 +422,14 @@ public class PermissionUser extends PermissionEntity {
         if (!onLadder) {
             throw new RankingException("User are not in this ladder", this, actor);
         }
+
+        // As in PermissionsEx: someone ranked on this ladder may only change the rank
+        // of
+        // users below them (ranks count down, so a lower number is a higher rank).
+        if (actor != null && actor.isRanked(ladderName) && this.isRanked(ladderName)
+                && actor.getRank(ladderName) >= this.getRank(ladderName)) {
+            throw new RankingException("Promoter don't have high enough rank to change " + this.getIdentifier() + "'s rank", this, actor);
+        }
     }
 
     private User plusUser() {

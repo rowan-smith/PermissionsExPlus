@@ -1,14 +1,9 @@
-name: Deploy documentation
+name: Deploy Docs
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'website/**'
-      - 'examples/**'
-      - 'pom.xml'
-      - '.github/workflows/deploy-docs.yml'
+    branches: [ main, master ]
+    tags: [ 'STABLE-*' ]
   workflow_dispatch:
 
 permissions:
@@ -26,40 +21,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '21'
           cache: maven
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
-          cache-dependency-path: website/package-lock.json
+          cache-dependency-path: docs/package-lock.json
 
+      # Javadoc for the 2.0.0 developer docs, served at /javadoc/. If it fails, the site
+      # still deploys with the placeholder page.
       - name: Build Javadoc
-        run: |
-          chmod +x website/scripts/*.sh
-          website/scripts/build-all-javadoc.sh
+        continue-on-error: true
+        run: bash docs/scripts/build-all-javadoc.sh
 
       - name: Install dependencies
-        working-directory: website
+        working-directory: docs
         run: npm ci
 
-      - name: Build site
-        working-directory: website
+      - name: Build
+        working-directory: docs
         run: npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: website/build
+          path: docs/build
 
   deploy:
     needs: build

@@ -1,15 +1,13 @@
 # Dependencies
 node_modules/
-website/node_modules/
 
-# Docusaurus
+# Docusaurus (the site lives in docs/)
 .docusaurus/
 build/
-website/.docusaurus/
-website/build/
 
-# Generated Javadoc (built in CI via website/scripts/build-all-javadoc.sh)
-website/static/apidocs/
+# Generated Javadoc (built in CI via docs/scripts/build-all-javadoc.sh); index.html is a placeholder
+docs/static/javadoc/*
+!docs/static/javadoc/index.html
 
 # Legacy Jekyll
 vendor/

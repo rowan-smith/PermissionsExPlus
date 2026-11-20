@@ -18,6 +18,8 @@
  */
 package dev.rono.permissions.compat.commands.handlers;
 
+import dev.rono.permissions.compat.commands.util.PEXAdventure;
+
 import lombok.var;
 
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.Map;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import dev.rono.permissions.compat.commands.ApiWrapper;
+import dev.rono.permissions.core.migration.LegacyPexImporter;
 import dev.rono.permissions.compat.commands.PexCommandAdapter;
 import dev.rono.permissions.compat.commands.framework.Command;
 import dev.rono.permissions.compat.commands.framework.CommandsManager.CommandBinding;
@@ -35,7 +38,7 @@ public class UtilityCommands extends PermissionsCommand {
     public void reload(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
         try {
             ApiWrapper.core().reload();
-            sender.sendMessage(ChatColor.WHITE + "Permissions reloaded");
+            PEXAdventure.sendMessage(sender, ChatColor.WHITE + "Permissions reloaded");
         } catch (Exception error) {
             sendError(sender, error);
         }
@@ -43,51 +46,59 @@ public class UtilityCommands extends PermissionsCommand {
 
     @Command(name = "pex", syntax = "report", permission = "permissions.manage.reportbug", description = "Create an issue template")
     public void report(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
-        sender.sendMessage("Report issues at: https://github.com/rowan-smith/PermissionsExPlus/issues");
+        PEXAdventure.sendMessage(sender, "Report issues at: https://github.com/rowan-smith/PermissionsExPlus/issues");
     }
 
     @Command(name = "pex", syntax = "config <node> [value]", permission = "permissions.manage.config", description = "Print or set config node")
     public void config(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
-        sender.sendMessage(ChatColor.YELLOW + "Runtime config editing is not exposed by the command adapter.");
-        sender.sendMessage(ChatColor.DARK_GRAY + "Edit config.yml / advanced.yml / database.yml and use /pex reload.");
+        PEXAdventure.sendMessage(sender, ChatColor.YELLOW + "Runtime config editing is not exposed by the command adapter.");
+        PEXAdventure.sendMessage(sender, ChatColor.DARK_GRAY + "Edit config.yml / advanced.yml / database.yml and use /pex reload.");
     }
 
     @Command(name = "pex", syntax = "backend", permission = "permissions.manage.backend", description = "Print currently used backend")
     public void backendInfo(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
         var backend = ApiWrapper.api().backend().current();
-        sender.sendMessage("Current backend: " + backend.name());
+        PEXAdventure.sendMessage(sender, "Current backend: " + backend.name());
     }
 
     @Command(name = "pex", syntax = "backend <backend>", permission = "permissions.manage.backend", description = "Change backend")
     public void backendSet(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
-        sender.sendMessage(ChatColor.YELLOW + "Live backend switching is not supported. Change database.yml and reload/restart.");
+        PEXAdventure.sendMessage(sender, ChatColor.YELLOW + "Live backend switching is not supported. Change database.yml and reload/restart.");
         backendInfo(plugin, sender, args);
     }
 
     @Command(name = "pex", syntax = "hierarchy [world]", permission = "permissions.manage.users", description = "Print hierarchy")
     public void hierarchy(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
-        sender.sendMessage("User/Group inheritance hierarchy:");
+        PEXAdventure.sendMessage(sender, "User/Group inheritance hierarchy:");
 
         for (var group : ApiWrapper.groups().cache().all()) {
             String parents = group.parents().stream().map(node -> node.group()).reduce((a, b) -> a + ", " + b).orElse("-");
-            sender.sendMessage(" " + group.name() + " <- " + parents);
+            PEXAdventure.sendMessage(sender, " " + group.name() + " <- " + parents);
         }
     }
 
     @Command(name = "pex", syntax = "convert uuid [force]", permission = "permissions.convert", description = "Bulk convert to UUID")
     public void convertUuid(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
-        sender.sendMessage(ChatColor.YELLOW + "UUID conversion is handled by PermissionsExPlus identity resolution; no bulk convert command is needed.");
+        PEXAdventure.sendMessage(sender, ChatColor.YELLOW + "UUID conversion is handled by PermissionsExPlus identity resolution; no bulk convert command is needed.");
     }
 
     @Command(name = "pex", syntax = "import <backend>", permission = "permissions.dump", description = "Import data from backend")
     public void importData(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
-        sender.sendMessage(ChatColor.YELLOW + "Import from legacy backends is not available in the command adapter.");
-        sender.sendMessage(ChatColor.DARK_GRAY + "Use PermissionsExApiAdapter / migration tooling for PEX 1.x data.");
+        if ("permissionsex".equalsIgnoreCase(args.get("backend"))) {
+            // Original PermissionsEx data from plugins/PermissionsEx, using the backend its
+            // config.yml selects.
+            LegacyPexImporter.importInstallation(ApiWrapper.core(), null, message -> PEXAdventure.sendMessage(sender, message),
+                    source -> ApiWrapper.core().logger().audit(sender.getName(), "IMPORTED PermissionsEx data from " + source));
+            return;
+        }
+
+        PEXAdventure.sendMessage(sender, ChatColor.YELLOW + "PermissionsExPlus keeps one backend, so there is nothing to import from '" + args.get("backend") + "'.");
+        PEXAdventure.sendMessage(sender, ChatColor.YELLOW + "To import an original PermissionsEx installation: /pex import permissionsex");
     }
 
     @Command(name = "pex", syntax = "toggle debug", permission = "permissions.debug", description = "Enable/disable debug mode")
     public void toggleDebug(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
-        sender.sendMessage(ChatColor.YELLOW + "Toggle debug via PermissionsExPlus config (debug / verbose) and /pex reload.");
+        PEXAdventure.sendMessage(sender, ChatColor.YELLOW + "Toggle debug via PermissionsExPlus config (debug / verbose) and /pex reload.");
     }
 
     @Command(name = "pex", syntax = "help [page] [count]", permission = "permissions.manage", description = "PermissionsEx commands help")
@@ -100,24 +111,24 @@ public class UtilityCommands extends PermissionsCommand {
         int to = Math.min(from + count, commands.size());
 
         if (from >= commands.size()) {
-            sender.sendMessage(ChatColor.RED + "Page couldn't be lower than 1");
+            PEXAdventure.sendMessage(sender, ChatColor.RED + "Page couldn't be lower than 1");
             return;
         }
 
-        sender.sendMessage(ChatColor.BLUE + "PermissionsEx" + ChatColor.WHITE + " commands (page "
+        PEXAdventure.sendMessage(sender, ChatColor.BLUE + "PermissionsEx" + ChatColor.WHITE + " commands (page "
                 + ChatColor.GOLD + page + "/" + totalPages + ChatColor.WHITE + "): ");
 
         for (int index = from; index < to; index++) {
             CommandBinding binding = commands.get(index);
             var annotation = binding.getMethodAnnotation();
             String commandName = "/" + annotation.name() + " " + annotation.syntax();
-            sender.sendMessage(ChatColor.GOLD + commandName);
-            sender.sendMessage(ChatColor.AQUA + "    " + annotation.description());
+            PEXAdventure.sendMessage(sender, ChatColor.GOLD + commandName);
+            PEXAdventure.sendMessage(sender, ChatColor.AQUA + "    " + annotation.description());
         }
     }
 
     @Command(name = "pex", syntax = "version", permission = "permissions.manage", description = "Display version")
     public void version(PexCommandAdapter plugin, CommandSender sender, Map<String, String> args) {
-        sender.sendMessage("[PermissionsEx] version [" + plugin.getDescription().getVersion() + "]");
+        PEXAdventure.sendMessage(sender, "[PermissionsEx] version [" + plugin.getDescription().getVersion() + "]");
     }
 }

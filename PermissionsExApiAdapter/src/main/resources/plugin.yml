@@ -5,3 +5,4 @@ author: [t3hk0d3, zml, Rono]
 api-version: 1.13
 description: PermissionsEx API Adapter - A API Adapter for PermissionsEx.
 depend: [PermissionsExPlus]
+softdepend: [PlaceholderAPI]

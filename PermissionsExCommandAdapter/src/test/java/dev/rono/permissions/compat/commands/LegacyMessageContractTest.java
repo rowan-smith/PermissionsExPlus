@@ -61,10 +61,10 @@ class LegacyMessageContractTest extends CommandAdapterTestSupport {
         createUser("Alex");
 
         assertTrue(run("pex user Alex prefix &a[A]"));
-        assertExactMessage("Alex's prefix has been set to \"&a[A]\"");
+        assertExactMessage("Alex's prefix has been set to \"[A]\"");
 
         assertTrue(run("pex user Alex prefix"));
-        assertExactMessage("Alex's prefix is \"&a[A]\"");
+        assertExactMessage("Alex's prefix is \"[A]\"");
     }
 
     @Test
@@ -72,7 +72,7 @@ class LegacyMessageContractTest extends CommandAdapterTestSupport {
         createUser("Alex");
 
         assertTrue(run("pex user Alex prefix &a[A] world_nether"));
-        assertExactMessage("Alex's prefix (in world \"world_nether\") has been set to \"&a[A]\"");
+        assertExactMessage("Alex's prefix (in world \"world_nether\") has been set to \"[A]\"");
 
         assertTrue(run("pex user Alex prefix world_nether"));
         // without newprefix, second arg is treated as world by syntax matcher when only
@@ -85,7 +85,7 @@ class LegacyMessageContractTest extends CommandAdapterTestSupport {
         // get with explicit empty newprefix isn't possible; list via option resolve
         // through command without world:
         assertTrue(run("pex user Alex suffix &7* world_nether"));
-        assertExactMessage("Alex's suffix (in world \"world_nether\") has been set to \"&7*\"");
+        assertExactMessage("Alex's suffix (in world \"world_nether\") has been set to \"*\"");
     }
 
     @Test
@@ -93,10 +93,10 @@ class LegacyMessageContractTest extends CommandAdapterTestSupport {
         createUser("Alex");
 
         assertTrue(run("pex user Alex suffix &7*"));
-        assertExactMessage("Alex's suffix has been set to \"&7*\"");
+        assertExactMessage("Alex's suffix has been set to \"*\"");
 
         assertTrue(run("pex user Alex suffix"));
-        assertExactMessage("Alex's suffix is \"&7*\"");
+        assertExactMessage("Alex's suffix is \"*\"");
     }
 
     @Test
@@ -228,10 +228,10 @@ class LegacyMessageContractTest extends CommandAdapterTestSupport {
         await(core.groups().create("staff"));
 
         assertTrue(run("pex group staff prefix &c[S]"));
-        assertExactMessage("staff's prefix has been set to \"&c[S]\"");
+        assertExactMessage("staff's prefix has been set to \"[S]\"");
 
         assertTrue(run("pex group staff prefix"));
-        assertExactMessage("staff's prefix is \"&c[S]\"");
+        assertExactMessage("staff's prefix is \"[S]\"");
 
         assertTrue(run("pex group staff suffix !"));
         assertExactMessage("staff's suffix has been set to \"!\"");

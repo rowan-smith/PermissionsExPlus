@@ -6,9 +6,10 @@ import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.group.Group;
 import dev.rono.permissions.api.parent.ParentNode;
 import dev.rono.permissions.api.permission.PermissionHolder;
-import dev.rono.permissions.api.permission.PermissionNode;
+import dev.rono.permissions.api.permission.PermissionHolderModifier;
 import dev.rono.permissions.core.PexImplProvider;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.Set;
 import ru.tehkode.permissions.PermissionsGroupData;
 
@@ -36,11 +37,15 @@ final class GroupData extends AbstractData implements PermissionsGroupData {
         var api = PexImplProvider.get();
         group();
 
-        api.groups().modify(identifier, modifier -> {
-            modifier.clearPermissions(contexts);
-            permissions.forEach(value -> modifier.setPermission(PermissionNode
-                    .builder().permission(value).contexts(contexts).build()));
-        }).toCompletableFuture().join();
+        var group = group();
+
+        api.groups().modify(identifier, modifier -> replacePermanent(modifier, group, contexts, permissions)).toCompletableFuture().join();
+    }
+
+    @Override
+    protected void modifyPermissions(Consumer<PermissionHolderModifier<?>> action) {
+        group();
+        PexImplProvider.get().groups().modify(identifier, action::accept).toCompletableFuture().join();
     }
 
     @Override
@@ -61,7 +66,7 @@ final class GroupData extends AbstractData implements PermissionsGroupData {
 
         if ("weight".equalsIgnoreCase(key) && contexts.isEmpty()) {
             api.groups().modify(identifier, modifier -> {
-                if (value == null) {
+                if (value == null || value.isEmpty()) {
                     modifier.clearWeight();
                 } else {
                     modifier.setWeight(Integer.parseInt(value));
@@ -83,7 +88,8 @@ final class GroupData extends AbstractData implements PermissionsGroupData {
         }
 
         api.groups().modify(identifier, modifier -> {
-            if (value == null) {
+            // An empty value clears the option, as setPrefix("") does in PermissionsEx.
+            if (value == null || value.isEmpty()) {
                 modifier.removeOption(key, contexts);
             } else {
                 modifier.setOption(key, value, contexts);

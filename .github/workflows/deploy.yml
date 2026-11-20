@@ -15,7 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 11
+      # Java 8 modules compile with release 8 and Spigot/Paper with release 21, all on JDK 21.
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -25,15 +26,39 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --no-transfer-progress
 
+      # One jar per platform, plus the two PermissionsEx compatibility adapters.
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: PermissionsExPlus
-          path: target/PermissionsEx-*.jar
+          path: |
+            PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-SpigotLegacy-*.jar
+            PermissionsExPlus/Bukkit17/target/PermissionsExPlus-Bukkit17-*.jar
+            PermissionsExPlus/Spigot/target/PermissionsExPlus-Spigot-*.jar
+            PermissionsExPlus/Paper/target/PermissionsExPlus-Paper-*.jar
+            PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
+            PermissionsExPlus/Sponge8/target/PermissionsExPlus-Sponge8-*.jar
+            PermissionsExPlus/Sponge9/target/PermissionsExPlus-Sponge9-*.jar
+            PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
+            PermissionsExPlus/BungeeCord/target/PermissionsExPlus-BungeeCord-*.jar
+            PermissionsExApiAdapter/target/*-shaded.jar
+            PermissionsExCommandAdapter/target/*-shaded.jar
+          if-no-files-found: error
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/STABLE-')
         uses: softprops/action-gh-release@v2
         with:
-          files: target/PermissionsEx-*.jar
+          files: |
+            PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-SpigotLegacy-*.jar
+            PermissionsExPlus/Bukkit17/target/PermissionsExPlus-Bukkit17-*.jar
+            PermissionsExPlus/Spigot/target/PermissionsExPlus-Spigot-*.jar
+            PermissionsExPlus/Paper/target/PermissionsExPlus-Paper-*.jar
+            PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
+            PermissionsExPlus/Sponge8/target/PermissionsExPlus-Sponge8-*.jar
+            PermissionsExPlus/Sponge9/target/PermissionsExPlus-Sponge9-*.jar
+            PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
+            PermissionsExPlus/BungeeCord/target/PermissionsExPlus-BungeeCord-*.jar
+            PermissionsExApiAdapter/target/*-shaded.jar
+            PermissionsExCommandAdapter/target/*-shaded.jar
           generate_release_notes: true

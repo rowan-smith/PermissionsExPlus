@@ -6,13 +6,14 @@ import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.options.OptionNode;
 import dev.rono.permissions.api.parent.ParentNode;
 import dev.rono.permissions.api.permission.PermissionHolder;
-import dev.rono.permissions.api.permission.PermissionNode;
+import dev.rono.permissions.api.permission.PermissionHolderModifier;
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.api.util.Identifiers;
 import dev.rono.permissions.core.PexImplProvider;
 import dev.rono.permissions.core.util.Immutables;
 import java.time.Instant;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -46,11 +47,12 @@ final class UserData extends AbstractData implements PermissionsUserData {
         var api = PexImplProvider.get();
         var user = user();
 
-        api.users().modify(user, modifier -> {
-            modifier.clearPermissions(contexts);
-            permissions.forEach(value -> modifier.setPermission(PermissionNode
-                    .builder().permission(value).contexts(contexts).build()));
-        }).toCompletableFuture().join();
+        api.users().modify(user, modifier -> replacePermanent(modifier, user, contexts, permissions)).toCompletableFuture().join();
+    }
+
+    @Override
+    protected void modifyPermissions(Consumer<PermissionHolderModifier<?>> action) {
+        PexImplProvider.get().users().modify(user(), action::accept).toCompletableFuture().join();
     }
 
     @Override
@@ -92,7 +94,8 @@ final class UserData extends AbstractData implements PermissionsUserData {
         var user = user();
 
         api.users().modify(user, modifier -> {
-            if (value == null) {
+            // An empty value clears the option, as setPrefix("") does in PermissionsEx.
+            if (value == null || value.isEmpty()) {
                 modifier.removeOption(key, contexts);
             } else {
                 modifier.setOption(key, value, contexts);
@@ -131,7 +134,17 @@ final class UserData extends AbstractData implements PermissionsUserData {
 
         try {
             var id = UUID.fromString(value);
-            var replacement = api.users().loadOrCreateUser(id, current.name()).toCompletableFuture().join();
+
+            if (id.equals(current.uniqueId())) {
+                identifier = value;
+                return true;
+            }
+
+            // Not loadOrCreateUser: it returns the existing user with this name, which is
+            // the one being converted, and the conversion would then delete it. Names are
+            // unique, so the new user takes the name once the old one is gone.
+            var replacement = api.users().find(id).toCompletableFuture().join()
+                    .orElseGet(() -> api.users().create(id).toCompletableFuture().join());
 
             api.users().modify(replacement.uniqueId(), modifier -> {
                 current.explicitPermissions().forEach(modifier::setPermission);
@@ -140,6 +153,7 @@ final class UserData extends AbstractData implements PermissionsUserData {
             }).toCompletableFuture().join();
 
             api.users().delete(current.uniqueId()).toCompletableFuture().join();
+            api.users().modify(replacement.uniqueId(), modifier -> modifier.updateName(current.name())).toCompletableFuture().join();
             identifier = value;
             return true;
         } catch (IllegalArgumentException ignored) {

@@ -18,6 +18,8 @@
  */
 package dev.rono.permissions.compat.commands.handlers;
 
+import dev.rono.permissions.compat.commands.util.PEXAdventure;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,7 +58,11 @@ public abstract class PermissionsCommand implements CommandListener {
         }
 
         if (player != null) {
-            player.sendMessage(ChatColor.BLUE + "[PermissionsEx] " + ChatColor.RESET + message);
+            if (PEXAdventure.isAvailable()) {
+                PEXAdventure.sendMessage(player, "<blue>[PermissionsEx]</blue> <reset>" + message);
+            } else {
+                player.sendMessage(ChatColor.BLUE + "[PermissionsEx] " + ChatColor.RESET + message);
+            }
         }
     }
 
@@ -172,7 +178,7 @@ public abstract class PermissionsCommand implements CommandListener {
     }
 
     protected void sendError(CommandSender sender, Exception error) {
-        sender.sendMessage(ChatColor.RED + (error.getMessage() != null ? error.getMessage() : error.toString()));
+        PEXAdventure.sendMessage(sender, ChatColor.RED + (error.getMessage() != null ? error.getMessage() : error.toString()));
     }
 
     protected String describePermission(dev.rono.permissions.api.permission.PermissionNode node) {

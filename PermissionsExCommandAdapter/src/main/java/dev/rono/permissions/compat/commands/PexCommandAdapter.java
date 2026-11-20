@@ -4,6 +4,8 @@ import lombok.var;
 
 import dev.rono.permissions.api.PexProvider;
 import dev.rono.permissions.core.PexImplProvider;
+import dev.rono.permissions.compat.commands.util.PEXAdventure;
+import java.util.List;
 import java.util.logging.Level;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -67,6 +69,12 @@ public class PexCommandAdapter extends JavaPlugin {
             this.commandsManager.register(new WorldCommands());
             this.commandsManager.register(new UtilityCommands());
 
+            try {
+                PEXAdventure.init(this);
+            } catch (Throwable unavailable) {
+                getLogger().log(Level.WARNING, "Adventure is unavailable; command output uses legacy colour codes only", unavailable);
+            }
+
             getLogger().info("Registered legacy PermissionsEx command surface");
         } catch (Throwable error) {
             getLogger().log(Level.SEVERE, "Failed to enable PermissionsExCommandAdapter", error);
@@ -113,7 +121,13 @@ public class PexCommandAdapter extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        PEXAdventure.shutdown();
         instance = null;
+    }
+
+    @Override
+    public List<String> onTabComplete(@NonNull CommandSender sender, @NonNull Command command, @NonNull String alias, String[] args) {
+        return commandsManager == null ? new java.util.ArrayList<String>() : commandsManager.tabComplete(command, args);
     }
 
     @Override

@@ -129,6 +129,25 @@ public class CommandsManager {
         return true;
     }
 
+    /**
+     * Suggestions for the last of {@code args}, from the syntax of every command
+     * for this label.
+     */
+    public List<String> tabComplete(org.bukkit.command.Command command, String[] args) {
+        Map<CommandSyntax, CommandBinding> callMap = this.listeners.get(command.getName());
+
+        if (callMap == null) {
+            return new LinkedList<>();
+        }
+
+        List<String> syntaxes = new LinkedList<>();
+        for (CommandSyntax syntax : callMap.keySet()) {
+            syntaxes.add(syntax.originalSyntax);
+        }
+
+        return TabCompletion.complete(syntaxes, args);
+    }
+
     public List<CommandBinding> getCommands() {
         List<CommandBinding> commands = new LinkedList<>();
 

@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>PermissionsExCommandAdapter</artifactId>
-    <version>1.23.5</version>
+    <version>1.23.6</version>
 
     <packaging>jar</packaging>
 
@@ -113,6 +113,19 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
+                            <!-- Adventure is bundled for servers without it (before 1.16.5), and
+                                 relocated so it never clashes with a server's own copy. Gson too:
+                                 Minecraft 1.8 ships one older than Adventure needs. -->
+                            <relocations>
+                                <relocation>
+                                    <pattern>net.kyori</pattern>
+                                    <shadedPattern>dev.rono.permissions.compat.commands.lib.kyori</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern>dev.rono.permissions.compat.commands.lib.gson</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -149,6 +162,10 @@
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.helpch.at/releases/</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -180,6 +197,29 @@
             <version>1.8.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <!-- MiniMessage and legacy colour codes in command output, as in PermissionsEx 1.23.6.
+             Adventure 4.x: 5.x needs a newer Java than old servers run. -->
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-platform-bukkit</artifactId>
+            <version>4.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-minimessage</artifactId>
+            <version>4.21.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-legacy</artifactId>
+            <version>4.21.0</version>
+        </dependency>
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.12.3</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -202,6 +242,13 @@
             <groupId>org.mockbukkit.mockbukkit</groupId>
             <artifactId>mockbukkit-v1.21</artifactId>
             <version>${mockbukkit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- After MockBukkit, so MockBukkit's newer ByteBuddy wins over mockito's. -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.14.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>

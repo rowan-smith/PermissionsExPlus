@@ -65,14 +65,14 @@ class UserCommandsParityTest extends CommandAdapterTestSupport {
         createUser("Alex");
 
         assertTrue(run("pex user Alex prefix &a[A]"));
-        assertExactMessage("Alex's prefix has been set to \"&a[A]\"");
+        assertExactMessage("Alex's prefix has been set to \"[A]\"");
 
         assertTrue(run("pex user Alex prefix"));
-        assertExactMessage("Alex's prefix is \"&a[A]\"");
+        assertExactMessage("Alex's prefix is \"[A]\"");
 
         assertTrue(run("pex user Alex suffix &7*"));
         assertTrue(run("pex user Alex suffix"));
-        assertExactMessage("Alex's suffix is \"&7*\"");
+        assertExactMessage("Alex's suffix is \"*\"");
     }
 
     @Test

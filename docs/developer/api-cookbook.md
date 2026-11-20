@@ -1,6 +1,6 @@
 # API Cookbook
 
-Short, copy-paste recipes for common integration tasks. For full method signatures, see [Javadoc](javadoc.md) and the [API Reference](api-reference/).
+Short, copy-paste recipes for common integration tasks. For full method signatures, see [Javadoc](javadoc.md) and the [API Reference](api-reference/hook-api.md).
 
 ## Setup
 
@@ -504,4 +504,4 @@ See the `example-plugin/` and `example-legacy-plugin/` directories for complete 
 
 ---
 
-**Full class reference:** [Javadoc](javadoc.md) · [API Reference](api-reference/) · [Overview](overview.md)
+**Full class reference:** [Javadoc](javadoc.md) · [API Reference](api-reference/hook-api.md) · [Overview](overview.md)

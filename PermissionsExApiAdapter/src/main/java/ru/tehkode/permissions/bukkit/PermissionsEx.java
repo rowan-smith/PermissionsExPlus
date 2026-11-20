@@ -50,6 +50,7 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
     private PermissionsExConfig config;
     protected SuperpermsListener superms;
     private RegexPermissions regexPerms;
+    private PEXPlaceholderExpansion placeholderExpansion;
     private boolean errored = false;
     private static PermissionsEx instance;
     {
@@ -161,6 +162,13 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
             // Register service
             this.getServer().getServicesManager().register(PermissionManager.class, this.permissionsManager, this, ServicePriority.Normal);
 
+            // %pex_...% placeholders, as in PermissionsEx 1.23.6.
+            if (this.getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+                this.placeholderExpansion = new PEXPlaceholderExpansion(this);
+                this.placeholderExpansion.register();
+                getLogger().info("PlaceholderAPI support enabled");
+            }
+
             // Start timed permissions cleaner timer
             this.permissionsManager.initTimer();
         } catch (PermissionBackendException e) {
@@ -189,6 +197,11 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
             if (this.superms != null) {
                 this.superms.onDisable();
                 this.superms = null;
+            }
+
+            if (this.placeholderExpansion != null) {
+                this.placeholderExpansion.unregister();
+                this.placeholderExpansion = null;
             }
         } catch (Throwable t) {
             ErrorReport.handleError("While disabling", t);
