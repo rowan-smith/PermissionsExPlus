@@ -1,0 +1,9 @@
+name: LegacyPexProbe
+main: dev.rono.legacyprobe.LegacyPexProbe
+version: '1'
+description: Test plugin built like a PermissionsEx 1.23.4 era plugin.
+depend: [PermissionsEx, Vault]
+commands:
+  legacyprobe:
+    description: Run the legacy PermissionsEx and Vault checks.
+    permission: legacyprobe.run

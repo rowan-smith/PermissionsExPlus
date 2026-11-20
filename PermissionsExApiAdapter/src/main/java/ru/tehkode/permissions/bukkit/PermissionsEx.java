@@ -328,6 +328,28 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
         return permissionsManager;
     }
 
+    /**
+     * Removed in PermissionsEx 1.23.5 but used by many plugins built for 1.23.4 and
+     * earlier, so it is kept for binary compatibility.
+     *
+     * @deprecated use {@code getPermissionManager().getUser(player)}
+     */
+    @Deprecated
+    public static PermissionUser getUser(Player player) {
+        return getPermissionManager().getUser(player);
+    }
+
+    /**
+     * Removed in PermissionsEx 1.23.5 but used by many plugins built for 1.23.4 and
+     * earlier, so it is kept for binary compatibility.
+     *
+     * @deprecated use {@code getPermissionManager().getUser(name)}
+     */
+    @Deprecated
+    public static PermissionUser getUser(String name) {
+        return getPermissionManager().getUser(name);
+    }
+
     public boolean has(Player player, String permission) {
         return this.permissionsManager.has(player, permission);
     }

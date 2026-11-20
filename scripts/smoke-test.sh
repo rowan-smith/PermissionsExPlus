@@ -30,6 +30,7 @@ type="$1"; version="$2"; java="$3"; shift 3
 name="pex-smoke-$(echo "$type-$version" | tr '.A-Z' '-a-z')-$$"
 work="$(mktemp -d)"
 legacy_commands=false
+legacy_probe=false
 
 bot="$name-bot"
 network="$name-net"
@@ -103,7 +104,10 @@ YAML
 mkdir -p "$work/staging"
 for jar in "$@"; do
     cp "$jar" "$work/staging/"
-    case "$(basename "$jar")" in PermissionsExCommandAdapter*) legacy_commands=true ;; esac
+    case "$(basename "$jar")" in
+        PermissionsExCommandAdapter*) legacy_commands=true ;;
+        LegacyPexProbe*) legacy_probe=true ;;
+    esac
 done
 
 # The data directory is a container volume (fast on every OS, unlike bind mounts on
@@ -209,6 +213,13 @@ else
     expect "pex world world_the_end clear" "no longer inherits"
 fi
 
+# With scripts/legacy-plugins installed (Vault 1.7.3 and LegacyPexProbe, both built
+# against the original PermissionsEx API), plugins written for PermissionsEx 1.23.4 must
+# work against the API adapter, directly and through Vault's own PermissionsEx hooks.
+if [ "$legacy_probe" = true ]; then
+    expect "legacyprobe" "PROBE PASSED"
+fi
+
 # PLAYER_TEST=1: a headless player (scripts/player-bot) joins and checks that granting and
 # revoking a node through PermissionsExPlus changes what that player may do. This is the
 # path real permission checks take (Bukkit injection, Sponge's PermissionService), which
@@ -261,7 +272,47 @@ if [ "${PLAYER_TEST:-0}" = 1 ] && [ "$proxy" = false ] && [ "$legacy_commands" =
         check_player "allowed /pex groups after the grant" 'Groups:' "$denied"
         console "pex user PexBot permissions remove pex.groups.list" >/dev/null
         check_player "denied again after the revoke" "$denied" 'Groups:'
+
+        # A plain chat message runs every plugin's chat listeners; the server must still
+        # broadcast it. (Checked in the server log: chat plugins may reformat it in ways
+        # the bot cannot parse.)
+        player 'hello from PexBot' >/dev/null || true
+        if log | grep -q 'hello from PexBot'; then
+            echo "ok   player: chat message delivered"
+        else
+            echo "FAIL player: chat message was not broadcast"
+            failures=$((failures + 1))
+        fi
     fi
+fi
+
+# A plugin failing to link, enable, handle an event or run a command is a failure when
+# PermissionsEx, PermissionsExPlus or an adapter is involved (in the message or the stack),
+# which covers third-party plugins built against the original PermissionsEx API. Errors
+# from plugins using Bukkit APIs the server no longer has are only reported.
+# shellcheck disable=SC2016
+plugin_errors="$(log | sed 's/\x1b\[[0-9;]*m//g' | awk '
+    function flush() {
+        if (block != "") {
+            if (block ~ /ru[.\/]tehkode|dev[.\/]rono/) { ours = ours block "\n" } else { other = other first "\n" }
+        }
+        block = ""
+    }
+    /NoSuchMethodError|NoSuchFieldError|NoClassDefFoundError|AbstractMethodError|IncompatibleClassChangeError|Could not pass event|Error occurred while (enabling|disabling)|Unhandled exception executing|generated an exception/ {
+        flush(); block = $0 "\n"; first = $0; lines = 12; next
+    }
+    lines > 0 { block = block $0 "\n"; lines--; next }
+    END { flush(); printf "%s@@OTHER@@\n%s", ours, other }')"
+ours_errors="${plugin_errors%%@@OTHER@@*}"
+other_errors="${plugin_errors#*@@OTHER@@}"
+if [ -n "${ours_errors//[[:space:]]/}" ]; then
+    printf '%s\n' "$ours_errors" | head -60
+    echo "FAIL: a plugin failed against PermissionsEx / PermissionsExPlus"
+    failures=$((failures + 1))
+fi
+if [ -n "${other_errors//[[:space:]]/}" ]; then
+    echo "note: plugin errors unrelated to PermissionsEx (usually Bukkit APIs this server lacks):"
+    printf '%s\n' "$other_errors" | grep -v '^$' | sort -u | head -10 | sed 's/^/       /'
 fi
 
 # Any stack trace from PermissionsExPlus or the adapters is a failure.

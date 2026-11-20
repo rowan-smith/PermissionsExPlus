@@ -30,6 +30,10 @@ bot.once('spawn', () => {
 });
 
 bot.on('message', (message) => console.log('CHAT ' + message.toString()));
+
+// Chat plugins can send chat that this client cannot parse ("unknown chat format code");
+// stay connected rather than crash.
+process.on('uncaughtException', (error) => console.log('ERROR ' + error.message));
 bot.on('kicked', (reason) => console.log('KICKED ' + JSON.stringify(reason)));
 bot.on('error', (error) => console.log('ERROR ' + error.message));
 bot.on('end', () => {

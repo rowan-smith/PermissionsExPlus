@@ -23,6 +23,8 @@ jobs:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: maven
+      # Vault and the legacy probe, for the API adapter's linkage test.
+      - run: bash scripts/legacy-plugins/build.sh
       - run: mvn -B verify
       - name: Upload plugin jars
         if: matrix.java == '21'
@@ -74,6 +76,10 @@ jobs:
         include:
           - { type: PAPER,   version: '1.8.8',  java: java8,  jar: legacy, adapters: true }
           - { type: PAPER,   version: '1.12.2', java: java8,  jar: legacy, adapters: true }
+          # Plugins built against PermissionsEx 1.23.4 (Vault's own hooks and a probe) on the API adapter.
+          - { type: PAPER,   version: '1.8.8',  java: java8,  jar: legacy, legacy_plugins: true, player: true }
+          - { type: PAPER,   version: '1.12.2', java: java8,  jar: legacy, legacy_plugins: true, player: true }
+          - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  legacy_plugins: true, player: true }
           - { type: PAPER,   version: '1.16.5', java: java8,  jar: legacy, adapters: true }
           - { type: PAPER,   version: '1.17.1', java: java16, jar: legacy, adapters: true }
           - { type: PAPER,   version: '1.18.2', java: java17, jar: legacy, adapters: false }
@@ -95,13 +101,24 @@ jobs:
           # Proxy images add RCON through a plugin that needs Java 21.
           - { type: VELOCITY, version: '3.4.0-SNAPSHOT', java: java21, jar: velocity, adapters: false }
           - { type: BUNGEECORD, version: 'latest', java: java21, jar: bungeecord, adapters: false }
-    name: Smoke ${{ matrix.type }} ${{ matrix.version }} (${{ matrix.jar }}${{ matrix.adapters && ' + adapters' || '' }})
+    name: Smoke ${{ matrix.type }} ${{ matrix.version }} (${{ matrix.jar }}${{ matrix.adapters && ' + adapters' || '' }}${{ matrix.legacy_plugins && ' + legacy plugins' || '' }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: plugin-jars
           path: jars
+      # legacy_plugins: Vault 1.7.3 and a probe plugin built against PermissionsEx 1.23.4
+      # run against the API adapter (scripts/legacy-plugins).
+      - if: matrix.legacy_plugins
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - if: matrix.legacy_plugins
+        name: Build legacy plugins
+        run: bash scripts/legacy-plugins/build.sh
       - name: Run server
         run: |
           case "${{ matrix.jar }}" in
@@ -118,6 +135,9 @@ jobs:
           extra=()
           if [ "${{ matrix.adapters }}" = "true" ]; then
             mapfile -t extra < <(find jars -name 'PermissionsExApiAdapter-*-shaded.jar' -o -name 'PermissionsExCommandAdapter-*-shaded.jar')
+          fi
+          if [ "${{ matrix.legacy_plugins }}" = "true" ]; then
+            mapfile -t extra < <(find jars -name 'PermissionsExApiAdapter-*-shaded.jar'; find target/legacy-plugins -name '*.jar')
           fi
           PLAYER_TEST="${{ matrix.player && '1' || '0' }}" \
             bash scripts/smoke-test.sh "${{ matrix.type }}" "${{ matrix.version }}" "${{ matrix.java }}" "$plugin" "${extra[@]}"

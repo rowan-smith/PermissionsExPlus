@@ -33,6 +33,29 @@ The adapter tracks PermissionsEx 1.23.6:
   See [the PermissionsEx placeholder list](/docs/integrations/placeholder-api/overview).
   PermissionsExPlus's own placeholders, `%permissionsexplus_...%`, are separate.
 
+## Compatibility with existing plugins
+
+The adapter keeps every public member of the PermissionsEx 1.23.4 and 1.23.5 APIs, including
+the static `PermissionsEx.getUser(Player)` and `PermissionsEx.getUser(String)` that 1.23.5 removed
+but most older plugins call, and `PermissionUser.setGroups(List)` from 1.21. It is tested with:
+
+- **Vault 1.7.3.** Vault's own PermissionsEx hooks, which Vault registers ahead of other providers,
+  for permissions, groups, prefixes and options.
+- **Plugins of the 1.23.4 era** (ColorMe, FactionsChat, PermissionsExAddon, PexManager,
+  PrefixedPlayerlist, WordRankUp and ChatEx): every PermissionsEx call they make links against the
+  adapter, and they run on Paper 1.8.8, 1.12.2 and 1.21.4 with a player joining and chatting.
+
+To check a plugin of your own, put its jar in a folder and run:
+
+```bash
+mvn -pl PermissionsExApiAdapter test -Dtest=LegacyPluginLinkageTest -Dpex.legacyPlugins=/path/to/folder
+```
+
+It lists any PermissionsEx method, constructor or field the plugin uses that the adapter lacks.
+
+Vault 1.7.3's group *info* setters (`setGroupInfoString` and the like) pass their arguments in the
+wrong order and never worked with any PermissionsEx; reading group info through Vault works.
+
 ## Differences from PermissionsEx
 
 - Group names are stored in lower case, so `getIdentifier()` returns `vip` for a group created

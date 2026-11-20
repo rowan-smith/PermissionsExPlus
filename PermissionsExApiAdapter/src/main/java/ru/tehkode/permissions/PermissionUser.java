@@ -733,6 +733,26 @@ public class PermissionUser extends PermissionEntity {
     }
 
     /**
+     * From PermissionsEx 1.21 - 1.21.2, kept for plugins built against it.
+     *
+     * @deprecated use {@link #setParentsIdentifier(List, String)}
+     */
+    @Deprecated
+    public void setGroups(List<String> groups, String worldName) {
+        setParentsIdentifier(groups, worldName);
+    }
+
+    /**
+     * From PermissionsEx 1.21 - 1.21.2, kept for plugins built against it.
+     *
+     * @deprecated use {@link #setParentsIdentifier(List)}
+     */
+    @Deprecated
+    public void setGroups(List<String> groups) {
+        setParentsIdentifier(groups);
+    }
+
+    /**
      * Set parent groups for user
      *
      * @param parentGroups

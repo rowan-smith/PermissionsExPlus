@@ -64,6 +64,35 @@ public class PermissionsExConfig {
         return false;
     }
 
+    // PermissionsEx 1.23.4 settings removed in 1.23.5, kept for binary
+    // compatibility.
+    // PermissionsExPlus has no auto-updater and syncs servers itself (Redis), not
+    // with NetEvents.
+
+    /** @deprecated always false: there is no auto-updater */
+    @Deprecated
+    public boolean updaterEnabled() {
+        return false;
+    }
+
+    /** @deprecated always false: there is no auto-updater */
+    @Deprecated
+    public boolean alwaysUpdate() {
+        return false;
+    }
+
+    /** @deprecated always false: NetEvents is not used */
+    @Deprecated
+    public boolean useNetEvents() {
+        return false;
+    }
+
+    /** @deprecated always empty: NetEvents server tags are not used */
+    @Deprecated
+    public java.util.List<String> getServerTags() {
+        return java.util.Collections.emptyList();
+    }
+
     public String getBasedir() {
         if (plugin != null) {
             return plugin.getDataFolder().getPath();

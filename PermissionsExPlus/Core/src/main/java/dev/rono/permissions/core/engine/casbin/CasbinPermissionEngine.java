@@ -66,6 +66,10 @@ public final class CasbinPermissionEngine implements PermissionEngine {
 
         var model = Model.newModelFromString(MODEL);
         this.enforcer = new Enforcer(model);
+        // jcasbin logs every request at INFO by default: on a server that is a console
+        // line
+        // per permission check. PermissionsExPlus has its own debug logging for that.
+        this.enforcer.enableLog(false);
         this.enforcer.addFunction("pexMatch", new PexMatchFunction(support));
         this.enforcer.addFunction("pexCtx", new PexContextFunction());
         this.enforcer.setEffector(effector);
