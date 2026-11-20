@@ -28,12 +28,11 @@ import org.junit.jupiter.api.Test;
  * resolves it when the plugin runs.
  *
  * <p>
- * Plugins come from {@code target/legacy-plugins} (Vault 1.7.3 and the
- * LegacyPexProbe, built by {@code scripts/legacy-plugins/build.sh}) and from
+ * Plugins come from {@code src/test/resources/legacy-plugins} (real plugins of
+ * the PermissionsEx 1.x era), {@code target/legacy-plugins} (Vault 1.7.3 and
  * the
- * directory in {@code -Dpex.legacyPlugins=...}, if set. The test is skipped
- * when
- * there are none.
+ * LegacyPexProbe, built by {@code scripts/legacy-plugins/build.sh}) and the
+ * directory in {@code -Dpex.legacyPlugins=...}, if set.
  */
 class LegacyPluginLinkageTest {
     private static final String PACKAGE = "ru/tehkode/";
@@ -69,6 +68,7 @@ class LegacyPluginLinkageTest {
 
     private static List<File> legacyPluginJars() {
         List<File> jars = new ArrayList<>();
+        addJars(jars, new File("src/test/resources/legacy-plugins"));
         addJars(jars, new File("../target/legacy-plugins"));
 
         String extra = System.getProperty("pex.legacyPlugins");

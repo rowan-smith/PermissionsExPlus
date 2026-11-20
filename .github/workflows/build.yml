@@ -137,7 +137,12 @@ jobs:
             mapfile -t extra < <(find jars -name 'PermissionsExApiAdapter-*-shaded.jar' -o -name 'PermissionsExCommandAdapter-*-shaded.jar')
           fi
           if [ "${{ matrix.legacy_plugins }}" = "true" ]; then
-            mapfile -t extra < <(find jars -name 'PermissionsExApiAdapter-*-shaded.jar'; find target/legacy-plugins -name '*.jar')
+            # Real plugins of the PermissionsEx 1.x era too; ChatEx needs Minecraft 1.18+.
+            skip='-name NONE'
+            [ "${{ matrix.java }}" != java21 ] && skip='-name ChatEx*'
+            # shellcheck disable=SC2086
+            mapfile -t extra < <(find jars -name 'PermissionsExApiAdapter-*-shaded.jar'; find target/legacy-plugins -name '*.jar'
+              find PermissionsExApiAdapter/src/test/resources/legacy-plugins -name '*.jar' ! $skip)
           fi
           PLAYER_TEST="${{ matrix.player && '1' || '0' }}" \
             bash scripts/smoke-test.sh "${{ matrix.type }}" "${{ matrix.version }}" "${{ matrix.java }}" "$plugin" "${extra[@]}"
