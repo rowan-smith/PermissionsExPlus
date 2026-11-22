@@ -13,8 +13,6 @@
         <module>PermissionsExCommandAdapter</module>
         <module>PermissionsExPlus</module>
         <module>PermissionsExPlusApi</module>
-        <module>Test</module>
-        <module>Test2</module>
     </modules>
 
     <properties>

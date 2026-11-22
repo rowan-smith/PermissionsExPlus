@@ -1,8 +1,0 @@
-name: Test2
-version: '${version}'
-
-main: dev.rono.permissions.test2.Test2
-api-version: '1.21'
-load: STARTUP
-
-authors: [Rono]
