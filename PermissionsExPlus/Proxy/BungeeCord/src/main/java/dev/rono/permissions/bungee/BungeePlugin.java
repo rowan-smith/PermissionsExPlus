@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import net.md_5.bungee.api.CommandSender;
+import org.bstats.bungeecord.Metrics;
+import org.bstats.charts.SimplePie;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.LoginEvent;
@@ -23,7 +25,11 @@ import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
 public final class BungeePlugin extends Plugin implements Listener {
+    /** PermissionsExPlus's BungeeCord plugin ID on bstats.org. */
+    static final int BSTATS_PLUGIN_ID = 35502;
+
     private PexApiImpl<CommandSender> core;
+    private Metrics metrics;
 
     @Override
     public void onEnable() {
@@ -40,6 +46,25 @@ public final class BungeePlugin extends Plugin implements Listener {
         getProxy().getPluginManager().registerListener(this, this);
 
         PexRegistration.register(core);
+
+        startMetrics();
+    }
+
+    /**
+     * Starts bStats unless hooks.bstats is false. Statistics are best effort and
+     * never stop the plugin from enabling.
+     */
+    private void startMetrics() {
+        if (!core.config().bstatsEnabled()) {
+            return;
+        }
+
+        try {
+            metrics = new Metrics(this, BSTATS_PLUGIN_ID);
+            metrics.addCustomChart(new SimplePie("storage_backend", () -> core.backend().current().name()));
+        } catch (RuntimeException | LinkageError unavailable) {
+            getLogger().log(Level.WARNING, "bStats metrics are unavailable", unavailable);
+        }
     }
 
     private List<String> serverNames() {
@@ -50,6 +75,11 @@ public final class BungeePlugin extends Plugin implements Listener {
     public void onDisable() {
         if (core == null) {
             return;
+        }
+
+        if (metrics != null) {
+            metrics.shutdown();
+            metrics = null;
         }
 
         PexRegistration.unregister(core);

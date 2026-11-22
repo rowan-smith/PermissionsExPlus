@@ -32,7 +32,8 @@ class ConfigurationTest {
                 + "hooks:\n"
                 + "  vault:\n"
                 + "    enabled: false\n"
-                + "  placeholder-api: false\n"));
+                + "  placeholder-api: false\n"
+                + "  bstats: false\n"));
 
         var configuration = GeneralConfiguration.load(platform());
 
@@ -44,6 +45,7 @@ class ConfigurationTest {
         assertTrue(configuration.verboseDebug());
         assertFalse(configuration.vaultEnabled());
         assertFalse(configuration.placeholderApiEnabled());
+        assertFalse(configuration.bstatsEnabled());
     }
 
     @Test
@@ -270,6 +272,8 @@ class ConfigurationTest {
 
         assertEquals("default", general.defaultGroup());
         assertTrue(general.shorthandExpansionsEnabled());
+        assertTrue(general.bstatsEnabled());
+        assertFalse(general.nativePermissionsRequired());
         assertEquals("mix_mode", advanced.uuidSource());
         assertEquals("localhost", advanced.redisHost());
         assertEquals(BackendType.H2, backend.type());

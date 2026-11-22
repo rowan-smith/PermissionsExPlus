@@ -63,7 +63,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           java-version: '8'
-          distribution: 'temurin'
+          # Zulu: the Temurin 8 download has repeatedly failed to extract on the runners.
+          distribution: 'zulu'
       - name: Run tests on Java 8
         # Not offline: the test classpath can need provided dependencies that
         # compiling never downloaded.

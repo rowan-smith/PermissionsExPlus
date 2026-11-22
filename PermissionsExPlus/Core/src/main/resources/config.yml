@@ -40,6 +40,11 @@ hooks:
   # native permission checks (Player#hasPermission). If it cannot, because the
   # server build is unsupported or another permissions plugin already did, those
   # checks ignore PermissionsExPlus. This is always logged and shown by /pex.
+  # Send anonymous usage statistics (server count, Minecraft version, storage backend) to
+  # bStats (https://bstats.org). bStats can also be turned off for every plugin in its own
+  # config (plugins/bStats/config.yml); on Sponge, Sponge's metrics settings apply too.
+  bstats: true
+
   native-permissions:
     # true:  refuse players whose checks cannot be taken over (fail closed).
     # false: let them play with the server's own permission handling.

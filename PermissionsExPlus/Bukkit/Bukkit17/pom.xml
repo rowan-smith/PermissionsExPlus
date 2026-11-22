@@ -71,6 +71,13 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <!-- bStats refuses to run unless it is relocated, so that plugins do not share it. -->
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.bstats</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
@@ -111,6 +118,13 @@
             <artifactId>placeholderapi</artifactId>
             <version>2.11.7</version>
             <scope>provided</scope>
+            <!-- PlaceholderAPI declares an older bStats, which would otherwise replace ours. -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bstats</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.MilkBowl</groupId>

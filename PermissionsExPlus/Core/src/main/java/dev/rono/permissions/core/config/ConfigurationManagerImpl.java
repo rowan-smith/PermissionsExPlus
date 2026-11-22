@@ -47,4 +47,9 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     public boolean nativePermissionsRequired() {
         return general.nativePermissionsRequired();
     }
+
+    /** Whether anonymous usage statistics are sent to bStats. */
+    public boolean bstatsEnabled() {
+        return general.bstatsEnabled();
+    }
 }

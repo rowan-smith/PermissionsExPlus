@@ -102,6 +102,11 @@
                                     <pattern>inet.ipaddr</pattern>
                                     <shadedPattern>dev.rono.permissions.libs.ipaddr</shadedPattern>
                                 </relocation>
+                                <!-- bStats refuses to run unless it is relocated. -->
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.bstats</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
@@ -142,6 +147,12 @@
         <dependency>
             <groupId>cloud.commandframework</groupId>
             <artifactId>cloud-bungee</artifactId>
+        </dependency>
+        <dependency>
+            <!-- Anonymous usage statistics (bstats.org), relocated above. -->
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bungeecord</artifactId>
+            <version>3.2.1</version>
         </dependency>
         <!-- Declared after Core so Core's library versions win at equal depth. -->
         <dependency>

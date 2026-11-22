@@ -1,5 +1,7 @@
 package dev.rono.permissions.sponge9;
 
+import org.bstats.sponge.Metrics;
+import org.bstats.charts.SimplePie;
 import com.google.inject.Inject;
 import dev.rono.permissions.api.PexRegistration;
 import dev.rono.permissions.core.PexApiImpl;
@@ -38,8 +40,15 @@ public final class Sponge9Plugin {
     private PexApiImpl<CommandCause> core;
     private PexPermissionService service;
 
+    /** PermissionsExPlus's Sponge plugin ID on bstats.org. */
+    static final int BSTATS_PLUGIN_ID = 35503;
+
+    private final Metrics.Factory metricsFactory;
+    private Metrics metrics;
+
     @Inject
-    public Sponge9Plugin(PluginContainer container, Logger logger, @ConfigDir(sharedRoot = false) Path configDirectory) {
+    public Sponge9Plugin(PluginContainer container, Logger logger, @ConfigDir(sharedRoot = false) Path configDirectory, Metrics.Factory metricsFactory) {
+        this.metricsFactory = metricsFactory;
         this.container = container;
         this.logger = logger;
         this.configDirectory = configDirectory;
@@ -80,6 +89,31 @@ public final class Sponge9Plugin {
     @Listener(order = Order.FIRST)
     public void onConstruct(ConstructPluginEvent event) {
         core();
+        startMetrics(event);
+    }
+
+    /**
+     * Starts bStats unless hooks.bstats is false (Sponge's own metrics consent
+     * applies as well). Statistics are best effort and never stop the plugin.
+     */
+    private void startMetrics(ConstructPluginEvent event) {
+        if (!core.config().bstatsEnabled() || metrics != null) {
+            return;
+        }
+
+        try {
+            metrics = metricsFactory.make(BSTATS_PLUGIN_ID);
+
+            // make() registers bStats for this event, which is already being
+            // delivered, so it is started here instead.
+            Sponge.eventManager().unregisterListeners(metrics);
+            // Charts can only be added once bStats has started.
+            metrics.startup(event);
+            metrics.addCustomChart(new SimplePie("storage_backend", () -> core.backend().current().name()));
+        } catch (RuntimeException | LinkageError unavailable) {
+            logger.warn("bStats metrics are unavailable", unavailable);
+            metrics = null;
+        }
     }
 
     @Listener
@@ -130,6 +164,11 @@ public final class Sponge9Plugin {
     public void onStopping(StoppingEngineEvent<Server> event) {
         if (core == null) {
             return;
+        }
+
+        if (metrics != null) {
+            metrics.shutdown();
+            metrics = null;
         }
 
         PexRegistration.unregister(core);

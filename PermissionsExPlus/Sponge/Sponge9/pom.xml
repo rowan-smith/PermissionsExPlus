@@ -116,6 +116,11 @@
                                     <pattern>inet.ipaddr</pattern>
                                     <shadedPattern>dev.rono.permissions.libs.ipaddr</shadedPattern>
                                 </relocation>
+                                <!-- bStats refuses to run unless it is relocated. -->
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.bstats</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
@@ -191,6 +196,20 @@
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- Anonymous usage statistics (bstats.org). -->
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-sponge</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+        <dependency>
+            <!-- bStats reads its config with Configurate's HOCON loader, which is relocated
+                 with the rest of the bundled Configurate, so it is bundled too (it carries
+                 its own Typesafe Config). -->
+            <groupId>org.spongepowered</groupId>
+            <artifactId>configurate-hocon</artifactId>
+            <version>${configurate.version}</version>
         </dependency>
     </dependencies>
 </project>

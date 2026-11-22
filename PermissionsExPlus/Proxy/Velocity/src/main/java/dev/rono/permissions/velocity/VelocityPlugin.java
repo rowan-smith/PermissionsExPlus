@@ -1,5 +1,7 @@
 package dev.rono.permissions.velocity;
 
+import org.bstats.velocity.Metrics;
+import org.bstats.charts.SimplePie;
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.PostOrder;
@@ -35,10 +37,16 @@ public final class VelocityPlugin {
     private final Logger logger;
     private final Path dataDirectory;
 
+    /** PermissionsExPlus's Velocity plugin ID on bstats.org. */
+    static final int BSTATS_PLUGIN_ID = 35504;
+
+    private final Metrics.Factory metricsFactory;
+
     private PexApiImpl<CommandSource> core;
 
     @Inject
-    public VelocityPlugin(ProxyServer proxy, PluginContainer container, Logger logger, @DataDirectory Path dataDirectory) {
+    public VelocityPlugin(ProxyServer proxy, PluginContainer container, Logger logger, @DataDirectory Path dataDirectory, Metrics.Factory metricsFactory) {
+        this.metricsFactory = metricsFactory;
         this.proxy = proxy;
         this.container = container;
         this.logger = logger;
@@ -53,6 +61,25 @@ public final class VelocityPlugin {
         core.contexts().registry().registerContextType("server", this::serverNames);
 
         PexRegistration.register(core);
+
+        startMetrics();
+    }
+
+    /**
+     * Starts bStats unless hooks.bstats is false. Statistics are best effort and
+     * never stop the plugin.
+     */
+    private void startMetrics() {
+        if (!core.config().bstatsEnabled()) {
+            return;
+        }
+
+        try {
+            Metrics metrics = metricsFactory.make(this, BSTATS_PLUGIN_ID);
+            metrics.addCustomChart(new SimplePie("storage_backend", () -> core.backend().current().name()));
+        } catch (RuntimeException | LinkageError unavailable) {
+            logger.warn("bStats metrics are unavailable", unavailable);
+        }
     }
 
     private List<String> serverNames() {

@@ -78,6 +78,21 @@ All existing configuration surfaces are retained:
 
 API flat-file data is stored in `data/permissions.yml` or `data/permissions.json`. SQL backends use the `pex_data` table. Redis messages use the `permissionsexplus` protocol namespace.
 
+### Metrics
+
+PermissionsExPlus sends anonymous usage statistics to [bStats](https://bstats.org): server
+count, Minecraft and Java versions, and the storage backend in use. Turn it off with
+`hooks.bstats: false` in `config.yml`, or for every plugin at once in bStats' own config
+(`plugins/bStats/`). On Sponge, statistics are only sent if the server owner allows
+plugin metrics in Sponge's settings.
+
+| Platform | bStats plugin ID |
+|---|---|
+| Bukkit, Spigot, Paper | 35426 |
+| BungeeCord | 35502 |
+| SpongeVanilla | 35503 |
+| Velocity | 35504 |
+
 ## API
 
 ```java

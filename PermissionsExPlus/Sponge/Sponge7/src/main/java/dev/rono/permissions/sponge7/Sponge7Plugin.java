@@ -1,5 +1,7 @@
 package dev.rono.permissions.sponge7;
 
+import org.bstats.sponge.Metrics;
+import org.bstats.charts.SimplePie;
 import com.google.inject.Inject;
 import dev.rono.permissions.api.PexApi;
 import dev.rono.permissions.api.PexRegistration;
@@ -36,6 +38,12 @@ public final class Sponge7Plugin {
     @ConfigDir(sharedRoot = false)
     private Path configDirectory;
 
+    /** PermissionsExPlus's Sponge plugin ID on bstats.org. */
+    static final int BSTATS_PLUGIN_ID = 35503;
+
+    @Inject
+    private Metrics.Factory metricsFactory;
+
     private PexApiImpl<CommandSource> core;
 
     @Listener(order = Order.FIRST)
@@ -51,6 +59,31 @@ public final class Sponge7Plugin {
         core.contexts().registry().registerContextType("world", Sponge7Plugin::worldNames);
 
         PexRegistration.register(core);
+
+        startMetrics(event);
+    }
+
+    /**
+     * Starts bStats unless hooks.bstats is false (Sponge's own metrics consent
+     * applies as well). Statistics are best effort and never stop the plugin.
+     */
+    private void startMetrics(GamePreInitializationEvent event) {
+        if (!core.config().bstatsEnabled()) {
+            return;
+        }
+
+        try {
+            Metrics metrics = metricsFactory.make(BSTATS_PLUGIN_ID);
+
+            // make() registers bStats for this event, which is already being
+            // delivered, so it is started here instead.
+            Sponge.getEventManager().unregisterListeners(metrics);
+            // Charts can only be added once bStats has started.
+            metrics.startup(event);
+            metrics.addCustomChart(new SimplePie("storage_backend", () -> core.backend().current().name()));
+        } catch (RuntimeException | LinkageError unavailable) {
+            logger.warn("bStats metrics are unavailable", unavailable);
+        }
     }
 
     private static List<String> worldNames() {

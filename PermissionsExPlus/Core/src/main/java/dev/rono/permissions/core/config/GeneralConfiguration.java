@@ -28,12 +28,22 @@ public class GeneralConfiguration {
      */
     boolean nativePermissionsRequired;
 
+    /**
+     * Whether anonymous usage statistics are sent to bStats, on platforms that do.
+     */
+    boolean bstatsEnabled;
+
     public GeneralConfiguration(String defaultGroup, boolean caseSensitive, boolean wildcardsEnabled, boolean allowNegations, boolean shorthandExpansionsEnabled, boolean verboseDebug, boolean vaultEnabled, boolean placeholderApiEnabled) {
         this(defaultGroup, caseSensitive, wildcardsEnabled, allowNegations, shorthandExpansionsEnabled, verboseDebug, vaultEnabled, placeholderApiEnabled, false);
     }
 
     public GeneralConfiguration(String defaultGroup, boolean caseSensitive, boolean wildcardsEnabled, boolean allowNegations, boolean shorthandExpansionsEnabled, boolean verboseDebug, boolean vaultEnabled, boolean placeholderApiEnabled, boolean nativePermissionsRequired) {
+        this(defaultGroup, caseSensitive, wildcardsEnabled, allowNegations, shorthandExpansionsEnabled, verboseDebug, vaultEnabled, placeholderApiEnabled, nativePermissionsRequired, true);
+    }
+
+    public GeneralConfiguration(String defaultGroup, boolean caseSensitive, boolean wildcardsEnabled, boolean allowNegations, boolean shorthandExpansionsEnabled, boolean verboseDebug, boolean vaultEnabled, boolean placeholderApiEnabled, boolean nativePermissionsRequired, boolean bstatsEnabled) {
         this.nativePermissionsRequired = nativePermissionsRequired;
+        this.bstatsEnabled = bstatsEnabled;
         this.defaultGroup = defaultGroup;
         this.caseSensitive = caseSensitive;
         this.wildcardsEnabled = wildcardsEnabled;
@@ -99,7 +109,8 @@ public class GeneralConfiguration {
                     root.node("debug", "verbose").getBoolean(false),
                     root.node("hooks", "vault", "enabled").getBoolean(true),
                     root.node("hooks", "placeholder-api").getBoolean(true),
-                    root.node("hooks", "native-permissions", "required").getBoolean(false));
+                    root.node("hooks", "native-permissions", "required").getBoolean(false),
+                    root.node("hooks", "bstats").getBoolean(true));
         } catch (Exception exception) {
             throw new IllegalStateException("Unable to load " + file, exception);
         }

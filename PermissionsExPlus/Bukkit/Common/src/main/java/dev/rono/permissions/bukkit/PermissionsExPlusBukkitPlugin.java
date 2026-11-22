@@ -29,6 +29,8 @@ import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicePriority;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.bukkit.plugin.java.JavaPlugin;
 import dev.rono.permissions.core.util.Immutables;
 
@@ -52,6 +54,11 @@ public abstract class PermissionsExPlusBukkitPlugin extends JavaPlugin {
 
     private VaultHookManager vaultHookManager = null;
     private PlaceholderApiHookManager placeholderApiHookManager = null;
+
+    /** PermissionsExPlus's Bukkit plugin ID on bstats.org. */
+    static final int BSTATS_PLUGIN_ID = 35426;
+
+    private Metrics metrics;
 
     @Override
     public void onEnable() {
@@ -113,6 +120,7 @@ public abstract class PermissionsExPlusBukkitPlugin extends JavaPlugin {
 
         hookVault();
         hookPlaceholderApi();
+        startMetrics();
     }
 
     private void failEnable(Throwable error) {
@@ -135,6 +143,7 @@ public abstract class PermissionsExPlusBukkitPlugin extends JavaPlugin {
 
         unhookVault();
         unhookPlaceholderApi();
+        stopMetrics();
 
         core.stop();
     }
@@ -162,6 +171,30 @@ public abstract class PermissionsExPlusBukkitPlugin extends JavaPlugin {
 
     private void refreshAll() {
         getServer().getScheduler().runTask(this, permissionInjector::refreshAll);
+    }
+
+    /**
+     * Starts bStats unless hooks.bstats is false. Statistics are best effort and
+     * never stop the plugin from enabling.
+     */
+    private void startMetrics() {
+        if (!core.config().bstatsEnabled() || metrics != null) {
+            return;
+        }
+
+        try {
+            metrics = new Metrics(this, BSTATS_PLUGIN_ID);
+            metrics.addCustomChart(new SimplePie("storage_backend", () -> core.backend().current().name()));
+        } catch (RuntimeException | LinkageError unavailable) {
+            getLogger().log(Level.WARNING, "bStats metrics are unavailable", unavailable);
+        }
+    }
+
+    private void stopMetrics() {
+        if (metrics != null) {
+            metrics.shutdown();
+            metrics = null;
+        }
     }
 
     private void hookVault() {

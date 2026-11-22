@@ -102,6 +102,23 @@ worlds:
 YAML
 
 mkdir -p "$work/staging"
+
+# Test servers must not report to bStats. Bukkit and BungeeCord read
+# plugins/bStats/config.yml, Velocity plugins/bStats/config.txt. They go through the
+# staging directory, whose files the image copies into the plugins folder as the server
+# user (a directory copied straight into the data directory would be owned by root and
+# stop the plugins being copied). Sponge only reports with the owner's metrics consent,
+# which these servers never give.
+case "$type" in
+    SPONGE*) ;;
+    *)
+        mkdir -p "$work/staging/bStats"
+        printf 'enabled: false\nserverUuid: "00000000-0000-0000-0000-000000000000"\nlogFailedRequests: false\nlogSentData: false\nlogResponseStatusText: false\n' \
+            > "$work/staging/bStats/config.yml"
+        printf 'enabled=false\nserver-uuid=00000000-0000-0000-0000-000000000000\nlog-errors=false\nlog-sent-data=false\nlog-response-status-text=false\n' \
+            > "$work/staging/bStats/config.txt" ;;
+esac
+
 for jar in "$@"; do
     cp "$jar" "$work/staging/"
     case "$(basename "$jar")" in
@@ -138,6 +155,15 @@ for _ in $(seq 1 600); do  # first boots download and patch the server: allow 20
         # classpath before they exist, so the very first start always fails once.
         if [ "$type" = SPONGE7 ] && [ "$restarted" = false ] && docker logs "$name" 2>&1 | grep 'launchwrapper/Launch' >/dev/null; then
             restarted=true
+            docker start "$name" >/dev/null
+            continue
+        fi
+        # BuildTools occasionally dies while downloading or compiling Spigot (seen on
+        # 1.11.2 and 1.14.4); a second start resumes the build.
+        if [ "$type" = SPIGOT ] && [ "$restarted" = false ]; then
+            restarted=true
+            echo "Spigot exited before starting; restarting once"
+            docker logs "$name" 2>&1 | grep -av '^\[init\] \.\.\.' | tail -15
             docker start "$name" >/dev/null
             continue
         fi
@@ -336,6 +362,13 @@ fi
 if [ -n "${other_errors//[[:space:]]/}" ]; then
     echo "note: plugin errors unrelated to PermissionsEx (usually Bukkit APIs this server lacks):"
     printf '%s\n' "$other_errors" | grep -v '^$' | sort -u | head -10 | sed 's/^/       /'
+fi
+
+# bStats must load (it refuses to run when not relocated), even though it sends nothing here.
+if log | grep 'bStats metrics are unavailable' >/dev/null; then
+    log | grep -a -A3 'bStats metrics are unavailable' | head -10
+    echo "FAIL: bStats did not start"
+    failures=$((failures + 1))
 fi
 
 # Any stack trace from PermissionsExPlus or the adapters is a failure.
