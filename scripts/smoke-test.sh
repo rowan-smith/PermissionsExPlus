@@ -130,13 +130,13 @@ echo "Waiting for $type $version ($java) to start..."
 ready='Done \([0-9.]+s\)!'
 [ "$proxy" = true ] && ready='Done \([0-9.]+s\)!|Listening on'
 for _ in $(seq 1 600); do  # first boots download and patch the server: allow 20 minutes
-    if docker logs "$name" 2>&1 | grep -qE "$ready"; then
+    if docker logs "$name" 2>&1 | grep -E "$ready" >/dev/null; then
         break
     fi
     if [ "$(docker inspect -f '{{.State.Running}}' "$name")" != "true" ]; then
         # SpongeVanilla 1.12 downloads its launcher libraries on first boot but builds its
         # classpath before they exist, so the very first start always fails once.
-        if [ "$type" = SPONGE7 ] && [ "$restarted" = false ] && docker logs "$name" 2>&1 | grep -q 'launchwrapper/Launch'; then
+        if [ "$type" = SPONGE7 ] && [ "$restarted" = false ] && docker logs "$name" 2>&1 | grep 'launchwrapper/Launch' >/dev/null; then
             restarted=true
             docker start "$name" >/dev/null
             continue
@@ -148,11 +148,21 @@ for _ in $(seq 1 600); do  # first boots download and patch the server: allow 20
     sleep 2
 done
 
+# Under pipefail, `log | grep -q` fails whenever grep stops reading before the log
+# ends (SIGPIPE), so greps over the log read all of it: `grep ... >/dev/null`.
 log() { docker logs "$name" 2>&1; }
 
+# The plugin's own lines, which the end of a long startup log no longer shows.
+plugin_log() {
+    echo "--- PermissionsExPlus and adapter log lines ---"
+    log | grep -aiE 'permissionsex|exception|caused by' | grep -vE 'Failed to read library list' | head -80
+    echo "---"
+}
+
 # Bukkit logs "[PermissionsExPlus] API ready"; Sponge "[permissionsexplus]: API ready".
-if ! log | grep -qiE 'permissionsexplus\]:? API ready'; then
+if ! log | grep -iE 'permissionsexplus\]:? API ready' >/dev/null; then
     log | tail -60
+    plugin_log
     echo "FAIL: PermissionsExPlus did not report 'API ready'"
     exit 1
 fi
@@ -163,9 +173,21 @@ failures=0
 # 127.0.0.1 explicitly: the proxy RCON plugins listen on IPv4 only. Output is joined
 # onto one line with single spaces because BungeeCord's RCON plugin returns each text
 # component on its own line.
+#
+# Older servers sometimes drop a new RCON connection before it is authenticated
+# ("Failed to connect to RCON server"). The command was never sent then, so it is
+# safe to send it again.
 console() {
-    docker exec "$name" rcon-cli --host 127.0.0.1 --port 25575 --password pex "$1" 2>&1 \
-        | sed 's/\x1b\[[0-9;]*m//g; s/§.//g' | tr '\n' ' ' | tr -s ' '
+    local output attempt
+    for attempt in 1 2 3 4 5; do
+        output="$(docker exec "$name" rcon-cli --host 127.0.0.1 --port 25575 --password pex "$1" 2>&1 \
+            | sed 's/\x1b\[[0-9;]*m//g; s/§.//g' | tr '\n' ' ' | tr -s ' ')"
+        case "$output" in
+            *"Failed to connect to RCON"*) sleep 1 ;;
+            *) break ;;
+        esac
+    done
+    printf '%s' "$output"
 }
 
 expect() { # <command> <regex>
@@ -237,11 +259,11 @@ if [ "${PLAYER_TEST:-0}" = 1 ] && [ "$proxy" = false ] && [ "$legacy_commands" =
     docker start "$bot" >/dev/null
 
     for _ in $(seq 1 150); do
-        docker logs "$bot" 2>&1 | grep -qE 'SPAWNED|KICKED|ERROR|ENDED' && break
+        docker logs "$bot" 2>&1 | grep -E 'SPAWNED|KICKED|ERROR|ENDED' >/dev/null && break
         sleep 2
     done
 
-    if ! docker logs "$bot" 2>&1 | grep -q SPAWNED; then
+    if ! docker logs "$bot" 2>&1 | grep SPAWNED >/dev/null; then
         docker logs "$bot" 2>&1 | tail -20
         echo "FAIL: player bot did not join"
         failures=$((failures + 1))
@@ -277,7 +299,7 @@ if [ "${PLAYER_TEST:-0}" = 1 ] && [ "$proxy" = false ] && [ "$legacy_commands" =
         # broadcast it. (Checked in the server log: chat plugins may reformat it in ways
         # the bot cannot parse.)
         player 'hello from PexBot' >/dev/null || true
-        if log | grep -q 'hello from PexBot'; then
+        if log | grep 'hello from PexBot' >/dev/null; then
             echo "ok   player: chat message delivered"
         else
             echo "FAIL player: chat message was not broadcast"
@@ -323,6 +345,7 @@ if log | grep -E '^\s+at (dev\.rono|ru\.tehkode)\.' >/dev/null; then
 fi
 
 if [ "$failures" -gt 0 ]; then
+    plugin_log
     echo "FAILED: $failures check(s) on $type $version"
     exit 1
 fi

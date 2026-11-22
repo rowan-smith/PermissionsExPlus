@@ -64,7 +64,9 @@ jobs:
           java-version: '8'
           distribution: 'temurin'
       - name: Run tests on Java 8
-        run: java -version && mvn -B -o surefire:test -pl PermissionsExPlusApi,PermissionsExPlus/Core,PermissionsExApiAdapter
+        # Not offline: the test classpath can need provided dependencies that
+        # compiling never downloaded.
+        run: java -version && mvn -B surefire:test -pl PermissionsExPlusApi,PermissionsExPlus/Core,PermissionsExApiAdapter
 
   smoke:
     # Boots real servers in Docker with the built jars and drives them over RCON.
