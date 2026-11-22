@@ -97,6 +97,17 @@ jobs:
           # Minecraft 1.7.10 (Crucible, a Forge + Bukkit server).
           - { type: CRUCIBLE, version: '1.7.10', java: java8, jar: bukkit17, adapters: false }
           - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  adapters: true }
+          # Minecraft 26.x runs on Java 25. The player bot (mineflayer) supports 26.1 but
+          # not yet 26.2 or 26.3, which get the console checks only.
+          - { type: PAPER,   version: '26.1.2', java: java25, jar: paper,  adapters: false, player: true }
+          - { type: PAPER,   version: '26.2',   java: java25, jar: paper,  adapters: false }
+          - { type: PAPER,   version: '26.3',   java: java25, jar: paper,  adapters: true }
+          # PrefixedPlayerlist and FactionsChat call Bukkit methods 26.x removed and do not
+          # enable there; the probe and the other 1.x-era plugins must still work.
+          - { type: PAPER,   version: '26.3',   java: java25, jar: paper,  legacy_plugins: true }
+          - { type: SPIGOT,  version: '26.1.2', java: java25-jdk, jar: spigot, adapters: false, player: true }
+          - { type: SPIGOT,  version: '26.2',   java: java25-jdk, jar: spigot, adapters: false }
+          - { type: SPIGOT,  version: '26.3',   java: java25-jdk, jar: spigot, adapters: false }
           - { type: SPONGE7, version: '1.12.2-7.4.7', java: java8, jar: sponge7, adapters: false }
           - { type: SPONGE8, version: '1.16.5-8.2.1-RC2708', java: java8, jar: sponge8, adapters: false }
           - { type: SPONGE9, version: '1.18.2-9.0.0-RC1306', java: java17, jar: sponge9, adapters: false }
@@ -142,7 +153,7 @@ jobs:
           if [ "${{ matrix.legacy_plugins }}" = "true" ]; then
             # Real plugins of the PermissionsEx 1.x era too; ChatEx needs Minecraft 1.18+.
             skip='-name NONE'
-            [ "${{ matrix.java }}" != java21 ] && skip='-name ChatEx*'
+            case "${{ matrix.java }}" in java8 | java16 | java17) skip='-name ChatEx*' ;; esac
             # shellcheck disable=SC2086
             mapfile -t extra < <(find jars -name 'PermissionsExApiAdapter-*.jar'; find target/legacy-plugins -name '*.jar'
               find PermissionsExApiAdapter/src/test/resources/legacy-plugins -name '*.jar' ! $skip)

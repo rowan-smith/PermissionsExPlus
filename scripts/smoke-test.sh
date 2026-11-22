@@ -253,7 +253,7 @@ if [ "${PLAYER_TEST:-0}" = 1 ] && [ "$proxy" = false ] && [ "$legacy_commands" =
     docker network create "$network" >/dev/null
     docker network connect --alias mc "$network" "$name"
     # cd inside the container rather than -w /tmp, which Git Bash on Windows rewrites.
-    docker create --name "$bot" --network "$network" node:20-alpine \
+    docker create --name "$bot" --network "$network" node:22-alpine \
         sh -c 'cd /tmp && npm install --silent --no-audit --no-fund mineflayer@4 >/dev/null 2>&1 && node bot.js mc' >/dev/null
     cp "$script_dir/player-bot/bot.js" "$work/bot.js"
     docker cp "$work/bot.js" "$bot:/tmp/bot.js"
