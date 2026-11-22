@@ -9,10 +9,29 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 import dev.rono.permissions.core.util.Immutables;
 
+/**
+ * Persistent storage of users, groups and ladders.
+ *
+ * <p>
+ * Every completed write is durable. Saving a snapshot that carries a non-zero
+ * revision succeeds only if storage still holds that revision; otherwise it
+ * throws {@link StorageConflictException}. Stores shared by several servers
+ * check revisions; single-server stores may ignore them.
+ * </p>
+ */
 public interface DataStore extends AutoCloseable {
     void open();
+
+    /**
+     * Runs {@code work} so that all of its writes are applied together or not
+     * at all. Nested calls join the outer transaction.
+     */
+    default <T> T transaction(Supplier<T> work) {
+        return work.get();
+    }
 
     Optional<String> get(String category, String key);
 

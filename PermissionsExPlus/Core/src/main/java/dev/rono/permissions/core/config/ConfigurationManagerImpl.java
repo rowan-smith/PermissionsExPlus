@@ -39,4 +39,12 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     public boolean placeholderApiEnabled() {
         return general.placeholderApiEnabled();
     }
+
+    /**
+     * Whether players are refused when native permission checks cannot be taken
+     * over.
+     */
+    public boolean nativePermissionsRequired() {
+        return general.nativePermissionsRequired();
+    }
 }

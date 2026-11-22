@@ -121,6 +121,6 @@ public final class GroupModifierImpl extends AbstractHolderModifier<GroupModifie
     }
 
     public GroupSnapshot build(Group previous) {
-        return new GroupSnapshot(previous.name(), weight, permissions, options, parents);
+        return new GroupSnapshot(previous.name(), weight, permissions, options, parents, previous instanceof GroupSnapshot ? ((GroupSnapshot) previous).revision() : 0);
     }
 }

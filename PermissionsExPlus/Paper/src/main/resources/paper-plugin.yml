@@ -2,7 +2,7 @@ name: PermissionsExPlus
 version: '${project.version}'
 
 main: dev.rono.permissions.paper.PaperPlugin
-api-version: '1.21.11'
+api-version: '1.21'
 load: STARTUP
 
 authors: [Rono]

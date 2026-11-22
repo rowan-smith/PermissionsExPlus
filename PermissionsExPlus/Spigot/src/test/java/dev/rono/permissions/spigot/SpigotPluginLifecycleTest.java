@@ -1,5 +1,6 @@
 package dev.rono.permissions.spigot;
 
+import dev.rono.permissions.bukkit.PermissionsExPlusBukkitPlugin;
 import dev.rono.permissions.api.PexProvider;
 import dev.rono.permissions.api.context.ContextSet;
 import dev.rono.permissions.api.event.user.UserModifiedEvent;
@@ -259,7 +260,7 @@ class SpigotPluginLifecycleTest {
 
     @SuppressWarnings("unchecked")
     private static PexApiImpl<CommandSender> core(SpigotPlugin plugin) throws Exception {
-        var field = SpigotPlugin.class.getDeclaredField("core");
+        var field = PermissionsExPlusBukkitPlugin.class.getDeclaredField("core");
 
         field.setAccessible(true);
 

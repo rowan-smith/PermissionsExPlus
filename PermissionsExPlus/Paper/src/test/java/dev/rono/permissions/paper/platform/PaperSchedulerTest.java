@@ -1,5 +1,6 @@
 package dev.rono.permissions.paper.platform;
 
+import dev.rono.permissions.bukkit.platform.BukkitTaskScheduler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class PaperSchedulerTest {
     void delayedExecutionConvertsMillisecondsToBukkitTicks() {
         var calls = new AtomicInteger();
 
-        new PaperScheduler(plugin).executeLater(calls::incrementAndGet, Duration.ofMillis(100));
+        new BukkitTaskScheduler(plugin).executeLater(calls::incrementAndGet, Duration.ofMillis(100));
 
         server.getScheduler().performTicks(1);
 
@@ -73,7 +74,7 @@ class PaperSchedulerTest {
     void cancellingPlatformTasksPreventsQueuedDelayedWork() {
         var calls = new AtomicInteger();
 
-        var scheduler = new PaperScheduler(plugin);
+        var scheduler = new BukkitTaskScheduler(plugin);
 
         scheduler.executeLater(calls::incrementAndGet, Duration.ofMillis(100));
 
@@ -88,7 +89,7 @@ class PaperSchedulerTest {
     void mainThreadExecutionRunsOnTheMockBukkitScheduler() {
         var calls = new AtomicInteger();
 
-        var scheduler = new PaperScheduler(plugin);
+        var scheduler = new BukkitTaskScheduler(plugin);
 
         assertTrue(scheduler.isMainThread());
 
@@ -104,7 +105,7 @@ class PaperSchedulerTest {
     void delayedExecutionUsesTheEquivalentBukkitTickCount(long milliseconds, long ticks) {
         var calls = new AtomicInteger();
 
-        new PaperScheduler(plugin).executeLater(calls::incrementAndGet, Duration.ofMillis(milliseconds));
+        new BukkitTaskScheduler(plugin).executeLater(calls::incrementAndGet, Duration.ofMillis(milliseconds));
 
         if (ticks > 1) {
             server.getScheduler().performTicks(ticks - 1);

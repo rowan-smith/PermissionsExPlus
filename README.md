@@ -50,8 +50,7 @@ api.users().find(playerId).thenAccept(optional -> optional.ifPresent(user -> {
 ```
 
 The facade also exposes `backend()` for storage discovery, `contexts()` for runtime
-context calculators, `placeholders()` for cache-only placeholder resolution, and `events()`
-for lifecycle and modification subscriptions.
+context calculators, and `events()` for lifecycle and modification subscriptions.
 
 Mutations use atomic modifiers and complete after persistence and cache replacement:
 
@@ -61,6 +60,10 @@ api.users().modify(playerId, modifier -> modifier
         .addGroup("member")
         .setPrefix("[Member]"));
 ```
+
+On a database shared by several servers, a change that another server saved first is not
+overwritten: the modification is applied again to the newly stored user or group, so the
+modifier action may run more than once and should only describe the change.
 
 ## Commands
 

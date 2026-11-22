@@ -27,7 +27,12 @@ import javax.sql.DataSource;
  * </p>
  */
 final class JdbcSchema {
-    static final int CURRENT_VERSION = 1;
+    static final int CURRENT_VERSION = 2;
+
+    /** Tables whose rows carry a revision for optimistic locking (version 2). */
+    private static final String[] REVISIONED_TABLES = {"pex_users", "pex_groups", "pex_ladders"};
+
+    private static final String REVISION_COLUMN = "revision BIGINT DEFAULT 0 NOT NULL";
 
     private final JdbcDialect dialect;
 
@@ -59,12 +64,15 @@ final class JdbcSchema {
 
         tables.put("pex_users", Arrays.asList(
                 "id VARCHAR(36) NOT NULL PRIMARY KEY",
-                "name VARCHAR(64) NOT NULL UNIQUE"));
+                "name VARCHAR(64) NOT NULL UNIQUE",
+                REVISION_COLUMN));
         tables.put("pex_groups", Arrays.asList(
                 "name VARCHAR(64) NOT NULL PRIMARY KEY",
-                "weight INTEGER"));
+                "weight INTEGER",
+                REVISION_COLUMN));
         tables.put("pex_ladders", Arrays.asList(
-                "name VARCHAR(64) NOT NULL PRIMARY KEY"));
+                "name VARCHAR(64) NOT NULL PRIMARY KEY",
+                REVISION_COLUMN));
         tables.put("pex_ladder_groups", Arrays.asList(
                 "id VARCHAR(36) NOT NULL PRIMARY KEY",
                 "ladder_name VARCHAR(64) NOT NULL",
@@ -143,15 +151,35 @@ final class JdbcSchema {
             throw newerSchema(version);
         }
 
-        if (version == 0) {
-            // Fresh database, or one created by the earlier Hibernate store, which
-            // had no version table but the same version-1 layout.
+        if (version < 2) {
+            // Version 2 adds the revision column. Tables created by this build
+            // already have it; older ones get it added.
+            DatabaseMetaData metadata = connection.getMetaData();
+
             try (Statement statement = connection.createStatement()) {
-                statement.executeUpdate("INSERT INTO pex_schema (version) VALUES (" + CURRENT_VERSION + ")");
+                for (String table : REVISIONED_TABLES) {
+                    if (!columns(metadata, connection, table).contains("revision")) {
+                        statement.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + REVISION_COLUMN);
+                    }
+                }
             }
         }
 
-        // Future migrations: if (version < 2) { ...; setVersion(connection, 2); }
+        if (version < CURRENT_VERSION) {
+            setVersion(connection, version);
+        }
+
+        // Future migrations: if (version < 3) { ... }
+    }
+
+    private static void setVersion(Connection connection, int previous) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            // Version 0 is a fresh database, or one created by the earlier
+            // Hibernate store, which had no version row.
+            statement.executeUpdate(previous == 0
+                    ? "INSERT INTO pex_schema (version) VALUES (" + CURRENT_VERSION + ")"
+                    : "UPDATE pex_schema SET version = " + CURRENT_VERSION);
+        }
     }
 
     private void validate(Connection connection) throws SQLException {

@@ -36,6 +36,15 @@ hooks:
   # Enable the optional PlaceholderAPI expansion when PlaceholderAPI is installed.
   placeholder-api: true
 
+  # Bukkit, Spigot and Paper only. PermissionsExPlus takes over each player's
+  # native permission checks (Player#hasPermission). If it cannot, because the
+  # server build is unsupported or another permissions plugin already did, those
+  # checks ignore PermissionsExPlus. This is always logged and shown by /pex.
+  native-permissions:
+    # true:  refuse players whose checks cannot be taken over (fail closed).
+    # false: let them play with the server's own permission handling.
+    required: false
+
 # ========================================================================
 #                        Debug & Log Options
 # ========================================================================

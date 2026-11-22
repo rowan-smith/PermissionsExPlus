@@ -20,12 +20,16 @@ import dev.rono.permissions.core.util.Strings;
  */
 public final class RedisSyncService {
     private static final String PREFIX = "permissionsexplus:invalidate-user:";
+    private static final String GROUP_PREFIX = "permissionsexplus:invalidate-group:";
+    private static final String LADDER_PREFIX = "permissionsexplus:invalidate-ladder:";
     private static final String AUDIT_PREFIX = "permissionsexplus:audit:";
 
     private final AdvancedConfiguration config;
     private final PlatformScheduler scheduler;
     private final PlatformLogger logger;
     private final Consumer<UUID> invalidator;
+    private final Consumer<String> groupInvalidator;
+    private final Consumer<String> ladderInvalidator;
     private final Consumer<String> auditReceiver;
     private final UUID origin;
 
@@ -38,7 +42,7 @@ public final class RedisSyncService {
             PlatformLogger logger,
             Consumer<UUID> invalidator) {
 
-        this(config, scheduler, logger, invalidator, ignored -> {}, UUID.randomUUID());
+        this(config, scheduler, logger, invalidator, ignored -> {}, ignored -> {}, ignored -> {}, UUID.randomUUID());
     }
 
     public RedisSyncService(
@@ -48,7 +52,19 @@ public final class RedisSyncService {
             Consumer<UUID> invalidator,
             Consumer<String> auditReceiver) {
 
-        this(config, scheduler, logger, invalidator, auditReceiver, UUID.randomUUID());
+        this(config, scheduler, logger, invalidator, ignored -> {}, ignored -> {}, auditReceiver, UUID.randomUUID());
+    }
+
+    public RedisSyncService(
+            AdvancedConfiguration config,
+            PlatformScheduler scheduler,
+            PlatformLogger logger,
+            Consumer<UUID> invalidator,
+            Consumer<String> groupInvalidator,
+            Consumer<String> ladderInvalidator,
+            Consumer<String> auditReceiver) {
+
+        this(config, scheduler, logger, invalidator, groupInvalidator, ladderInvalidator, auditReceiver, UUID.randomUUID());
     }
 
     RedisSyncService(AdvancedConfiguration config,
@@ -57,7 +73,7 @@ public final class RedisSyncService {
             Consumer<UUID> invalidator,
             UUID origin) {
 
-        this(config, scheduler, logger, invalidator, ignored -> {}, origin);
+        this(config, scheduler, logger, invalidator, ignored -> {}, ignored -> {}, ignored -> {}, origin);
     }
 
     RedisSyncService(AdvancedConfiguration config,
@@ -67,10 +83,24 @@ public final class RedisSyncService {
             Consumer<String> auditReceiver,
             UUID origin) {
 
+        this(config, scheduler, logger, invalidator, ignored -> {}, ignored -> {}, auditReceiver, origin);
+    }
+
+    RedisSyncService(AdvancedConfiguration config,
+            PlatformScheduler scheduler,
+            PlatformLogger logger,
+            Consumer<UUID> invalidator,
+            Consumer<String> groupInvalidator,
+            Consumer<String> ladderInvalidator,
+            Consumer<String> auditReceiver,
+            UUID origin) {
+
         this.config = config;
         this.scheduler = scheduler;
         this.logger = logger;
         this.invalidator = invalidator;
+        this.groupInvalidator = groupInvalidator;
+        this.ladderInvalidator = ladderInvalidator;
         this.auditReceiver = auditReceiver;
         this.origin = origin;
     }
@@ -97,11 +127,28 @@ public final class RedisSyncService {
     }
 
     public void publishInvalidation(UUID user) {
+        publish(PREFIX, user.toString(), "UUID " + user);
+    }
+
+    /**
+     * Tells other servers to re-read one group. Sent for created, changed,
+     * renamed and deleted groups.
+     */
+    public void publishGroupInvalidation(String group) {
+        publish(GROUP_PREFIX, group, "group '" + group + "'");
+    }
+
+    /** Tells other servers to re-read one ladder. */
+    public void publishLadderInvalidation(String ladder) {
+        publish(LADDER_PREFIX, ladder, "ladder '" + ladder + "'");
+    }
+
+    private void publish(String prefix, String subject, String description) {
         scheduler.executeAsync(() -> {
             try (var jedis = connection()) {
-                jedis.publish(config.redisChannel(), PREFIX + origin + ':' + user);
+                jedis.publish(config.redisChannel(), prefix + origin + ':' + subject);
 
-                logger.info("[Sync] Published cache refresh for UUID " + user + " to Redis channel '" + config.redisChannel() + "'");
+                logger.info("[Sync] Published cache refresh for " + description + " to Redis channel '" + config.redisChannel() + "'");
             } catch (Exception error) {
                 logger.warn("[Sync] Redis publish failed: " + error.getMessage());
             }
@@ -160,6 +207,16 @@ public final class RedisSyncService {
             return;
         }
 
+        if (message.startsWith(GROUP_PREFIX)) {
+            handleNamed(message, GROUP_PREFIX, "group", groupInvalidator);
+            return;
+        }
+
+        if (message.startsWith(LADDER_PREFIX)) {
+            handleNamed(message, LADDER_PREFIX, "ladder", ladderInvalidator);
+            return;
+        }
+
         if (!message.startsWith(PREFIX)) {
             return;
         }
@@ -180,6 +237,26 @@ public final class RedisSyncService {
             logger.info("[Sync] Received remote refresh for UUID " + id);
 
             invalidator.accept(id);
+        } catch (IllegalArgumentException ignored) {
+            logger.warn("[Sync] Dropped malformed Redis payload");
+        }
+    }
+
+    private void handleNamed(String message, String prefix, String kind, Consumer<String> invalidator) {
+        try {
+            var parts = message.substring(prefix.length()).split(":", 2);
+            if (parts.length != 2 || parts[1].isEmpty()) {
+                throw new IllegalArgumentException("Missing origin or " + kind + " name");
+            }
+
+            var source = UUID.fromString(parts[0]);
+            if (origin.equals(source)) {
+                return;
+            }
+
+            logger.info("[Sync] Received remote refresh for " + kind + " '" + parts[1] + "'");
+
+            invalidator.accept(parts[1]);
         } catch (IllegalArgumentException ignored) {
             logger.warn("[Sync] Dropped malformed Redis payload");
         }

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.model;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import dev.rono.permissions.api.options.OptionNode;
@@ -21,7 +23,19 @@ public class UserSnapshot implements User {
     Set<OptionNode> explicitOptions;
     Set<ParentNode> groups;
 
+    /**
+     * The stored revision this snapshot was read at, or 0 when it was not read
+     * from revision-checked storage. Not part of the snapshot's value.
+     */
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    long revision;
+
     public UserSnapshot(UUID uniqueId, String name, Set<PermissionNode> explicitPermissions, Set<OptionNode> explicitOptions, Set<ParentNode> groups) {
+        this(uniqueId, name, explicitPermissions, explicitOptions, groups, 0);
+    }
+
+    public UserSnapshot(UUID uniqueId, String name, Set<PermissionNode> explicitPermissions, Set<OptionNode> explicitOptions, Set<ParentNode> groups, long revision) {
         Objects.requireNonNull(uniqueId, "uniqueId");
 
         name = Objects.requireNonNull(name, "name").trim();
@@ -39,5 +53,6 @@ public class UserSnapshot implements User {
         this.explicitPermissions = explicitPermissions;
         this.explicitOptions = explicitOptions;
         this.groups = groups;
+        this.revision = revision;
     }
 }

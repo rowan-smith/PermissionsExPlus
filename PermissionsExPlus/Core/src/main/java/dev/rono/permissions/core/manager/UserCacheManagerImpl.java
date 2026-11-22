@@ -123,6 +123,30 @@ public final class UserCacheManagerImpl implements UserCacheManager {
         offlineCache.invalidate(id);
     }
 
+    /**
+     * Returns an action that puts this user's entry back as it is now, for
+     * undoing a change made by an operation that failed.
+     */
+    synchronized Runnable restorer(UUID id) {
+        var wasOnline = online.contains(id);
+        var before = onlineCache.containsKey(id) ? onlineCache.get(id) : offlineCache.getIfPresent(id);
+
+        return () -> {
+            synchronized (this) {
+                if (wasOnline) {
+                    online.add(id);
+                }
+
+                if (before != null) {
+                    put(before);
+                } else {
+                    onlineCache.remove(id);
+                    offlineCache.invalidate(id);
+                }
+            }
+        };
+    }
+
     public synchronized void markOnline(UUID id) {
         online.add(id);
 

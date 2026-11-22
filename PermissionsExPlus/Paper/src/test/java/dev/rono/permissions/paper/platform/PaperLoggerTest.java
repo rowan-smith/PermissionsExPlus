@@ -1,5 +1,6 @@
 package dev.rono.permissions.paper.platform;
 
+import dev.rono.permissions.bukkit.platform.BukkitLogger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ class PaperLoggerTest {
 
         var cause = new IllegalStateException("storage failed");
 
-        var adapter = new PaperLogger(logger);
+        var adapter = new BukkitLogger(logger);
 
         adapter.info("started");
 

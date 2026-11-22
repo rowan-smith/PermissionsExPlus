@@ -6,6 +6,13 @@ The `PermissionsExApiAdapter` provides binary compatibility with the legacy Perm
 
 Plugins written for PermissionsEx 1.23.4 can continue to function on a server running PermissionsExPlus by using this adapter.
 
+## Versioning
+
+The adapters are versioned separately from PermissionsExPlus. Their version is the
+PermissionsEx 1.x release whose API and commands they reproduce, currently 1.23.6, so
+`PermissionsExApiAdapter-1.23.6` runs plugins written for PermissionsEx up to 1.23.6 on
+PermissionsExPlus 2.x.
+
 ## Implementation Details
 
 - It wraps the modern `PexApi` and translates calls back and forth.

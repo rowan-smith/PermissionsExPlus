@@ -9,6 +9,11 @@
     </parent>
 
     <artifactId>PermissionsExApiAdapter</artifactId>
+    <!--
+        Versioned independently of PermissionsExPlus (2.x): this artifact implements the
+        PermissionsEx API, and its version is the PermissionsEx 1.x release it matches.
+        Keep it in step with the other adapter.
+    -->
     <version>1.23.6</version>
 
     <packaging>jar</packaging>

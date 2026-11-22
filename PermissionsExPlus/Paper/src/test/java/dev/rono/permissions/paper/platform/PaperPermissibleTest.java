@@ -1,5 +1,6 @@
 package dev.rono.permissions.paper.platform;
 
+import dev.rono.permissions.bukkit.platform.PermissionsExPlusPermissible;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

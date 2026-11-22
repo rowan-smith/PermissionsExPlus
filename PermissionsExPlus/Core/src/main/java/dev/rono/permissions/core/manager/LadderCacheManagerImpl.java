@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.manager;
 
+import lombok.var;
+
 import dev.rono.permissions.api.ladder.Ladder;
 import dev.rono.permissions.api.ladder.LadderCacheManager;
 import dev.rono.permissions.api.util.Identifiers;
@@ -47,6 +49,24 @@ public final class LadderCacheManagerImpl implements LadderCacheManager {
 
     synchronized void remove(String name) {
         cache.remove(Identifiers.ladder(name));
+    }
+
+    /**
+     * Returns an action that puts this entry back as it is now, for undoing a
+     * change made by an operation that failed.
+     */
+    synchronized Runnable restorer(String name) {
+        var before = cache.get(name);
+
+        return () -> {
+            synchronized (this) {
+                if (before != null) {
+                    cache.put(name, before);
+                } else {
+                    cache.remove(name);
+                }
+            }
+        };
     }
 
     synchronized void clear() {

@@ -73,6 +73,6 @@ public final class LadderModifierImpl implements LadderModifier {
     }
 
     public LadderSnapshot build(Ladder previous) {
-        return new LadderSnapshot(previous.name(), groups);
+        return new LadderSnapshot(previous.name(), groups, previous instanceof LadderSnapshot ? ((LadderSnapshot) previous).revision() : 0);
     }
 }

@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.command;
 
+import lombok.var;
+
 import cloud.commandframework.annotations.CommandMethod;
 import cloud.commandframework.annotations.CommandPermission;
 import dev.rono.permissions.core.PexApiImpl;
@@ -28,7 +30,12 @@ public final class RootCommands<C> extends CommandSupport<C> {
     @CommandMethod("reload")
     @CommandPermission("pex.reload")
     public void reload(C sender) {
-        core.reload();
+        try {
+            core.reload();
+        } catch (RuntimeException error) {
+            reply(sender, "§cReload failed: " + error.getMessage() + ". The previous configuration is still in use; see the console.");
+            return;
+        }
 
         audit(sender, "RELOADED PermissionsExPlus");
 
@@ -39,6 +46,12 @@ public final class RootCommands<C> extends CommandSupport<C> {
     @CommandPermission("pex.version")
     public void version(C sender) {
         heading(sender, "PermissionsExPlus", "API");
+
+        var health = core.platformHealth();
+
+        if (!health.isEmpty()) {
+            section(sender, "Health", health);
+        }
     }
 
     @CommandMethod("debug")

@@ -12,6 +12,7 @@
 
     <modules>
         <module>Core</module>
+        <module>BukkitCommon</module>
         <module>Spigot</module>
         <module>Paper</module>
         <module>SpigotLegacy</module>

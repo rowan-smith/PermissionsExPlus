@@ -114,6 +114,6 @@ public final class UserModifierImpl extends AbstractHolderModifier<UserModifier>
     }
 
     public UserSnapshot build(User previous) {
-        return new UserSnapshot(previous.uniqueId(), username, permissions, options, groups);
+        return new UserSnapshot(previous.uniqueId(), username, permissions, options, groups, previous instanceof UserSnapshot ? ((UserSnapshot) previous).revision() : 0);
     }
 }

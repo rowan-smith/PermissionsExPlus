@@ -38,8 +38,7 @@ class StorageTest {
         assertFalse(first.remove("missing", "id"));
 
         first.put("users", "id", "{\"name\":\"Rono\"}");
-        assertTrue(first.dirty());
-        first.checkpoint();
+        // Written through: nothing is left for a checkpoint to save.
         assertFalse(first.dirty());
         first.close();
 

@@ -21,7 +21,19 @@ public class GeneralConfiguration {
     boolean vaultEnabled;
     boolean placeholderApiEnabled;
 
+    /**
+     * Whether a player whose native permission checks cannot be handed to
+     * PermissionsExPlus is refused, instead of playing with the server's own
+     * permission handling.
+     */
+    boolean nativePermissionsRequired;
+
     public GeneralConfiguration(String defaultGroup, boolean caseSensitive, boolean wildcardsEnabled, boolean allowNegations, boolean shorthandExpansionsEnabled, boolean verboseDebug, boolean vaultEnabled, boolean placeholderApiEnabled) {
+        this(defaultGroup, caseSensitive, wildcardsEnabled, allowNegations, shorthandExpansionsEnabled, verboseDebug, vaultEnabled, placeholderApiEnabled, false);
+    }
+
+    public GeneralConfiguration(String defaultGroup, boolean caseSensitive, boolean wildcardsEnabled, boolean allowNegations, boolean shorthandExpansionsEnabled, boolean verboseDebug, boolean vaultEnabled, boolean placeholderApiEnabled, boolean nativePermissionsRequired) {
+        this.nativePermissionsRequired = nativePermissionsRequired;
         this.defaultGroup = defaultGroup;
         this.caseSensitive = caseSensitive;
         this.wildcardsEnabled = wildcardsEnabled;
@@ -86,7 +98,8 @@ public class GeneralConfiguration {
                     root.node("wildcards", "enable-shorthand-expansions").getBoolean(true),
                     root.node("debug", "verbose").getBoolean(false),
                     root.node("hooks", "vault", "enabled").getBoolean(true),
-                    root.node("hooks", "placeholder-api").getBoolean(true));
+                    root.node("hooks", "placeholder-api").getBoolean(true),
+                    root.node("hooks", "native-permissions", "required").getBoolean(false));
         } catch (Exception exception) {
             throw new IllegalStateException("Unable to load " + file, exception);
         }

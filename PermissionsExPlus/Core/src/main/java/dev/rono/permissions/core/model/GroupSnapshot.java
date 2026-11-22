@@ -1,5 +1,7 @@
 package dev.rono.permissions.core.model;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import dev.rono.permissions.api.group.Group;
@@ -21,7 +23,19 @@ public class GroupSnapshot implements Group {
     Set<OptionNode> explicitOptions;
     Set<ParentNode> parents;
 
+    /**
+     * The stored revision this snapshot was read at, or 0 when it was not read
+     * from revision-checked storage. Not part of the snapshot's value.
+     */
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    long revision;
+
     public GroupSnapshot(String name, OptionalInt weight, Set<PermissionNode> explicitPermissions, Set<OptionNode> explicitOptions, Set<ParentNode> parents) {
+        this(name, weight, explicitPermissions, explicitOptions, parents, 0);
+    }
+
+    public GroupSnapshot(String name, OptionalInt weight, Set<PermissionNode> explicitPermissions, Set<OptionNode> explicitOptions, Set<ParentNode> parents, long revision) {
         name = Identifiers.group(name);
         weight = weight == null ? OptionalInt.empty() : weight;
         explicitPermissions = Immutables.copyOfSet(explicitPermissions);
@@ -33,5 +47,6 @@ public class GroupSnapshot implements Group {
         this.explicitPermissions = explicitPermissions;
         this.explicitOptions = explicitOptions;
         this.parents = parents;
+        this.revision = revision;
     }
 }

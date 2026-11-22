@@ -1,5 +1,7 @@
 package dev.rono.permissions.spigot.platform;
 
+import dev.rono.permissions.bukkit.platform.BukkitPermissionInjector;
+import dev.rono.permissions.bukkit.platform.PermissionsExPlusPermissible;
 import dev.rono.permissions.api.permission.PermissionResult;
 import org.bukkit.permissions.PermissibleBase;
 import org.junit.jupiter.api.AfterEach;
@@ -11,6 +13,7 @@ import org.mockbukkit.mockbukkit.plugin.PluginMock;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -33,10 +36,35 @@ class SpigotPermissionInjectorTest {
 
     @Test
     void unsupportedPlayerImplementationDisablesOnlyTheOptionalInjector() {
-        var injector = new SpigotPermissionInjector(plugin,
+        var injector = new BukkitPermissionInjector(plugin,
                 (player, node) -> PermissionResult.UNDEFINED);
 
-        assertFalse(injector.inject(server.addPlayer("alex")));
+        var player = server.addPlayer("alex");
+
+        assertFalse(injector.injectOrRefuse(player));
+        server.getScheduler().performOneTick();
+
+        assertTrue(player.isOnline(), "players stay unless injection is required");
+        assertEquals(BukkitPermissionInjector.PermissionHookStatus.UNAVAILABLE, injector.status());
+        assertTrue(injector.healthLine().contains("NOT controlled"));
+        assertTrue(injector.failureReason().isPresent());
+
+        injector.close();
+    }
+
+    @Test
+    void requiredInjectionRefusesPlayersItCannotControl() {
+        var injector = new BukkitPermissionInjector(plugin,
+                (player, node) -> PermissionResult.UNDEFINED);
+        injector.requireInjection(true);
+
+        var player = server.addPlayer("alex");
+
+        assertFalse(injector.injectOrRefuse(player));
+        server.getScheduler().performOneTick();
+
+        assertFalse(player.isOnline(), "fail closed: the player must not play with uncontrolled permissions");
+        assertTrue(injector.healthLine().contains("players are refused"));
 
         injector.close();
     }

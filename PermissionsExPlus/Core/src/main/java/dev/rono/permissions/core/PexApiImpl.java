@@ -5,8 +5,16 @@ import lombok.var;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import dev.rono.permissions.api.PexApi;
+import dev.rono.permissions.api.event.Event;
 import dev.rono.permissions.api.event.Subscription;
+import dev.rono.permissions.api.event.group.GroupCreatedEvent;
+import dev.rono.permissions.api.event.group.GroupDeletedEvent;
 import dev.rono.permissions.api.event.group.GroupModifiedEvent;
+import dev.rono.permissions.api.event.ladder.LadderCreatedEvent;
+import dev.rono.permissions.api.event.ladder.LadderDeletedEvent;
+import dev.rono.permissions.api.event.ladder.LadderModifiedEvent;
+import dev.rono.permissions.api.event.user.UserCreatedEvent;
+import dev.rono.permissions.api.event.user.UserDeletedEvent;
 import dev.rono.permissions.api.event.user.UserModifiedEvent;
 import dev.rono.permissions.api.permission.PermissionResult;
 import dev.rono.permissions.core.backend.BackendManagerImpl;
@@ -68,6 +76,12 @@ public final class PexApiImpl<C> implements PexApi {
     private volatile Runtime<C> runtime;
 
     private volatile RedisSyncService redis;
+
+    /*
+     * Set while a change received from another server is applied, so that the
+     * local events it publishes are not sent back over Redis.
+     */
+    private final ThreadLocal<Boolean> applyingRemoteChange = ThreadLocal.withInitial(() -> false);
 
     private volatile int maintenanceTask = -1, checkpointTask = -1;
 
@@ -237,6 +251,11 @@ public final class PexApiImpl<C> implements PexApi {
         return () -> reloadListeners.remove(listener);
     }
 
+    /** The platform's health lines, for {@code /pex version}. */
+    public List<String> platformHealth() {
+        return platform.healthReport();
+    }
+
     public CoreStateTracker stateTracker() {
         return platformStateTracker;
     }
@@ -271,8 +290,7 @@ public final class PexApiImpl<C> implements PexApi {
         } catch (RuntimeException error) {
             starting = false;
 
-            state.store.close();
-            state.tasks.close();
+            shutdown(state);
 
             throw error;
         }
@@ -293,26 +311,31 @@ public final class PexApiImpl<C> implements PexApi {
             return;
         }
 
+        shutdown(runtime);
+
+        started = false;
+    }
+
+    /** Releases everything a runtime has started, including a partial start. */
+    private void shutdown(Runtime<C> state) {
         if (redis != null) {
             redis.stop();
             redis = null;
         }
 
         if (maintenanceTask >= 0) {
-            runtime.scheduler.cancelTask(maintenanceTask);
+            state.scheduler.cancelTask(maintenanceTask);
         }
 
         if (checkpointTask >= 0) {
-            runtime.scheduler.cancelTask(checkpointTask);
+            state.scheduler.cancelTask(checkpointTask);
         }
 
         maintenanceTask = checkpointTask = -1;
 
-        releaseSubscriptions(runtime);
-        runtime.store.close();
-        runtime.tasks.close();
-
-        started = false;
+        releaseSubscriptions(state);
+        state.store.close();
+        state.tasks.close();
     }
 
     public synchronized void reload() {
@@ -320,15 +343,43 @@ public final class PexApiImpl<C> implements PexApi {
             throw new IllegalStateException("Cannot reload before PermissionsExPlus has started");
         }
 
-        // Build the replacement first: a configuration or storage error leaves the
-        // current runtime serving requests untouched.
+        var previous = runtime;
+
+        // Build the replacement first: a configuration error leaves the current
+        // runtime serving requests untouched.
         var next = createRuntime();
 
         stop();
 
         runtime = next;
 
-        start();
+        try {
+            start();
+        } catch (RuntimeException error) {
+            // Storage is only opened by start(), so an unreachable database or
+            // unreadable data fails here. Restart with the configuration that was
+            // working rather than leaving no runtime at all.
+            platform.logger().warn("Reload failed (" + error.getMessage() + "); restarting with the previous configuration");
+
+            try {
+                runtime = createRuntime(previous.config);
+                start();
+            } catch (RuntimeException rollbackError) {
+                error.addSuppressed(rollbackError);
+            }
+
+            notifyReloadListeners();
+
+            throw error;
+        }
+
+        notifyReloadListeners();
+    }
+
+    private void notifyReloadListeners() {
+        if (!started) {
+            return;
+        }
 
         for (var listener : reloadListeners) {
             try {
@@ -360,8 +411,10 @@ public final class PexApiImpl<C> implements PexApi {
     }
 
     private Runtime<C> createRuntime() {
-        var config = ConfigurationManagerImpl.load(platform.configuration());
+        return createRuntime(ConfigurationManagerImpl.load(platform.configuration()));
+    }
 
+    private Runtime<C> createRuntime(ConfigurationManagerImpl config) {
         var store = createStore(config);
 
         var tasks = new CoreTaskExecutor(config.advanced().workerPoolSize(), error -> platform.logger().error("Uncaught core worker failure", error));
@@ -417,9 +470,21 @@ public final class PexApiImpl<C> implements PexApi {
             placeholders.invalidate(event.current().uniqueId());
             permissionEngine.invalidateSubject("user:" + event.current().uniqueId());
         }));
+        subscriptions.add(events.subscribe(UserDeletedEvent.class, event -> {
+            placeholders.invalidate(event.user().uniqueId());
+            permissionEngine.invalidateSubject("user:" + event.user().uniqueId());
+        }));
+        // Group membership fans out to many users — full invalidation is required.
         subscriptions.add(events.subscribe(GroupModifiedEvent.class, event -> {
             placeholders.invalidateAll();
-            // Group membership fans out to many users — full invalidation is required.
+            permissionEngine.invalidate();
+        }));
+        subscriptions.add(events.subscribe(GroupCreatedEvent.class, event -> {
+            placeholders.invalidateAll();
+            permissionEngine.invalidate();
+        }));
+        subscriptions.add(events.subscribe(GroupDeletedEvent.class, event -> {
+            placeholders.invalidateAll();
             permissionEngine.invalidate();
         }));
 
@@ -571,17 +636,11 @@ public final class PexApiImpl<C> implements PexApi {
             return;
         }
 
-        redis = new RedisSyncService(state.config.advanced(), state.scheduler, platform.logger(), id -> {
-            if (!state.users.cache().isCached(id)) {
-                return;
-            }
-
-            state.users.load(id).exceptionally(error -> {
-                state.users.cache().unload(id);
-
-                return null;
-            });
-        }, state.logger().audit()::receiveRemote);
+        redis = new RedisSyncService(state.config.advanced(), state.scheduler, platform.logger(),
+                id -> applyRemoteChange(state, () -> refreshRemoteUser(state, id)),
+                group -> applyRemoteChange(state, () -> state.groups.refreshFromStorage(group)),
+                ladder -> applyRemoteChange(state, () -> state.ladders.refreshFromStorage(ladder)),
+                state.logger().audit()::receiveRemote);
 
         state.logger().audit().attachNetworkPublisher(redis::publishAudit);
 
@@ -589,8 +648,51 @@ public final class PexApiImpl<C> implements PexApi {
 
         var publisher = redis;
 
-        state.subscriptions.add(events.subscribe(UserModifiedEvent.class, event -> publisher.publishInvalidation(event.current().uniqueId())));
-        state.subscriptions.add(events.subscribe(GroupModifiedEvent.class, event -> state.users.cache().identifiers().forEach(publisher::publishInvalidation)));
+        publishLocal(state, UserCreatedEvent.class, event -> publisher.publishInvalidation(event.user().uniqueId()));
+        publishLocal(state, UserModifiedEvent.class, event -> publisher.publishInvalidation(event.current().uniqueId()));
+        publishLocal(state, UserDeletedEvent.class, event -> publisher.publishInvalidation(event.user().uniqueId()));
+        publishLocal(state, GroupCreatedEvent.class, event -> publisher.publishGroupInvalidation(event.group().name()));
+        publishLocal(state, GroupModifiedEvent.class, event -> {
+            publisher.publishGroupInvalidation(event.current().name());
+
+            // A rename: the old name no longer exists.
+            if (!event.previous().name().equals(event.current().name())) {
+                publisher.publishGroupInvalidation(event.previous().name());
+            }
+        });
+        publishLocal(state, GroupDeletedEvent.class, event -> publisher.publishGroupInvalidation(event.group().name()));
+        publishLocal(state, LadderCreatedEvent.class, event -> publisher.publishLadderInvalidation(event.ladder().name()));
+        publishLocal(state, LadderModifiedEvent.class, event -> publisher.publishLadderInvalidation(event.current().name()));
+        publishLocal(state, LadderDeletedEvent.class, event -> publisher.publishLadderInvalidation(event.ladder().name()));
+    }
+
+    /** Sends a local change to other servers, but not one that came from them. */
+    private <E extends Event> void publishLocal(Runtime<C> state, Class<E> type, Consumer<? super E> publish) {
+        state.subscriptions.add(events.subscribe(type, event -> {
+            if (!applyingRemoteChange.get()) {
+                publish.accept(event);
+            }
+        }));
+    }
+
+    private void applyRemoteChange(Runtime<C> state, Runnable change) {
+        state.tasks.execute(() -> {
+            applyingRemoteChange.set(true);
+
+            try {
+                change.run();
+            } finally {
+                applyingRemoteChange.set(false);
+            }
+        });
+    }
+
+    private void refreshRemoteUser(Runtime<C> state, UUID id) {
+        // Decisions can outlive the cached user, so they are dropped even when the
+        // user is not cached here.
+        state.placeholders.invalidate(id);
+        state.permissionEngine.invalidateSubject("user:" + id);
+        state.users.refreshFromStorage(id);
     }
 
     @Value

@@ -10,6 +10,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
@@ -17,13 +18,13 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import dev.rono.permissions.core.util.Immutables;
 
 /**
- * Flat-file {@link DataStore} with write-behind persistence.
+ * Flat-file {@link DataStore}.
  *
  * <p>
- * Mutations update the in-memory map immediately and mark the store dirty.
- * Durable writes happen on {@link #checkpoint()}, {@link #close()}, or an
- * explicit flush. The API scheduler already invokes {@code checkpoint()} on
- * {@code auto-save-interval}.
+ * Every write is saved to disk before it returns, by writing a temporary file
+ * and moving it over the old one. Writes inside a {@link #transaction} are
+ * saved
+ * once, when the transaction ends, and are undone in memory if it fails.
  * </p>
  */
 public final class FlatDataStore implements DataStore {
@@ -32,6 +33,7 @@ public final class FlatDataStore implements DataStore {
 
     private final Map<String, Map<String, String>> data = new LinkedHashMap<>();
     private boolean dirty;
+    private int transactionDepth;
 
     public FlatDataStore(Path directory, boolean yaml) {
         this.yaml = yaml;
@@ -70,13 +72,44 @@ public final class FlatDataStore implements DataStore {
     }
 
     @Override
+    public synchronized <T> T transaction(Supplier<T> work) {
+        if (transactionDepth > 0) {
+            return work.get();
+        }
+
+        var saved = MemoryDataStore.copy(data);
+        T result;
+
+        transactionDepth++;
+
+        try {
+            result = work.get();
+        } catch (RuntimeException | Error error) {
+            transactionDepth--;
+            restore(saved);
+
+            throw error;
+        }
+
+        transactionDepth--;
+        persist(saved);
+
+        return result;
+    }
+
+    @Override
     public synchronized void put(String category, String key, String payload) {
+        var saved = transactionDepth > 0 ? null : MemoryDataStore.copy(data);
+
         data.computeIfAbsent(category, ignored -> new LinkedHashMap<>()).put(key, payload);
         dirty = true;
+
+        persist(saved);
     }
 
     @Override
     public synchronized boolean remove(String category, String key) {
+        var saved = transactionDepth > 0 ? null : MemoryDataStore.copy(data);
         var values = data.get(category);
         var changed = values != null && values.remove(key) != null;
 
@@ -86,9 +119,36 @@ public final class FlatDataStore implements DataStore {
             }
 
             dirty = true;
+
+            persist(saved);
         }
 
         return changed;
+    }
+
+    /**
+     * Saves pending writes unless a transaction is still open. If the save
+     * fails, memory goes back to {@code saved}, the state on disk.
+     */
+    private void persist(Map<String, Map<String, String>> saved) {
+        if (transactionDepth > 0 || !dirty) {
+            return;
+        }
+
+        try {
+            save();
+            dirty = false;
+        } catch (RuntimeException error) {
+            restore(saved);
+
+            throw error;
+        }
+    }
+
+    private void restore(Map<String, Map<String, String>> saved) {
+        data.clear();
+        data.putAll(saved);
+        dirty = false;
     }
 
     @Override

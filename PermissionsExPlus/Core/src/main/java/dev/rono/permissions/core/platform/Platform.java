@@ -2,6 +2,7 @@ package dev.rono.permissions.core.platform;
 
 import cloud.commandframework.CommandManager;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import dev.rono.permissions.core.util.Immutables;
@@ -102,6 +103,15 @@ public interface Platform<C> {
      * @return a set of strings representing the identifiers of the supported
      *         integrations
      */
+    /**
+     * Problems and states an administrator should know about, one line each,
+     * such as native permission checks that PermissionsExPlus does not control.
+     * Shown by {@code /pex version}.
+     */
+    default List<String> healthReport() {
+        return Immutables.listOf();
+    }
+
     default Set<String> integrations() {
         return Immutables.setOf();
     }

@@ -14,6 +14,7 @@ import dev.rono.permissions.api.ladder.LadderModifier;
 import dev.rono.permissions.api.ladder.PromotionResult;
 import dev.rono.permissions.api.ladder.PromotionStatus;
 import dev.rono.permissions.api.parent.ParentNode;
+import dev.rono.permissions.api.event.Event;
 import dev.rono.permissions.api.user.User;
 import dev.rono.permissions.api.util.Identifiers;
 import dev.rono.permissions.core.event.EventBusImpl;
@@ -34,9 +35,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import dev.rono.permissions.core.util.Immutables;
 
 public final class LadderManagerImpl implements LadderManager {
+    private final DataStore store;
     private final LadderCacheManagerImpl cache;
     private final LadderStorageManagerImpl storage;
 
@@ -46,11 +49,25 @@ public final class LadderManagerImpl implements LadderManager {
     private UserManagerImpl users;
     private GroupManagerImpl groups;
 
+    /*
+     * Users, groups and ladders share one lock (the group manager's), because
+     * operations such as a group rename change all three in one transaction.
+     */
+    private volatile Object lock = this;
+
+    /**
+     * Uses the group manager's lock, so cross-manager operations cannot deadlock.
+     */
+    void shareLock(Object lock) {
+        this.lock = lock;
+    }
+
     public LadderManagerImpl(DataStore store, EventBusImpl events) {
         this(store, events, Runnable::run);
     }
 
     public LadderManagerImpl(DataStore store, EventBusImpl events, Executor executor) {
+        this.store = Objects.requireNonNull(store, "store");
         this.events = Objects.requireNonNull(events, "events");
         this.executor = Objects.requireNonNull(executor, "executor");
 
@@ -119,43 +136,45 @@ public final class LadderManagerImpl implements LadderManager {
         Objects.requireNonNull(name, "name");
 
         return Stages.call(() -> {
-            synchronized (this) {
-                var key = Identifiers.ladder(name);
+            synchronized (lock) {
+                return Mutations.run(store, () -> {
+                    var key = Identifiers.ladder(name);
 
-                if (storage.getNow(key).isPresent()) {
-                    throw new LadderAlreadyExistsException(key);
-                }
+                    if (storage.getNow(key).isPresent()) {
+                        throw new LadderAlreadyExistsException(key);
+                    }
 
-                var ladder = new LadderSnapshot(key, Immutables.listOf());
+                    var ladder = new LadderSnapshot(key, Immutables.listOf());
 
-                save(ladder);
-                events.publish(new LadderCreatedEventImpl(ladder));
+                    save(ladder);
+                    publish(new LadderCreatedEventImpl(ladder));
 
-                return ladder;
+                    return ladder;
+                });
             }
         }, executor);
     }
 
     public CompletionStage<Boolean> delete(String name) {
         return Stages.call(() -> {
-            synchronized (this) {
-                var key = Identifiers.ladder(name);
+            synchronized (lock) {
+                return Mutations.run(store, () -> {
+                    var key = Identifiers.ladder(name);
 
-                var previous = findNow(key);
+                    var previous = findNow(key);
 
-                var changed = storage.deleteNow(key);
+                    var changed = storage.deleteNow(key);
 
-                if (!changed) {
-                    return false;
-                }
+                    if (!changed) {
+                        return false;
+                    }
 
-                cache.remove(key);
+                    uncache(key);
 
-                previous.ifPresent(ladder -> {
-                    events.publish(new LadderDeletedEventImpl(ladder));
+                    previous.ifPresent(ladder -> publish(new LadderDeletedEventImpl(ladder)));
+
+                    return true;
                 });
-
-                return true;
             }
         }, executor);
     }
@@ -164,73 +183,119 @@ public final class LadderManagerImpl implements LadderManager {
         return Stages.call(() -> loadNow(name), executor);
     }
 
-    public synchronized void loadAll() {
-        cache.clear();
+    public void loadAll() {
+        synchronized (lock) {
+            cache.clear();
 
-        storage.allNow()
-                .values()
-                .forEach(cache::put);
+            storage.allNow()
+                    .values()
+                    .forEach(cache::put);
+        }
     }
 
-    synchronized void renameGroup(String oldName, String newName) {
-        for (var ladder : storage.allNow().values()) {
-            if (ladder.groups().contains(oldName)) {
-                modifyNow(ladder.name(), modifier -> modifier.setGroups(ladder.groups().stream().map(group -> group.equals(oldName) ? newName : group).collect(Immutables.toList())));
+    /**
+     * Re-reads one ladder from storage after another server changed it, and
+     * publishes the matching local event.
+     */
+    public void refreshFromStorage(String name) {
+        synchronized (lock) {
+            var key = Identifiers.ladder(name);
+            var previous = cache.get(key).map(LadderSnapshot.class::cast);
+            var current = storage.getNow(key);
+
+            if (current.isPresent()) {
+                cache.put(current.get());
+
+                events.publish(previous.isPresent()
+                        ? new LadderModifiedEventImpl(previous.get(), current.get())
+                        : new LadderCreatedEventImpl(current.get()));
+            } else if (previous.isPresent()) {
+                cache.remove(key);
+
+                events.publish(new LadderDeletedEventImpl(previous.get()));
             }
         }
     }
 
-    synchronized void removeGroup(String name) {
-        for (var ladder : storage.allNow().values()) {
-            if (ladder.groups().contains(name)) {
-                modifyNow(ladder.name(), modifier -> modifier.remove(name));
+    void renameGroup(String oldName, String newName) {
+        synchronized (lock) {
+            for (var ladder : storage.allNow().values()) {
+                if (ladder.groups().contains(oldName)) {
+                    modifyFromCurrent(ladder.name(), current -> modifier -> modifier.setGroups(current.groups().stream().map(group -> group.equals(oldName) ? newName : group).collect(Immutables.toList())));
+                }
             }
         }
     }
 
-    private synchronized Optional<LadderSnapshot> findNow(String name) {
-        var key = Identifiers.ladder(name);
-        var cached = cache.get(key).map(LadderSnapshot.class::cast);
-
-        if (cached.isPresent()) {
-            return cached;
+    void removeGroup(String name) {
+        synchronized (lock) {
+            for (var ladder : storage.allNow().values()) {
+                if (ladder.groups().contains(name)) {
+                    modifyNow(ladder.name(), modifier -> modifier.remove(name));
+                }
+            }
         }
+    }
 
-        return storage.getNow(key).map(ladder -> {
-            cache.put(ladder);
+    private Optional<LadderSnapshot> findNow(String name) {
+        synchronized (lock) {
+            var key = Identifiers.ladder(name);
+            var cached = cache.get(key).map(LadderSnapshot.class::cast);
+
+            if (cached.isPresent()) {
+                return cached;
+            }
+
+            return storage.getNow(key).map(ladder -> {
+                cache(ladder);
+
+                return ladder;
+            });
+        }
+    }
+
+    private LadderSnapshot loadNow(String name) {
+        synchronized (lock) {
+            var key = Identifiers.ladder(name);
+
+            var ladder = storage.getNow(key).orElseThrow(() -> new LadderNotFoundException(key));
+
+            cache(ladder);
 
             return ladder;
-        });
+        }
     }
 
-    private synchronized LadderSnapshot loadNow(String name) {
-        var key = Identifiers.ladder(name);
-
-        var ladder = storage.getNow(key).orElseThrow(() -> new LadderNotFoundException(key));
-
-        cache.put(ladder);
-
-        return ladder;
-    }
-
-    private synchronized Ladder modifyNow(String name, Consumer<LadderModifier> action) {
+    private Ladder modifyNow(String name, Consumer<LadderModifier> action) {
         Objects.requireNonNull(action, "action");
 
-        var previous = loadNow(name);
+        return modifyFromCurrent(name, ignored -> action);
+    }
 
-        var modifier = new LadderModifierImpl(previous);
+    /**
+     * Applies a change worked out from the ladder as stored now. A change that
+     * loses a race with another server is worked out again from a fresh read.
+     */
+    private Ladder modifyFromCurrent(String name, Function<LadderSnapshot, Consumer<LadderModifier>> change) {
+        synchronized (lock) {
+            return Mutations.run(store, () -> {
+                var previous = loadNow(name);
 
-        action.accept(modifier);
+                var modifier = new LadderModifierImpl(previous);
 
-        var current = modifier.build(previous);
+                change.apply(previous).accept(modifier);
 
-        validate(current);
+                var current = modifier.build(previous);
 
-        save(current);
+                validate(current);
 
-        events.publish(new LadderModifiedEventImpl(previous, current));
+                save(current);
 
-        return current;
+                publish(new LadderModifiedEventImpl(previous, current));
+
+                return current;
+            });
+        }
     }
 
     private void validate(Ladder ladder) {
@@ -255,7 +320,22 @@ public final class LadderManagerImpl implements LadderManager {
 
     private void save(LadderSnapshot ladder) {
         storage.saveNow(ladder);
+        cache(ladder);
+    }
+
+    /** Caches a ladder; undone if the surrounding operation fails. */
+    private void cache(LadderSnapshot ladder) {
+        Mutations.onRollback(cache.restorer(ladder.name()));
         cache.put(ladder);
+    }
+
+    private void uncache(String key) {
+        Mutations.onRollback(cache.restorer(key));
+        cache.remove(key);
+    }
+
+    private void publish(Event event) {
+        Mutations.afterCommit(() -> events.publish(event));
     }
 
     private CompletionStage<PromotionResult> move(UUID id, String ladderName, ContextSet contexts, boolean promote) {
@@ -264,7 +344,7 @@ public final class LadderManagerImpl implements LadderManager {
 
         final LadderSnapshot ladder;
 
-        synchronized (this) {
+        synchronized (lock) {
             ladder = loadNow(ladderName);
         }
 

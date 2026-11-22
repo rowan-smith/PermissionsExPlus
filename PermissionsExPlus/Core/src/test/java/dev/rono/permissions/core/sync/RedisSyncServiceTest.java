@@ -32,6 +32,43 @@ class RedisSyncServiceTest {
     }
 
     @Test
+    void remoteGroupInvalidationRequestsAGroupRefresh() {
+        var local = UUID.randomUUID();
+        var remote = UUID.randomUUID();
+        var users = new ArrayList<UUID>();
+        var groups = new ArrayList<String>();
+        var service = new RedisSyncService(config(), new RecordingScheduler(), new RecordingLogger(), users::add, groups::add, ignored -> {}, ignored -> {}, local);
+
+        service.handleMessage("pex-sync", "permissionsexplus:invalidate-group:" + remote + ":vip");
+        service.handleMessage("pex-sync", "permissionsexplus:invalidate-group:" + local + ":staff");
+
+        assertEquals(Immutables.listOf("vip"), groups);
+        assertEquals(Immutables.listOf(), users);
+    }
+
+    @Test
+    void remoteLadderInvalidationRequestsALadderRefresh() {
+        var ladders = new ArrayList<String>();
+        var service = new RedisSyncService(config(), new RecordingScheduler(), new RecordingLogger(), ignored -> {}, ignored -> {}, ladders::add, ignored -> {}, UUID.randomUUID());
+
+        service.handleMessage("pex-sync", "permissionsexplus:invalidate-ladder:" + UUID.randomUUID() + ":staff");
+
+        assertEquals(Immutables.listOf("staff"), ladders);
+    }
+
+    @Test
+    void dropsGroupInvalidationsWithoutAName() {
+        var logger = new RecordingLogger();
+        var groups = new ArrayList<String>();
+        var service = new RedisSyncService(config(), new RecordingScheduler(), logger, ignored -> {}, groups::add, ignored -> {}, ignored -> {}, UUID.randomUUID());
+
+        service.handleMessage("pex-sync", "permissionsexplus:invalidate-group:" + UUID.randomUUID() + ':');
+
+        assertEquals(Immutables.listOf(), groups);
+        assertEquals(1, logger.warnings.size());
+    }
+
+    @Test
     void ignoresWrongChannelsAndMalformedPackets() {
         var scheduler = new RecordingScheduler();
         var logger = new RecordingLogger();

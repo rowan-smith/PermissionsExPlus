@@ -1,5 +1,7 @@
 package dev.rono.permissions.spigot.platform;
 
+import dev.rono.permissions.bukkit.platform.BukkitTaskScheduler;
+import dev.rono.permissions.bukkit.platform.BukkitPlatform;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +39,7 @@ class SpigotSchedulerTest {
     void delayedExecutionConvertsMillisecondsToBukkitTicks() {
         var calls = new AtomicInteger();
 
-        new SpigotScheduler(plugin).executeLater(calls::incrementAndGet, Duration.ofMillis(100));
+        new BukkitTaskScheduler(plugin).executeLater(calls::incrementAndGet, Duration.ofMillis(100));
 
         server.getScheduler().performTicks(1);
 
@@ -50,7 +52,7 @@ class SpigotSchedulerTest {
 
     @Test
     void platformExposesThePluginConfigurationAndDetectsNoOptionalIntegrationsByDefault() {
-        var platform = new SpigotPlatform(plugin);
+        var platform = new BukkitPlatform(plugin);
 
         assertEquals(plugin.getDataFolder().toPath(), platform.configuration().dataDirectory());
 
@@ -64,7 +66,7 @@ class SpigotSchedulerTest {
     void platformSendsMessagesToBukkitCommandSenders(String message) {
         var player = server.addPlayer("alex");
 
-        new SpigotPlatform(plugin).sendMessage(player, message);
+        new BukkitPlatform(plugin).sendMessage(player, message);
 
         assertEquals(message, player.nextMessage());
     }
@@ -73,7 +75,7 @@ class SpigotSchedulerTest {
     void cancellingPlatformTasksPreventsQueuedDelayedWork() {
         var calls = new AtomicInteger();
 
-        var scheduler = new SpigotScheduler(plugin);
+        var scheduler = new BukkitTaskScheduler(plugin);
 
         scheduler.executeLater(calls::incrementAndGet, Duration.ofMillis(100));
 
@@ -88,7 +90,7 @@ class SpigotSchedulerTest {
     void mainThreadExecutionRunsOnTheMockBukkitScheduler() {
         var calls = new AtomicInteger();
 
-        var scheduler = new SpigotScheduler(plugin);
+        var scheduler = new BukkitTaskScheduler(plugin);
 
         assertTrue(scheduler.isMainThread());
 
@@ -104,7 +106,7 @@ class SpigotSchedulerTest {
     void delayedExecutionUsesTheEquivalentBukkitTickCount(long milliseconds, long ticks) {
         var calls = new AtomicInteger();
 
-        new SpigotScheduler(plugin).executeLater(calls::incrementAndGet, Duration.ofMillis(milliseconds));
+        new BukkitTaskScheduler(plugin).executeLater(calls::incrementAndGet, Duration.ofMillis(milliseconds));
 
         if (ticks > 1) {
             server.getScheduler().performTicks(ticks - 1);
@@ -122,7 +124,7 @@ class SpigotSchedulerTest {
             "data/permissions.json,data/permissions.json", "audit.log,audit.log",
             "worlds/survival.yml,worlds/survival.yml"})
     void configurationResolveKeepsPathsWithinThePluginDataDirectory(String child, String expectedSuffix) {
-        var resolved = new SpigotPlatform(plugin).configuration().resolve(child);
+        var resolved = new BukkitPlatform(plugin).configuration().resolve(child);
 
         assertEquals(plugin.getDataFolder().toPath().resolve(expectedSuffix), resolved);
     }
