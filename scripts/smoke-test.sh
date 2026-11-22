@@ -176,12 +176,13 @@ failures=0
 #
 # Older servers sometimes drop a new RCON connection before it is authenticated
 # ("Failed to connect to RCON server"). The command was never sent then, so it is
-# safe to send it again.
+# safe to send it again. It never fails itself: callers judge the output, and under
+# set -e a failed rcon-cli would otherwise end the whole run without a message.
 console() {
     local output attempt
     for attempt in 1 2 3 4 5; do
         output="$(docker exec "$name" rcon-cli --host 127.0.0.1 --port 25575 --password pex "$1" 2>&1 \
-            | sed 's/\x1b\[[0-9;]*m//g; s/§.//g' | tr '\n' ' ' | tr -s ' ')"
+            | sed 's/\x1b\[[0-9;]*m//g; s/§.//g' | tr '\n' ' ' | tr -s ' ')" || true
         case "$output" in
             *"Failed to connect to RCON"*) sleep 1 ;;
             *) break ;;

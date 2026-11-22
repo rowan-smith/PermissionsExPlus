@@ -41,8 +41,8 @@ jobs:
             PermissionsExPlus/Sponge9/target/PermissionsExPlus-Sponge9-*.jar
             PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
             PermissionsExPlus/BungeeCord/target/PermissionsExPlus-BungeeCord-*.jar
-            PermissionsExApiAdapter/target/*-shaded.jar
-            PermissionsExCommandAdapter/target/*-shaded.jar
+            PermissionsExApiAdapter/target/PermissionsExApiAdapter-*.jar
+            PermissionsExCommandAdapter/target/PermissionsExCommandAdapter-*.jar
           if-no-files-found: error
 
       - name: Create GitHub Release
@@ -59,6 +59,6 @@ jobs:
             PermissionsExPlus/Sponge9/target/PermissionsExPlus-Sponge9-*.jar
             PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
             PermissionsExPlus/BungeeCord/target/PermissionsExPlus-BungeeCord-*.jar
-            PermissionsExApiAdapter/target/*-shaded.jar
-            PermissionsExCommandAdapter/target/*-shaded.jar
+            PermissionsExApiAdapter/target/PermissionsExApiAdapter-*.jar
+            PermissionsExCommandAdapter/target/PermissionsExCommandAdapter-*.jar
           generate_release_notes: true
