@@ -182,6 +182,8 @@ log() { docker logs "$name" 2>&1; }
 plugin_log() {
     echo "--- PermissionsExPlus and adapter log lines ---"
     log | grep -aiE 'permissionsex|exception|caused by' | grep -vE 'Failed to read library list' | head -80
+    echo "--- last server log lines (state: $(docker inspect -f '{{.State.Status}}' "$name")) ---"
+    log | grep -av '^\[init\] \.\.\.' | tail -40
     echo "---"
 }
 
