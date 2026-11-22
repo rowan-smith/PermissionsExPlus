@@ -12,11 +12,15 @@
     <artifactId>Spigot</artifactId>
 
     <properties>
+        <minecraft.versions>1.21.11-26.3</minecraft.versions>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
-        <finalName>${project.parent.artifactId}-${project.artifactId}-${project.version}</finalName>
+        <!-- The release jar: PermissionsExPlus-Spigot-<Minecraft versions it supports>.
+             Keep minecraft.versions in step with the supported versions in
+             .agents/skills/platform-support. -->
+        <finalName>PermissionsExPlus-Spigot-${minecraft.versions}</finalName>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>

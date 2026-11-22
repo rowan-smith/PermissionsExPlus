@@ -18,12 +18,16 @@
     <artifactId>Sponge8</artifactId>
 
     <properties>
+        <minecraft.versions>1.16.5</minecraft.versions>
         <maven.compiler.release>8</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
-        <finalName>${project.parent.artifactId}-${project.artifactId}-${project.version}</finalName>
+        <!-- The release jar: PermissionsExPlus-Sponge-<Minecraft versions it supports>.
+             Keep minecraft.versions in step with the supported versions in
+             .agents/skills/platform-support. -->
+        <finalName>PermissionsExPlus-Sponge-${minecraft.versions}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

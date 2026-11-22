@@ -22,7 +22,8 @@
     </properties>
 
     <build>
-        <finalName>${project.parent.artifactId}-${project.artifactId}-${project.version}</finalName>
+        <!-- The release jar. Proxies are not tied to a Minecraft version. -->
+        <finalName>PermissionsExPlus-BungeeCord</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

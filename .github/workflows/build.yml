@@ -32,16 +32,16 @@ jobs:
         with:
           name: plugin-jars
           path: |
-            PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-SpigotLegacy-*.jar
-            PermissionsExPlus/Bukkit17/target/PermissionsExPlus-Bukkit17-*.jar
-            PermissionsExPlus/Spigot/target/PermissionsExPlus-Spigot-*.jar
-            PermissionsExPlus/Paper/target/PermissionsExPlus-Paper-*.jar
-            PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
-            PermissionsExPlus/Sponge8/target/PermissionsExPlus-Sponge8-*.jar
-            PermissionsExPlus/Sponge9/target/PermissionsExPlus-Sponge9-*.jar
-            PermissionsExPlus/Sponge11/target/PermissionsExPlus-Sponge11-*.jar
-            PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
-            PermissionsExPlus/BungeeCord/target/PermissionsExPlus-BungeeCord-*.jar
+            PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Bukkit17/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Spigot/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Paper/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Sponge7/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Sponge8/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Sponge9/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Sponge11/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Velocity/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/BungeeCord/target/PermissionsExPlus-*.jar
             PermissionsExApiAdapter/target/PermissionsExApiAdapter-*.jar
             PermissionsExCommandAdapter/target/PermissionsExCommandAdapter-*.jar
           if-no-files-found: error
@@ -167,18 +167,21 @@ jobs:
         run: bash scripts/legacy-plugins/build.sh
       - name: Run server
         run: |
+          # Release jars are named by platform and Minecraft versions (two are Spigot),
+          # so each is found by its module directory.
           case "${{ matrix.jar }}" in
-            legacy) plugin=$(find jars -name 'PermissionsExPlus-SpigotLegacy-*.jar' ! -name 'original-*') ;;
-            bukkit17) plugin=$(find jars -name 'PermissionsExPlus-Bukkit17-*.jar' ! -name 'original-*') ;;
-            spigot) plugin=$(find jars -name 'PermissionsExPlus-Spigot-*.jar' ! -name 'original-*') ;;
-            paper)  plugin=$(find jars -name 'PermissionsExPlus-Paper-*.jar' ! -name 'original-*') ;;
-            sponge7) plugin=$(find jars -name 'PermissionsExPlus-Sponge7-*.jar' ! -name 'original-*') ;;
-            sponge8) plugin=$(find jars -name 'PermissionsExPlus-Sponge8-*.jar' ! -name 'original-*') ;;
-            sponge9) plugin=$(find jars -name 'PermissionsExPlus-Sponge9-*.jar' ! -name 'original-*') ;;
-            sponge11) plugin=$(find jars -name 'PermissionsExPlus-Sponge11-*.jar' ! -name 'original-*') ;;
-            velocity) plugin=$(find jars -name 'PermissionsExPlus-Velocity-*.jar' ! -name 'original-*') ;;
-            bungeecord) plugin=$(find jars -name 'PermissionsExPlus-BungeeCord-*.jar' ! -name 'original-*') ;;
+            legacy) module=SpigotLegacy ;;
+            bukkit17) module=Bukkit17 ;;
+            spigot) module=Spigot ;;
+            paper) module=Paper ;;
+            sponge7) module=Sponge7 ;;
+            sponge8) module=Sponge8 ;;
+            sponge9) module=Sponge9 ;;
+            sponge11) module=Sponge11 ;;
+            velocity) module=Velocity ;;
+            bungeecord) module=BungeeCord ;;
           esac
+          plugin=$(find "jars/PermissionsExPlus/$module/target" -name 'PermissionsExPlus-*.jar')
           extra=()
           if [ "${{ matrix.adapters }}" = "true" ]; then
             # The adapters' shade plugin replaces the main jar (there is no "-shaded" jar).

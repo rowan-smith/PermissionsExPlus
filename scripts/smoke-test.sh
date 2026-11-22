@@ -20,10 +20,10 @@
 #   KEEP=1         leave the containers running afterwards, for debugging
 #
 # examples:
-#   scripts/smoke-test.sh PAPER 1.8.8 java8 PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-SpigotLegacy-*.jar
+#   scripts/smoke-test.sh PAPER 1.8.8 java8 PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-Spigot-1.8.8-1.20.6.jar
 #   scripts/smoke-test.sh PAPER 1.12.2 java8 <legacy.jar> <api-adapter.jar> <command-adapter.jar>
-#   scripts/smoke-test.sh SPONGE7 1.12.2-7.4.7 java8 PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
-#   scripts/smoke-test.sh VELOCITY latest java17 PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
+#   scripts/smoke-test.sh SPONGE7 1.12.2-7.4.8-RC427 java8 PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge-1.12.2.jar
+#   scripts/smoke-test.sh VELOCITY latest java17 PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity.jar
 set -euo pipefail
 
 type="$1"; version="$2"; java="$3"; shift 3

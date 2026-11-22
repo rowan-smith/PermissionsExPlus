@@ -39,5 +39,8 @@ Versions outside the list are neither tested nor promised. When the list changes
 these together:
 
 1. the smoke matrix in `.github/workflows/build.yml`;
-2. the requirements page in `docs/documentation/getting-started/requirements.md`;
-3. this list.
+2. the `minecraft.versions` property of each affected module's POM, which names its release
+   jar `PermissionsExPlus-<Platform>-<first>-<last>.jar` (for example
+   `PermissionsExPlus-Spigot-1.21.11-26.3.jar`; a single version has no range);
+3. the requirements page in `docs/documentation/getting-started/requirements.md`;
+4. this list.
