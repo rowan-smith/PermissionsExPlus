@@ -20,6 +20,7 @@
         <module>Sponge7</module>
         <module>Sponge8</module>
         <module>Sponge9</module>
+        <module>Sponge11</module>
         <module>Velocity</module>
         <module>BungeeCord</module>
     </modules>

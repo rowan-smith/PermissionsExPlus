@@ -5,7 +5,7 @@
 #
 # usage: scripts/smoke-test.sh <type> <version> <java-tag> <plugin.jar> [adapter.jar ...]
 #   type       PAPER, SPIGOT (built with BuildTools) or CRUCIBLE (1.7.10), all
-#              itzg/minecraft-server TYPEs; SPONGE7, SPONGE8, SPONGE9; VELOCITY or
+#              itzg/minecraft-server TYPEs; SPONGE7, SPONGE8, SPONGE9, SPONGE11; VELOCITY or
 #              BUNGEECORD (itzg/mc-proxy TYPE)
 #   version    Minecraft version; for Sponge the full build (e.g. 1.12.2-7.4.7,
 #              1.16.5-8.2.1-RC2708, 1.18.2-9.0.0-RC1306); for proxies "latest" or a
@@ -63,7 +63,7 @@ case "$type" in
         server=( -e TYPE=SPIGOT -e VERSION="$version" -e BUILD_FROM_SOURCE=true ) ;;
     SPONGE7)
         server=( -e TYPE=SPONGEVANILLA -e VERSION="${version%%-*}" -e SPONGEVERSION="$version" ) ;;
-    SPONGE8 | SPONGE9)
+    SPONGE8 | SPONGE9 | SPONGE11)
         # The image cannot resolve Sponge 8+ release-candidate builds; fetch the official jar.
         mkdir -p "$work/data"
         curl -sfL -o "$work/data/spongevanilla.jar" \

@@ -11,9 +11,9 @@
     </parent>
 
     <!--
-        Spigot/Paper 1.8.8 - 1.17 on Java 8+. An independent implementation of the
-        PermissionsExPlus platform, compiled against the oldest supported API so any
-        call that does not exist on 1.8.8 fails the build.
+        Spigot/Paper 1.8.8 - 1.20.6 on Java 8+: the entry point over BukkitCommon,
+        compiled against the 1.8.8 API so any call that does not exist there fails the
+        build.
     -->
     <artifactId>SpigotLegacy</artifactId>
 

@@ -39,6 +39,7 @@ jobs:
             PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
             PermissionsExPlus/Sponge8/target/PermissionsExPlus-Sponge8-*.jar
             PermissionsExPlus/Sponge9/target/PermissionsExPlus-Sponge9-*.jar
+            PermissionsExPlus/Sponge11/target/PermissionsExPlus-Sponge11-*.jar
             PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
             PermissionsExPlus/BungeeCord/target/PermissionsExPlus-BungeeCord-*.jar
             PermissionsExApiAdapter/target/PermissionsExApiAdapter-*.jar
@@ -76,44 +77,76 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { type: PAPER,   version: '1.8.8',  java: java8,  jar: legacy, adapters: true }
-          - { type: PAPER,   version: '1.12.2', java: java8,  jar: legacy, adapters: true }
-          # Plugins built against PermissionsEx 1.23.4 (Vault's own hooks and a probe) on the API adapter.
-          - { type: PAPER,   version: '1.8.8',  java: java8,  jar: legacy, legacy_plugins: true, player: true }
-          - { type: PAPER,   version: '1.12.2', java: java8,  jar: legacy, legacy_plugins: true, player: true }
-          - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  legacy_plugins: true, player: true }
-          - { type: PAPER,   version: '1.16.5', java: java8,  jar: legacy, adapters: true }
-          - { type: PAPER,   version: '1.17.1', java: java16, jar: legacy, adapters: true }
-          - { type: PAPER,   version: '1.18.2', java: java17, jar: legacy, adapters: false }
-          - { type: PAPER,   version: '1.19.4', java: java17, jar: legacy, adapters: false }
-          - { type: PAPER,   version: '1.20.4', java: java17, jar: legacy, adapters: false }
-          - { type: PAPER,   version: '1.20.6', java: java21, jar: legacy, adapters: false }
-          # player: a headless client joins and checks real permission checks, not just the console.
-          - { type: PAPER,   version: '1.8.8',  java: java8,  jar: legacy, adapters: false, player: true }
-          - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  adapters: false, player: true }
-          # Plain Spigot, built with BuildTools, which needs a JDK (the java8 image has one).
-          - { type: SPIGOT,  version: '1.8.8',  java: java8,  jar: legacy, adapters: false, player: true }
-          - { type: SPIGOT,  version: '1.21.4', java: java21-jdk, jar: spigot, adapters: false, player: true }
-          # Minecraft 1.7.10 (Crucible, a Forge + Bukkit server).
-          - { type: CRUCIBLE, version: '1.7.10', java: java8, jar: bukkit17, adapters: false }
-          - { type: PAPER,   version: '1.21.4', java: java21, jar: paper,  adapters: true }
-          # Minecraft 26.x runs on Java 25. The player bot (mineflayer) supports 26.1 but
-          # not yet 26.2 or 26.3, which get the console checks only.
-          - { type: PAPER,   version: '26.1.2', java: java25, jar: paper,  adapters: false, player: true }
-          - { type: PAPER,   version: '26.2',   java: java25, jar: paper,  adapters: false }
-          - { type: PAPER,   version: '26.3',   java: java25, jar: paper,  adapters: true }
-          # PrefixedPlayerlist and FactionsChat call Bukkit methods 26.x removed and do not
-          # enable there; the probe and the other 1.x-era plugins must still work.
-          - { type: PAPER,   version: '26.3',   java: java25, jar: paper,  legacy_plugins: true }
-          - { type: SPIGOT,  version: '26.1.2', java: java25-jdk, jar: spigot, adapters: false, player: true }
-          - { type: SPIGOT,  version: '26.2',   java: java25-jdk, jar: spigot, adapters: false }
-          - { type: SPIGOT,  version: '26.3',   java: java25-jdk, jar: spigot, adapters: false }
-          - { type: SPONGE7, version: '1.12.2-7.4.7', java: java8, jar: sponge7, adapters: false }
-          - { type: SPONGE8, version: '1.16.5-8.2.1-RC2708', java: java8, jar: sponge8, adapters: false }
-          - { type: SPONGE9, version: '1.18.2-9.0.0-RC1306', java: java17, jar: sponge9, adapters: false }
-          # Proxy images add RCON through a plugin that needs Java 21.
-          - { type: VELOCITY, version: '3.4.0-SNAPSHOT', java: java21, jar: velocity, adapters: false }
-          - { type: BUNGEECORD, version: 'latest', java: java21, jar: bungeecord, adapters: false }
+          # Supported versions (see .agents/skills/platform-support): the last version of each
+          # finished release line, and every version of the current line (26.x). When 27.x
+          # starts, keep 26.3 only.
+          #
+          # player: a headless client joins and checks real permission checks, not just the
+          # console. The bot (mineflayer) supports up to 26.1, so 26.2 and 26.3 are console only.
+          #
+          # Minecraft 1.7.10: Crucible, a Forge + Bukkit server.
+          - { type: CRUCIBLE, version: '1.7.10', java: java8, jar: bukkit17 }
+          # Paper.
+          - { type: PAPER,   version: '1.8.8',  java: java8,      jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.9.4',  java: java8,      jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.10.2', java: java8,      jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.11.2', java: java8,      jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.12.2', java: java8,      jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.13.2', java: java8,      jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.14.4', java: java8,      jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.15.2', java: java8,      jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.16.5', java: java8,      jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.17.1', java: java16,     jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.18.2', java: java17,     jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.19.4', java: java17,     jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.20.6', java: java21,     jar: legacy  , player: true }
+          - { type: PAPER,   version: '1.21.11', java: java21,     jar: paper   , player: true }
+          - { type: PAPER,   version: '26.1.2', java: java25,     jar: paper   , player: true }
+          - { type: PAPER,   version: '26.2',   java: java25,     jar: paper    }
+          - { type: PAPER,   version: '26.3',   java: java25,     jar: paper    }
+          # Spigot, built with BuildTools, which needs a JDK (the java8 image has one).
+          - { type: SPIGOT,  version: '1.8.8',  java: java8,      jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.9.4',  java: java8,      jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.10.2', java: java8,      jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.11.2', java: java8,      jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.12.2', java: java8,      jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.13.2', java: java8,      jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.14.4', java: java8,      jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.15.2', java: java8,      jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.16.5', java: java8,      jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.17.1', java: java17-jdk, jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.18.2', java: java17-jdk, jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.19.4', java: java17-jdk, jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.20.6', java: java21-jdk, jar: legacy  , player: true }
+          - { type: SPIGOT,  version: '1.21.11', java: java21-jdk, jar: spigot  , player: true }
+          - { type: SPIGOT,  version: '26.1.2', java: java25-jdk, jar: spigot  , player: true }
+          - { type: SPIGOT,  version: '26.2',   java: java25-jdk, jar: spigot   }
+          - { type: SPIGOT,  version: '26.3',   java: java25-jdk, jar: spigot   }
+          # The PermissionsEx adapters, oldest and newest server of each jar.
+          - { type: PAPER,    version: '1.8.8',   java: java8,      jar: legacy,  adapters: true }
+          - { type: PAPER,    version: '1.20.6',  java: java21,     jar: legacy,  adapters: true }
+          - { type: PAPER,    version: '1.21.11', java: java21,     jar: paper,   adapters: true }
+          - { type: PAPER,    version: '26.3',    java: java25,     jar: paper,   adapters: true }
+          # Plugins built against PermissionsEx 1.23.4 (Vault's own hooks, a probe and real
+          # 1.x-era plugins) on the API adapter. PrefixedPlayerlist and FactionsChat call
+          # Bukkit methods 26.x removed and do not enable there; the rest must still work.
+          - { type: PAPER,    version: '1.8.8',   java: java8,      jar: legacy,  legacy_plugins: true, player: true }
+          - { type: PAPER,    version: '1.12.2',  java: java8,      jar: legacy,  legacy_plugins: true, player: true }
+          - { type: PAPER,    version: '1.21.11', java: java21,     jar: paper,   legacy_plugins: true, player: true }
+          - { type: PAPER,    version: '26.3',    java: java25,     jar: paper,   legacy_plugins: true }
+          # SpongeVanilla: the newest build for each supported Minecraft version.
+          - { type: SPONGE7,  version: '1.12.2-7.4.8-RC427',  java: java8,  jar: sponge7 }
+          - { type: SPONGE8,  version: '1.16.5-8.2.1-RC2708', java: java8,  jar: sponge8 }
+          - { type: SPONGE9,  version: '1.18.2-9.0.0-RC1306', java: java17, jar: sponge9 }
+          - { type: SPONGE9,  version: '1.19.4-10.0.0-RC1588', java: java17, jar: sponge9 }
+          - { type: SPONGE11, version: '1.20.6-11.0.1-RC1916', java: java21, jar: sponge11 }
+          - { type: SPONGE11, version: '1.21.11-18.0.0-RC2781', java: java21, jar: sponge11 }
+          - { type: SPONGE11, version: '26.1.2-19.0.0-RC2789', java: java25, jar: sponge11 }
+          - { type: SPONGE11, version: '26.2-20.0.0-RC2791',   java: java25, jar: sponge11 }
+          - { type: SPONGE11, version: '26.3-21.0.0-RC2792',   java: java25, jar: sponge11 }
+          # Proxies. Their images add RCON through a plugin that needs Java 21.
+          - { type: VELOCITY, version: '3.4.0-SNAPSHOT', java: java21, jar: velocity }
+          - { type: BUNGEECORD, version: 'latest', java: java21, jar: bungeecord }
     name: Smoke ${{ matrix.type }} ${{ matrix.version }} (${{ matrix.jar }}${{ matrix.adapters && ' + adapters' || '' }}${{ matrix.legacy_plugins && ' + legacy plugins' || '' }})
     steps:
       - uses: actions/checkout@v4
@@ -142,6 +175,7 @@ jobs:
             sponge7) plugin=$(find jars -name 'PermissionsExPlus-Sponge7-*.jar' ! -name 'original-*') ;;
             sponge8) plugin=$(find jars -name 'PermissionsExPlus-Sponge8-*.jar' ! -name 'original-*') ;;
             sponge9) plugin=$(find jars -name 'PermissionsExPlus-Sponge9-*.jar' ! -name 'original-*') ;;
+            sponge11) plugin=$(find jars -name 'PermissionsExPlus-Sponge11-*.jar' ! -name 'original-*') ;;
             velocity) plugin=$(find jars -name 'PermissionsExPlus-Velocity-*.jar' ! -name 'original-*') ;;
             bungeecord) plugin=$(find jars -name 'PermissionsExPlus-BungeeCord-*.jar' ! -name 'original-*') ;;
           esac

@@ -39,6 +39,7 @@ jobs:
             PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
             PermissionsExPlus/Sponge8/target/PermissionsExPlus-Sponge8-*.jar
             PermissionsExPlus/Sponge9/target/PermissionsExPlus-Sponge9-*.jar
+            PermissionsExPlus/Sponge11/target/PermissionsExPlus-Sponge11-*.jar
             PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
             PermissionsExPlus/BungeeCord/target/PermissionsExPlus-BungeeCord-*.jar
             PermissionsExApiAdapter/target/PermissionsExApiAdapter-*.jar
@@ -57,6 +58,7 @@ jobs:
             PermissionsExPlus/Sponge7/target/PermissionsExPlus-Sponge7-*.jar
             PermissionsExPlus/Sponge8/target/PermissionsExPlus-Sponge8-*.jar
             PermissionsExPlus/Sponge9/target/PermissionsExPlus-Sponge9-*.jar
+            PermissionsExPlus/Sponge11/target/PermissionsExPlus-Sponge11-*.jar
             PermissionsExPlus/Velocity/target/PermissionsExPlus-Velocity-*.jar
             PermissionsExPlus/BungeeCord/target/PermissionsExPlus-BungeeCord-*.jar
             PermissionsExApiAdapter/target/PermissionsExApiAdapter-*.jar
