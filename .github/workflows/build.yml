@@ -32,16 +32,16 @@ jobs:
         with:
           name: plugin-jars
           path: |
-            PermissionsExPlus/SpigotLegacy/target/PermissionsExPlus-*.jar
-            PermissionsExPlus/Bukkit17/target/PermissionsExPlus-*.jar
-            PermissionsExPlus/Spigot/target/PermissionsExPlus-*.jar
-            PermissionsExPlus/Paper/target/PermissionsExPlus-*.jar
-            PermissionsExPlus/Sponge7/target/PermissionsExPlus-*.jar
-            PermissionsExPlus/Sponge8/target/PermissionsExPlus-*.jar
-            PermissionsExPlus/Sponge9/target/PermissionsExPlus-*.jar
-            PermissionsExPlus/Sponge11/target/PermissionsExPlus-*.jar
-            PermissionsExPlus/Velocity/target/PermissionsExPlus-*.jar
-            PermissionsExPlus/BungeeCord/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Bukkit/SpigotLegacy/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Bukkit/Bukkit17/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Bukkit/Spigot/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Bukkit/Paper/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Sponge/Sponge7/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Sponge/Sponge8/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Sponge/Sponge9/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Sponge/Sponge11/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Proxy/Velocity/target/PermissionsExPlus-*.jar
+            PermissionsExPlus/Proxy/BungeeCord/target/PermissionsExPlus-*.jar
             PermissionsExApiAdapter/target/PermissionsExApiAdapter-*.jar
             PermissionsExCommandAdapter/target/PermissionsExCommandAdapter-*.jar
           if-no-files-found: error
@@ -137,6 +137,9 @@ jobs:
           # SpongeVanilla: the newest build for each supported Minecraft version.
           - { type: SPONGE7,  version: '1.12.2-7.4.8-RC427',  java: java8,  jar: sponge7 }
           - { type: SPONGE8,  version: '1.16.5-8.2.1-RC2708', java: java8,  jar: sponge8 }
+          # No SpongeVanilla exists for 1.13 or 1.14, and the only 1.15.2 build does not start.
+          # SpongeVanilla 1.17.1 needs Java 16 (its launcher fails on current Java 17).
+          - { type: SPONGE9,  version: '1.17.1-9.0.0-RC977',  java: java16, jar: sponge9 }
           - { type: SPONGE9,  version: '1.18.2-9.0.0-RC1306', java: java17, jar: sponge9 }
           - { type: SPONGE9,  version: '1.19.4-10.0.0-RC1588', java: java17, jar: sponge9 }
           - { type: SPONGE11, version: '1.20.6-11.0.1-RC1916', java: java21, jar: sponge11 }
@@ -170,16 +173,16 @@ jobs:
           # Release jars are named by platform and Minecraft versions (two are Spigot),
           # so each is found by its module directory.
           case "${{ matrix.jar }}" in
-            legacy) module=SpigotLegacy ;;
-            bukkit17) module=Bukkit17 ;;
-            spigot) module=Spigot ;;
-            paper) module=Paper ;;
-            sponge7) module=Sponge7 ;;
-            sponge8) module=Sponge8 ;;
-            sponge9) module=Sponge9 ;;
-            sponge11) module=Sponge11 ;;
-            velocity) module=Velocity ;;
-            bungeecord) module=BungeeCord ;;
+            legacy) module=Bukkit/SpigotLegacy ;;
+            bukkit17) module=Bukkit/Bukkit17 ;;
+            spigot) module=Bukkit/Spigot ;;
+            paper) module=Bukkit/Paper ;;
+            sponge7) module=Sponge/Sponge7 ;;
+            sponge8) module=Sponge/Sponge8 ;;
+            sponge9) module=Sponge/Sponge9 ;;
+            sponge11) module=Sponge/Sponge11 ;;
+            velocity) module=Proxy/Velocity ;;
+            bungeecord) module=Proxy/BungeeCord ;;
           esac
           plugin=$(find "jars/PermissionsExPlus/$module/target" -name 'PermissionsExPlus-*.jar')
           extra=()

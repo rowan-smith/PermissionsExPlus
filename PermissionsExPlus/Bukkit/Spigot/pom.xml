@@ -3,23 +3,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>dev.rono.permissions</groupId>
         <artifactId>PermissionsExPlus</artifactId>
         <version>2.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <!--
-        Spigot/Paper 1.8.8 - 1.20.6 on Java 8+: the entry point over BukkitCommon,
-        compiled against the 1.8.8 API so any call that does not exist there fails the
-        build.
-    -->
-    <artifactId>SpigotLegacy</artifactId>
+    <artifactId>Spigot</artifactId>
 
     <properties>
-        <minecraft.versions>1.8.8-1.20.6</minecraft.versions>
-        <maven.compiler.release>8</maven.compiler.release>
+        <minecraft.versions>1.21.11-26.3</minecraft.versions>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -28,20 +22,14 @@
              Keep minecraft.versions in step with the supported versions in
              .agents/skills/platform-support. -->
         <finalName>PermissionsExPlus-Spigot-${minecraft.versions}</finalName>
+        <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.plugin.version}</version>
+                <version>3.13.0</version>
                 <configuration>
                     <release>${maven.compiler.release}</release>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -66,7 +54,7 @@
                                         <exclude>META-INF/LICENSE*</exclude>
                                         <exclude>META-INF/NOTICE*</exclude>
                                         <exclude>module-info.class</exclude>
-                                        <exclude>META-INF/versions/**</exclude>
+                                        <exclude>META-INF/versions/**/module-info.class</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
@@ -88,18 +76,16 @@
 
     <repositories>
         <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
             <id>placeholderapi</id>
             <url>https://repo.helpch.at/releases/</url>
         </repository>
     </repositories>
 
     <dependencies>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.8.8-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
@@ -111,18 +97,18 @@
             <artifactId>VaultAPI</artifactId>
             <version>1.7.1</version>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bukkit</groupId>
-                    <artifactId>bukkit</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-            <scope>provided</scope>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>2.0.16</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dev.rono.permissions</groupId>
@@ -135,10 +121,9 @@
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <!-- Last H2 release that runs on Java 8. -->
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>${h2.legacy.version}</version>
+            <version>${h2.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -146,13 +131,34 @@
             <artifactId>cloud-bukkit</artifactId>
         </dependency>
         <dependency>
-            <!-- Compile-time only: cloud-bukkit references Brigadier, which Cloud uses only
-                 when the server provides it (1.13+). 1.8.8 - 1.12 servers fall back to
-                 plain Bukkit command registration. -->
             <groupId>com.mojang</groupId>
             <artifactId>brigadier</artifactId>
             <version>1.3.10</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockbukkit.mockbukkit</groupId>
+            <artifactId>mockbukkit-v1.21</artifactId>
+            <version>${mockbukkit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- MockBukkit simulates a Paper server, so tests need paper-api. Test scope only,
+                 declared before spigot-api so it wins on the test classpath; main code is
+                 still compiled against spigot-api alone. -->
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- Spigot is an independent implementation: compile against the Spigot API
+                 so Paper-only methods cannot leak into it. -->
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
+
 </project>

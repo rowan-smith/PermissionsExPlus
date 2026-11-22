@@ -2,7 +2,46 @@
   <img src="website/static/img/logo.svg" alt="PermissionsExPlus Logo" width="800">
 </p>
 
-PermissionsExPlus is a modern Bukkit permissions plugin with Spigot and Paper adapters. Core and both platform adapters are implemented against API.
+PermissionsExPlus is a modern permissions plugin for Bukkit, Spigot, Paper, SpongeVanilla, Velocity and BungeeCord. Core and every platform plugin are implemented against the API.
+
+## Supported versions
+
+PermissionsExPlus supports the last version of every finished Minecraft release line and every
+version of the current one (26.x). Each cell names the release jar to install, without its
+`PermissionsExPlus-` prefix and `.jar` suffix; for example `Spigot-1.21.11-26.3` is
+`PermissionsExPlus-Spigot-1.21.11-26.3.jar`.
+
+| Minecraft | CraftBukkit / Crucible | Spigot | Paper | SpongeVanilla |
+|---|---|---|---|---|
+| 1.7.10 | `Bukkit-1.7.10` | — | — | — |
+| 1.8.8 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | — |
+| 1.9.4 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | — |
+| 1.10.2 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | — |
+| 1.11.2 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | — |
+| 1.12.2 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | `Sponge-1.12.2` |
+| 1.13.2 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | — |
+| 1.14.4 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | — |
+| 1.15.2 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | — |
+| 1.16.5 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | `Sponge-1.16.5` |
+| 1.17.1 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | `Sponge-1.17.1-1.19.4` |
+| 1.18.2 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | `Sponge-1.17.1-1.19.4` |
+| 1.19.4 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | `Sponge-1.17.1-1.19.4` |
+| 1.20.6 | — | `Spigot-1.8.8-1.20.6` | `Spigot-1.8.8-1.20.6` | `Sponge-1.20.6-26.3` |
+| 1.21.11 | — | `Spigot-1.21.11-26.3` | `Paper-1.21.11-26.3` | `Sponge-1.20.6-26.3` |
+| 26.1 | — | `Spigot-1.21.11-26.3` | `Paper-1.21.11-26.3` | `Sponge-1.20.6-26.3` |
+| 26.2 | — | `Spigot-1.21.11-26.3` | `Paper-1.21.11-26.3` | `Sponge-1.20.6-26.3` |
+| 26.3 | — | `Spigot-1.21.11-26.3` | `Paper-1.21.11-26.3` | `Sponge-1.20.6-26.3` |
+
+- **Velocity** and **BungeeCord** use `PermissionsExPlus-Velocity.jar` and
+  `PermissionsExPlus-BungeeCord.jar` on their current releases.
+- **26.1** is tested as 26.1.2, its latest patch.
+- **SpongeVanilla:** Sponge has no release for 1.13.2 or 1.14.4, and its only 1.15.2 build does
+  not start. Its 1.8.9 - 1.11.2 builds (Sponge API 4 - 6, betas only) are not supported.
+- Other versions (for example 1.20.4 or 1.21.4) may work but are not supported or tested.
+  When 27.x starts, 26.3 stays supported and 26.1 and 26.2 are dropped.
+
+Every version in the grid is tested on a real server in CI for every change. See
+[Requirements](docs/documentation/getting-started/requirements.md) for Java versions.
 
 ## Modules
 
@@ -11,8 +50,9 @@ Public Contract:
 
 Implementation is split into several modules:
 - `PermissionsExPlus/Core` — platform-independent API runtime, storage, commands, caching, configuration, auditing, and Redis sync.
-- `PermissionsExPlus/Spigot` — Spigot plugin adapter.
-- `PermissionsExPlus/Paper` — Paper plugin adapter.
+- `PermissionsExPlus/Bukkit` — the Bukkit, Spigot and Paper plugins (`Common` is shared by all of them).
+- `PermissionsExPlus/Sponge` — the SpongeVanilla plugins.
+- `PermissionsExPlus/Proxy` — the Velocity and BungeeCord plugins.
 
 Legacy Compatibility:
 - `PermissionsExApiAdapter` — legacy PermissionsEx API/plugin compatibility delegates to `PermissionsExPlusApi`.

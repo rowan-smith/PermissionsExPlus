@@ -8,18 +8,19 @@
         <groupId>dev.rono.permissions</groupId>
         <artifactId>PermissionsExPlus</artifactId>
         <version>2.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <!--
-        SpongeAPI 7 (Minecraft 1.12.2) on Java 8. An independent PermissionsExPlus
+        SpongeAPI 9 (Minecraft 1.18.2) on Java 17. An independent PermissionsExPlus
         platform that registers a Sponge PermissionService, so every permission check
         on the server is answered by PermissionsExPlus without any reflection.
     -->
-    <artifactId>Sponge7</artifactId>
+    <artifactId>Sponge11</artifactId>
 
     <properties>
-        <minecraft.versions>1.12.2</minecraft.versions>
-        <maven.compiler.release>8</maven.compiler.release>
+        <minecraft.versions>1.20.6-26.3</minecraft.versions>
+        <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -55,6 +56,19 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <!-- SpongeVanilla 10+ loads plugins as Java modules, which may not
+                                 share a package with the server's own modules. Annotation-only
+                                 jars are not needed at runtime and the server ships most of them. -->
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.checkerframework:*</exclude>
+                                    <exclude>com.google.errorprone:*</exclude>
+                                    <exclude>com.google.j2objc:*</exclude>
+                                    <exclude>org.jetbrains:annotations</exclude>
+                                    <exclude>org.jspecify:*</exclude>
+                                    <exclude>org.apiguardian:*</exclude>
+                                </excludes>
+                            </artifactSet>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -114,6 +128,16 @@
                                     <pattern>inet.ipaddr</pattern>
                                     <shadedPattern>dev.rono.permissions.libs.ipaddr</shadedPattern>
                                 </relocation>
+                                <!-- The server ships Kyori's option library (for Configurate) and
+                                     Minecraft ships SLF4J; bundled copies would split their packages. -->
+                                <relocation>
+                                    <pattern>net.kyori.option</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.kyori.option</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.slf4j</pattern>
+                                    <shadedPattern>dev.rono.permissions.libs.slf4j</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
@@ -151,10 +175,9 @@
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <!-- Last H2 release that runs on Java 8. -->
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>${h2.legacy.version}</version>
+            <version>${h2.version}</version>
             <scope>runtime</scope>
         </dependency>
         <!-- Declared after Core: at equal depth Maven takes the first declaration, and
@@ -162,11 +185,11 @@
         <dependency>
             <groupId>org.spongepowered</groupId>
             <artifactId>spongeapi</artifactId>
-            <version>7.4.0</version>
+            <version>11.0.0</version>
             <scope>provided</scope>
             <exclusions>
-                <!-- SpongeAPI 7 depends on Configurate 3 under the same group; without this,
-                     Maven picks 3.x over Core's Configurate 4 and it is never bundled. -->
+                <!-- SpongeAPI ships its own Configurate under the same group; Core's copy is
+                     the one bundled and relocated. -->
                 <exclusion>
                     <groupId>org.spongepowered</groupId>
                     <artifactId>configurate-core</artifactId>

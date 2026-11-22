@@ -12,17 +12,9 @@
 
     <modules>
         <module>Core</module>
-        <module>BukkitCommon</module>
-        <module>Spigot</module>
-        <module>Paper</module>
-        <module>SpigotLegacy</module>
-        <module>Bukkit17</module>
-        <module>Sponge7</module>
-        <module>Sponge8</module>
-        <module>Sponge9</module>
-        <module>Sponge11</module>
-        <module>Velocity</module>
-        <module>BungeeCord</module>
+        <module>Bukkit</module>
+        <module>Sponge</module>
+        <module>Proxy</module>
     </modules>
 
     <artifactId>PermissionsExPlus</artifactId>

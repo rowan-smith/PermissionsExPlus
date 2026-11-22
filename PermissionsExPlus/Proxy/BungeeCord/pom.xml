@@ -8,26 +8,23 @@
         <groupId>dev.rono.permissions</groupId>
         <artifactId>PermissionsExPlus</artifactId>
         <version>2.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <!--
-        SpongeAPI 9 (Minecraft 1.18.2) on Java 17. An independent PermissionsExPlus
-        platform that registers a Sponge PermissionService, so every permission check
-        on the server is answered by PermissionsExPlus without any reflection.
+        BungeeCord proxy on Java 8. Answers BungeeCord's permission checks for players,
+        with the player's current backend server as a context.
     -->
-    <artifactId>Sponge11</artifactId>
+    <artifactId>BungeeCord</artifactId>
 
     <properties>
-        <minecraft.versions>1.20.6-26.3</minecraft.versions>
-        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.release>8</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
-        <!-- The release jar: PermissionsExPlus-Sponge-<Minecraft versions it supports>.
-             Keep minecraft.versions in step with the supported versions in
-             .agents/skills/platform-support. -->
-        <finalName>PermissionsExPlus-Sponge-${minecraft.versions}</finalName>
+        <!-- The release jar. Proxies are not tied to a Minecraft version. -->
+        <finalName>PermissionsExPlus-BungeeCord</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -55,19 +52,6 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <!-- SpongeVanilla 10+ loads plugins as Java modules, which may not
-                                 share a package with the server's own modules. Annotation-only
-                                 jars are not needed at runtime and the server ships most of them. -->
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.checkerframework:*</exclude>
-                                    <exclude>com.google.errorprone:*</exclude>
-                                    <exclude>com.google.j2objc:*</exclude>
-                                    <exclude>org.jetbrains:annotations</exclude>
-                                    <exclude>org.jspecify:*</exclude>
-                                    <exclude>org.apiguardian:*</exclude>
-                                </excludes>
-                            </artifactSet>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -82,10 +66,9 @@
                                     </excludes>
                                 </filter>
                             </filters>
-                            <!-- SpongeVanilla's launch class loader delegates org.spongepowered.* to
-                                 the server's loader, which cannot see mod jars, so bundled Configurate
-                                 must live elsewhere. SnakeYAML is relocated so the server's copy is
-                                 never picked up in its place. -->
+                            <!-- BungeeCord ships its own Gson, Guava and SnakeYAML; keep ours separate.
+                                 (Not Aviator: jCasbin's expression engine generates bytecode from
+                                 class-name strings that relocation cannot rewrite.) -->
                             <relocations>
                                 <relocation>
                                     <pattern>org.spongepowered.configurate</pattern>
@@ -99,10 +82,6 @@
                                     <pattern>io.leangen.geantyref</pattern>
                                     <shadedPattern>dev.rono.permissions.libs.geantyref</shadedPattern>
                                 </relocation>
-                                <!-- Sponge ships older Caffeine, HikariCP, Gson and H2; its copies
-                                     (Not Aviator: jCasbin's expression engine generates bytecode from
-                                     class-name strings that relocation cannot rewrite.)
-                                     would otherwise be resolved in place of ours. -->
                                 <relocation>
                                     <pattern>com.github.benmanes.caffeine</pattern>
                                     <shadedPattern>dev.rono.permissions.libs.caffeine</shadedPattern>
@@ -116,26 +95,12 @@
                                     <shadedPattern>dev.rono.permissions.libs.gson</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.h2</pattern>
-                                    <shadedPattern>dev.rono.permissions.libs.h2</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>org.apache.commons</pattern>
                                     <shadedPattern>dev.rono.permissions.libs.commons</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>inet.ipaddr</pattern>
                                     <shadedPattern>dev.rono.permissions.libs.ipaddr</shadedPattern>
-                                </relocation>
-                                <!-- The server ships Kyori's option library (for Configurate) and
-                                     Minecraft ships SLF4J; bundled copies would split their packages. -->
-                                <relocation>
-                                    <pattern>net.kyori.option</pattern>
-                                    <shadedPattern>dev.rono.permissions.libs.kyori.option</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.slf4j</pattern>
-                                    <shadedPattern>dev.rono.permissions.libs.slf4j</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
@@ -156,56 +121,40 @@
 
     <repositories>
         <repository>
-            <id>sponge</id>
-            <url>https://repo.spongepowered.org/repository/maven-public/</url>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
         </repository>
     </repositories>
 
     <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>dev.rono.permissions</groupId>
             <artifactId>Core</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <!-- Last H2 release that runs on Java 8. -->
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
+            <version>${h2.legacy.version}</version>
             <scope>runtime</scope>
         </dependency>
-        <!-- Declared after Core: at equal depth Maven takes the first declaration, and
-             Core's library versions (Caffeine 2.9, ...) must win over SpongeAPI's older ones. -->
         <dependency>
-            <groupId>org.spongepowered</groupId>
-            <artifactId>spongeapi</artifactId>
-            <version>11.0.0</version>
+            <groupId>cloud.commandframework</groupId>
+            <artifactId>cloud-bungee</artifactId>
+        </dependency>
+        <!-- Declared after Core so Core's library versions win at equal depth. -->
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-api</artifactId>
+            <version>1.21-R0.3-SNAPSHOT</version>
             <scope>provided</scope>
-            <exclusions>
-                <!-- SpongeAPI ships its own Configurate under the same group; Core's copy is
-                     the one bundled and relocated. -->
-                <exclusion>
-                    <groupId>org.spongepowered</groupId>
-                    <artifactId>configurate-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.spongepowered</groupId>
-                    <artifactId>configurate-yaml</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.spongepowered</groupId>
-                    <artifactId>configurate-gson</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.spongepowered</groupId>
-                    <artifactId>configurate-hocon</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

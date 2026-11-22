@@ -8,18 +8,19 @@
         <groupId>dev.rono.permissions</groupId>
         <artifactId>PermissionsExPlus</artifactId>
         <version>2.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <!--
-        SpongeAPI 9 (Minecraft 1.18.2) on Java 17. An independent PermissionsExPlus
+        SpongeAPI 7 (Minecraft 1.12.2) on Java 8. An independent PermissionsExPlus
         platform that registers a Sponge PermissionService, so every permission check
         on the server is answered by PermissionsExPlus without any reflection.
     -->
-    <artifactId>Sponge9</artifactId>
+    <artifactId>Sponge7</artifactId>
 
     <properties>
-        <minecraft.versions>1.18.2-1.19.4</minecraft.versions>
-        <maven.compiler.release>17</maven.compiler.release>
+        <minecraft.versions>1.12.2</minecraft.versions>
+        <maven.compiler.release>8</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -151,9 +152,10 @@
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <!-- Last H2 release that runs on Java 8. -->
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
+            <version>${h2.legacy.version}</version>
             <scope>runtime</scope>
         </dependency>
         <!-- Declared after Core: at equal depth Maven takes the first declaration, and
@@ -161,11 +163,11 @@
         <dependency>
             <groupId>org.spongepowered</groupId>
             <artifactId>spongeapi</artifactId>
-            <version>9.0.0</version>
+            <version>7.4.0</version>
             <scope>provided</scope>
             <exclusions>
-                <!-- SpongeAPI ships its own Configurate under the same group; Core's copy is
-                     the one bundled and relocated. -->
+                <!-- SpongeAPI 7 depends on Configurate 3 under the same group; without this,
+                     Maven picks 3.x over Core's Configurate 4 and it is never bundled. -->
                 <exclusion>
                     <groupId>org.spongepowered</groupId>
                     <artifactId>configurate-core</artifactId>

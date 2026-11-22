@@ -18,12 +18,14 @@ the first and last Minecraft version it supports:
 | Paper | 1.21.11, 26.1, 26.2, 26.3 | `PermissionsExPlus-Paper-1.21.11-26.3.jar` |
 | SpongeVanilla | 1.12.2 | `PermissionsExPlus-Sponge-1.12.2.jar` |
 | SpongeVanilla | 1.16.5 | `PermissionsExPlus-Sponge-1.16.5.jar` |
-| SpongeVanilla | 1.18.2, 1.19.4 | `PermissionsExPlus-Sponge-1.18.2-1.19.4.jar` |
+| SpongeVanilla | 1.17.1, 1.18.2, 1.19.4 | `PermissionsExPlus-Sponge-1.17.1-1.19.4.jar` |
 | SpongeVanilla | 1.20.6, 1.21.11, 26.1, 26.2, 26.3 | `PermissionsExPlus-Sponge-1.20.6-26.3.jar` |
 | Velocity | Current releases | `PermissionsExPlus-Velocity.jar` |
 | BungeeCord | Current releases | `PermissionsExPlus-BungeeCord.jar` |
 
-On Paper 1.8.8 to 1.20.6, use the Spigot jar.
+On Paper 1.8.8 to 1.20.6, use the Spigot jar. Sponge never released SpongeVanilla for 1.13
+or 1.14, and its only 1.15.2 build does not start, so those versions are Bukkit-only.
+SpongeVanilla's 1.8.9 - 1.11.2 builds (Sponge API 4 - 6, betas only) are not supported.
 
 Only the versions listed are tested, on real servers, for every change. Versions inside a
 jar's range that are not listed (for example 1.20.4 or 1.21.4) may work, but are not

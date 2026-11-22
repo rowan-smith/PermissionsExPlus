@@ -31,8 +31,11 @@ The same rule applies on every platform:
 - **Bukkit, Spigot, Paper:** CraftBukkit/Crucible for 1.7.10; Spigot and Paper for the rest.
 - **Sponge:** one SpongeVanilla build per supported Minecraft version that Sponge released,
   using its newest build even when that is a release candidate, pre-release or snapshot.
-  Today: 1.12.2 (API 7), 1.16.5 (API 8), 1.18.2 (API 9), 1.19.4 (API 10), 1.20.6 (API 11),
-  the newest 1.21 build (1.21.11, API 18), and 26.1.2, 26.2 and 26.3.
+  Today: 1.12.2 (API 7), 1.16.5 (API 8), 1.17.1 (API 9, on Java 16), 1.18.2 (API 9),
+  1.19.4 (API 10), 1.20.6 (API 11), the newest 1.21 build (1.21.11, API 18), and 26.1.2,
+  26.2 and 26.3. Sponge has no build for 1.13 or 1.14, and its only 1.15.2 build does not
+  start; check again when Sponge publishes a new one. Sponge's 1.8.9 - 1.11.2 builds (API
+  4 - 6, betas only, in `maven-public` rather than `maven-releases`) are not supported yet.
 
 A supported version is one with a real-server smoke test in `.github/workflows/build.yml`.
 Versions outside the list are neither tested nor promised. When the list changes, update

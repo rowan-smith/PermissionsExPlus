@@ -8,26 +8,27 @@
         <groupId>dev.rono.permissions</groupId>
         <artifactId>PermissionsExPlus</artifactId>
         <version>2.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <!--
-        Bukkit 1.7.10 servers (CraftBukkit-compatible, e.g. Crucible/Thermos) on Java 8+.
-        An independent implementation compiled against the 1.7.10 Bukkit API, so any call
-        that does not exist on 1.7.10 fails the build.
+        Spigot/Paper 1.8.8 - 1.20.6 on Java 8+: the entry point over BukkitCommon,
+        compiled against the 1.8.8 API so any call that does not exist there fails the
+        build.
     -->
-    <artifactId>Bukkit17</artifactId>
+    <artifactId>SpigotLegacy</artifactId>
 
     <properties>
-        <minecraft.versions>1.7.10</minecraft.versions>
+        <minecraft.versions>1.8.8-1.20.6</minecraft.versions>
         <maven.compiler.release>8</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
-        <!-- The release jar: PermissionsExPlus-Bukkit-<Minecraft versions it supports>.
+        <!-- The release jar: PermissionsExPlus-Spigot-<Minecraft versions it supports>.
              Keep minecraft.versions in step with the supported versions in
              .agents/skills/platform-support. -->
-        <finalName>PermissionsExPlus-Bukkit-${minecraft.versions}</finalName>
+        <finalName>PermissionsExPlus-Spigot-${minecraft.versions}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -88,10 +89,6 @@
 
     <repositories>
         <repository>
-            <id>elmakers</id>
-            <url>https://maven.elmakers.com/repository/</url>
-        </repository>
-        <repository>
             <id>placeholderapi</id>
             <url>https://repo.helpch.at/releases/</url>
         </repository>
@@ -99,10 +96,9 @@
 
     <dependencies>
         <dependency>
-            <!-- The 1.7.10 Bukkit API (GPL) is still published by the ElMakers repository. -->
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>1.7.10-R0.1-SNAPSHOT</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
