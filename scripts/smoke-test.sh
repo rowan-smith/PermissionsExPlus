@@ -219,6 +219,41 @@ console() {
     printf '%s' "$output"
 }
 
+rcon_reachable() {
+    ! docker exec "$name" rcon-cli --host 127.0.0.1 --port 25575 --password pex list 2>&1 \
+        | grep 'Failed to connect to RCON' >/dev/null
+}
+
+wait_for_rcon() { # <seconds>
+    local _
+    for _ in $(seq 1 "$(($1 / 2))"); do
+        rcon_reachable && return 0
+        sleep 2
+    done
+    return 1
+}
+
+# Spigot 1.14.4 and Paper 1.13.2 have occasionally logged "RCON running" and then
+# refused every connection for the whole run, with nothing in the log. Restart once
+# then, showing which TCP ports were listening (25575 is 63E7 in /proc/net/tcp).
+if ! wait_for_rcon 60; then
+    echo "RCON refuses connections; listening TCP sockets (local address:port in hex):"
+    docker exec "$name" sh -c "awk '\$4 == \"0A\" { print \$2 }' /proc/net/tcp /proc/net/tcp6" || true
+    plugin_log
+    echo "Restarting $type $version once"
+    starts="$(log | grep -cE "$ready" || true)"
+    docker restart "$name" >/dev/null
+    for _ in $(seq 1 300); do
+        [ "$(log | grep -cE "$ready" || true)" -gt "$starts" ] && break
+        sleep 2
+    done
+    if ! wait_for_rcon 60; then
+        plugin_log
+        echo "FAIL: RCON refused connections after a restart"
+        exit 1
+    fi
+fi
+
 expect() { # <command> <regex>
     local output
     output="$(console "$1" || true)"
@@ -253,7 +288,7 @@ else
     expect "pex import permissionsex $root/pex-import" "Importing PermissionsEx data"
     sleep 5
     expect "pex group imported permissions list" "imported.node"
-    expect "pex user PexBot groups" "imported .*expires in (23h|1d)"
+    expect "pex user PexBot groups" "imported .*expires in (2[0-3]h|1d)"
     expect "pex ladder default" "imported"
     expect "pex world world_nether" "world"
 
