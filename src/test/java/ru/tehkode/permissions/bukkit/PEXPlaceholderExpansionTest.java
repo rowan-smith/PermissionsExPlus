@@ -724,7 +724,8 @@ public class PEXPlaceholderExpansionTest extends PEXTestBase {
                 // Simulate PAPI resolution: find %key% patterns and replace them
                 Pattern p = Pattern.compile("%([^%]+)%");
                 Matcher m = p.matcher(result);
-                StringBuilder sb = new StringBuilder();
+                // Matcher.appendReplacement only takes a StringBuffer on Java 8.
+                StringBuffer sb = new StringBuffer();
                 while (m.find()) {
                     String key = m.group(1);
                     String replacement = papiRegistry.getOrDefault(key, m.group(0));

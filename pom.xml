@@ -4,14 +4,14 @@
 
     <groupId>ru.tehkode</groupId>
     <artifactId>PermissionsEx</artifactId>
-    <version>1.23.6</version>
+    <version>1.23.7</version>
 
     <name>PermissionsExPlus</name>
     <url>https://github.com/rowan-smith/PermissionsExPlus</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>11</maven.compiler.release>
+        <maven.compiler.release>8</maven.compiler.release>
         <junit.version>5.11.4</junit.version>
         <dbcp.version>2.13.0</dbcp.version>
         <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
@@ -102,6 +102,16 @@
                                 <relocation>
                                     <pattern>com.google.gson</pattern>
                                     <shadedPattern>ru.tehkode.libs.com.google.gson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- Servers without Adventure (Spigot, Paper before 1.16.5) or with an
+                                         older one (Paper 1.16.5) must use this copy, not the server's. -->
+                                    <pattern>net.kyori</pattern>
+                                    <shadedPattern>ru.tehkode.libs.net.kyori</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>ru.tehkode.libs.bstats</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -249,18 +259,31 @@
             <artifactId>placeholderapi</artifactId>
             <version>2.12.3</version>
             <scope>provided</scope>
+            <exclusions>
+                <!-- PlaceholderAPI's own bStats would replace ours on the compile classpath. -->
+                <exclusion>
+                    <groupId>org.bstats</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>3.2.1</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
             <version>4.17.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
             <version>4.17.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>

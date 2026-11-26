@@ -23,6 +23,7 @@ public class PermissionsExConfig {
 	private final boolean saveDefaultGroup;
 	private final String defaultBackend;
 	private final boolean informPlayers;
+	private final boolean bstats;
 	private final String basedir;
 
 	public PermissionsExConfig(Configuration config, PermissionsEx plugin) {
@@ -36,6 +37,7 @@ public class PermissionsExConfig {
 		this.saveDefaultGroup = getBoolean("permissions.save-default-group", false);
 		this.defaultBackend = getString("permissions.backend", PermissionBackend.DEFAULT_BACKEND);
 		this.informPlayers = getBoolean("permissions.informplayers.changes", false);
+		this.bstats = getBoolean("permissions.bstats", true);
 		this.basedir = getString("permissions.basedir", "plugins/PermissionsEx");
 	}
 
@@ -96,6 +98,13 @@ public class PermissionsExConfig {
 
 	public boolean informPlayers() {
 		return informPlayers;
+	}
+
+	/**
+	 * Whether anonymous usage statistics are sent to bStats.
+	 */
+	public boolean bstatsEnabled() {
+		return bstats;
 	}
 
 	public String getBasedir() {

@@ -2,7 +2,6 @@ package ru.tehkode.permissions.bukkit;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
-import ru.tehkode.permissions.bukkit.PermissionsExConfig;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,5 +31,22 @@ public class PermissionsExConfigTest {
         assertEquals("sql", config.getDefaultBackend());
         assertTrue(config.isDebug());
         assertEquals("custom/dir", config.getBasedir());
+    }
+
+    @Test
+    public void bstatsIsEnabledByDefaultAndWrittenToTheConfig() {
+        YamlConfiguration yaml = new YamlConfiguration();
+        PermissionsExConfig config = new PermissionsExConfig(yaml, null);
+
+        assertTrue(config.bstatsEnabled());
+        assertTrue(yaml.getBoolean("permissions.bstats"));
+    }
+
+    @Test
+    public void bstatsCanBeTurnedOff() {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("permissions.bstats", false);
+
+        assertFalse(new PermissionsExConfig(yaml, null).bstatsEnabled());
     }
 }

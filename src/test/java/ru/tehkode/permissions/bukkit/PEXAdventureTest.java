@@ -435,7 +435,7 @@ public class PEXAdventureTest {
             String hybrid = mini.replace("\\<", "<");
             Component result = MINI_MESSAGE.deserialize(hybrid);
             String roundTripped = MINI_MESSAGE.serialize(result);
-            assertEquals("test", roundTripped.strip());
+            assertEquals("test", roundTripped.trim());
         }
     }
 
@@ -558,7 +558,7 @@ public class PEXAdventureTest {
         @Test
         void plainTextNoTags() {
             Component component = MINI_MESSAGE.deserialize("Hello World");
-            String serialized = MINI_MESSAGE.serialize(component).strip();
+            String serialized = MINI_MESSAGE.serialize(component).trim();
             assertEquals("Hello World", serialized);
         }
 
@@ -643,7 +643,7 @@ public class PEXAdventureTest {
         @Test
         void plainTextHasNoFormatting() {
             Component result = processThroughPipeline("Hello World");
-            String serialized = MINI_MESSAGE.serialize(result).strip();
+            String serialized = MINI_MESSAGE.serialize(result).trim();
             assertEquals("Hello World", serialized);
         }
 

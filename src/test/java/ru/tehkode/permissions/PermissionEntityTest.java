@@ -1,6 +1,7 @@
 package ru.tehkode.permissions;
 
 import org.junit.jupiter.api.Test;
+import java.util.Collections;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -76,7 +77,7 @@ public class PermissionEntityTest extends PEXTestBase {
     public void testSetPermissionsPreservesTimedPermissions() {
         PermissionUser user = manager.getUser("TestUser");
         user.addTimedPermission("test.timed.perm", null, 300);
-        user.setPermissions(List.of("new.perm"), null);
+        user.setPermissions(Collections.singletonList("new.perm"), null);
         assertTrue(user.has("test.timed.perm"), "Timed permission should survive setPermissions");
         assertTrue(user.has("new.perm"), "New permission should be present");
     }

@@ -19,6 +19,8 @@
 package ru.tehkode.permissions.bukkit;
 
 import com.google.common.cache.CacheBuilder;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -64,12 +66,18 @@ import java.util.logging.LogRecord;
  * @author code
  */
 public class PermissionsEx extends JavaPlugin implements NativeInterface {
+	/**
+	 * The plugin's ID on bstats.org.
+	 */
+	private static final int BSTATS_PLUGIN_ID = 35426;
+
     protected PermissionManager permissionsManager;
 	protected CommandsManager commandsManager;
 	private PermissionsExConfig config;
 	protected SuperpermsListener superms;
 	private RegexPermissions regexPerms;
 	private PEXPlaceholderExpansion placeholderExpansion;
+	private Metrics metrics;
 	private boolean errored = false;
 	private static PermissionsEx instance;
 	{
@@ -213,15 +221,18 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 				getLogger().info("PlaceholderAPI support enabled");
 			}
 
-			// Initialize Adventure support
+			// Initialize Adventure support. Without it, messages are sent as legacy text.
 			try {
 				PEXAdventure.init(this);
 				getLogger().info("Adventure support enabled");
-			} catch (Exception ignored) {
+			} catch (Throwable t) {
+				getLogger().log(Level.WARNING, "Adventure support is unavailable; sending plain messages", t);
 			}
 
 			// Start timed permissions cleaner timer
 			this.permissionsManager.initTimer();
+
+			startMetrics();
 
 		} catch (PermissionBackendException e) {
 			logBackendExc(e);
@@ -236,9 +247,10 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 	@Override
 	public void onDisable() {
 		try {
+			// Errors here must not stop the rest of the plugin shutting down.
 			try {
 				PEXAdventure.shutdown();
-			} catch (Exception ignored) {
+			} catch (Throwable ignored) {
 			}
 
 			if (this.permissionsManager != null) {
@@ -262,10 +274,31 @@ public class PermissionsEx extends JavaPlugin implements NativeInterface {
 				this.placeholderExpansion = null;
 			}
 
+			if (this.metrics != null) {
+				this.metrics.shutdown();
+				this.metrics = null;
+			}
+
 		} catch (Throwable t) {
 			ErrorReport.handleError("While disabling", t);
 		}
 		ErrorReport.shutdown();
+	}
+
+	/**
+	 * Starts bStats unless {@code permissions.bstats} is false. Metrics are optional, so a
+	 * failure is logged and does not stop the plugin enabling.
+	 */
+	private void startMetrics() {
+		if (!config.bstatsEnabled()) {
+			return;
+		}
+		try {
+			metrics = new Metrics(this, BSTATS_PLUGIN_ID);
+			metrics.addCustomChart(new SimplePie("storage_backend", config::getDefaultBackend));
+		} catch (Throwable t) {
+			getLogger().log(Level.WARNING, "bStats metrics are unavailable", t);
+		}
 	}
 
 	@Override
