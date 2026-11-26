@@ -44,6 +44,9 @@ permissions:
   informplayers:
     changes: false
 
+  # Send anonymous usage statistics to bStats
+  bstats: true
+
 # SQL backend configuration (only used when backend is set to sql)
 sql:
   driver: MySQL
@@ -73,6 +76,7 @@ multi:
 | `permissions.createUserRecords` | `false` | Create user records automatically on first join |
 | `permissions.save-default-group` | `false` | Persist the default group flag with user data |
 | `permissions.informplayers.changes` | `false` | Notify players when their permissions are modified |
+| `permissions.bstats` | `true` | Send anonymous usage statistics to [bStats](https://bstats.org) (plugin ID 35426): server count, Minecraft and Java versions, and the storage backend. bStats' own `plugins/bStats/config.yml` can turn it off for every plugin |
 
 :::warning
 Enabling `permissions.allowOps` bypasses all permission checks for server operators. Only use this if you understand the security implications.
