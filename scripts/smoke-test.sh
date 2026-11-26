@@ -60,7 +60,10 @@ memory=1500M
 case "$type" in
     SPIGOT)
         # Build Spigot with SpigotMC's BuildTools rather than downloading a third-party mirror.
-        server=( -e TYPE=SPIGOT -e VERSION="$version" -e BUILD_FROM_SOURCE=true ) ;;
+        server=( -e TYPE=SPIGOT -e VERSION="$version" -e BUILD_FROM_SOURCE=true )
+        # BuildTools runs with the server's heap; decompiling and remapping newer
+        # versions needs more than 1500M.
+        memory=2G ;;
     SPONGE7)
         server=( -e TYPE=SPONGEVANILLA -e VERSION="${version%%-*}" -e SPONGEVERSION="$version" ) ;;
     SPONGE8 | SPONGE9 | SPONGE11)
@@ -143,6 +146,18 @@ done
 docker start "$name" >/dev/null
 restarted=false
 
+# The image hides BuildTools' output behind progress dots, and exits before printing its
+# log when BuildTools fails, so show the end of the log from the stopped container.
+spigot_build_log() {
+    echo "--- end of BuildTools log ---"
+    if docker cp "$name:/data/spigot_build.log" "$work/spigot_build.log" >/dev/null 2>&1; then
+        tail -40 "$work/spigot_build.log"
+    else
+        echo "(no BuildTools log)"
+    fi
+    echo "---"
+}
+
 echo "Waiting for $type $version ($java) to start..."
 ready='Done \([0-9.]+s\)!'
 [ "$proxy" = true ] && ready='Done \([0-9.]+s\)!|Listening on'
@@ -164,10 +179,12 @@ for _ in $(seq 1 600); do  # first boots download and patch the server: allow 20
             restarted=true
             echo "Spigot exited before starting; restarting once"
             docker logs "$name" 2>&1 | grep -av '^\[init\] \.\.\.' | tail -15
+            spigot_build_log
             docker start "$name" >/dev/null
             continue
         fi
         docker logs "$name" 2>&1 | tail -50
+        [ "$type" = SPIGOT ] && spigot_build_log
         echo "FAIL: server exited during startup"
         exit 1
     fi
@@ -219,9 +236,15 @@ console() {
     printf '%s' "$output"
 }
 
+# rcon-cli exits non-zero when refused, so its output is checked, not a pipeline that
+# pipefail would also fail.
 rcon_reachable() {
-    ! docker exec "$name" rcon-cli --host 127.0.0.1 --port 25575 --password pex list 2>&1 \
-        | grep 'Failed to connect to RCON' >/dev/null
+    local output
+    output="$(docker exec "$name" rcon-cli --host 127.0.0.1 --port 25575 --password pex list 2>&1)" || true
+    case "$output" in
+        *"Failed to connect to RCON"*) return 1 ;;
+        *) return 0 ;;
+    esac
 }
 
 wait_for_rcon() { # <seconds>
